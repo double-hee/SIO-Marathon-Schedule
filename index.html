@@ -60,6 +60,7 @@
   .bib-card .rname{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:19px; line-height:1.2;}
   .bib-card .rdate{font-family:'Roboto Mono',monospace; font-size:12.5px; color:#8a8680; margin-top:3px;}
   .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; font-family:'Roboto Mono',monospace; flex-shrink:0;}
+  .pill-group{display:flex; flex-wrap:wrap; gap:4px; justify-content:flex-end; max-width:150px;}
   .pill.k10{background:#E9F3EC; color:var(--green);}
   .pill.half{background:#FFF1DC; color:#B5720B;}
   .pill.full{background:#FBE7E3; color:var(--clay);}
@@ -95,6 +96,9 @@
   .memo-view.empty-memo{color:#a39d94;}
   .memo-view a{color:var(--clay); text-decoration:underline; word-break:break-all;}
   .event-filter{display:flex; gap:6px; margin:10px 0 14px; flex-wrap:wrap;}
+  .mode-toggle{display:flex; gap:8px; margin-bottom:16px;}
+  .mt-btn{flex:1; padding:10px; border-radius:9px; border:1.5px solid var(--mist); background:#fff; color:#8a8680; font-weight:600; font-size:14px; cursor:pointer;}
+  .mt-btn.active{background:var(--navy); color:#fff; border-color:var(--navy);}
   .ef-pill{font-family:'Roboto Mono',monospace; font-size:12px; font-weight:600; padding:6px 11px; border-radius:20px; border:1.5px solid var(--mist); background:#fff; color:#8a8680; cursor:pointer;}
   .ef-pill.active{background:var(--navy); color:#fff; border-color:var(--navy);}
   .modal .actions{display:flex; gap:8px; margin-top:16px;}
@@ -114,11 +118,18 @@
   .participant-row:last-child{border-bottom:none;}
   .participant-row .pn{font-weight:600;}
   .participant-row .pe{font-family:'Roboto Mono',monospace; font-size:12px; color:#8a8680;}
+  .companion-note{font-weight:400; font-size:12.5px; color:#8a8680;}
+  #raceParticipantAction{margin-bottom:10px;}
+  .small-action{width:100%; padding:10px; border-radius:9px; border:none; font-size:13.5px; font-weight:600; cursor:pointer;}
+  button.small-action.btn-ghost{border:1.5px solid var(--mist) !important; background:#fff; color:var(--ink);}
+  button.small-action.btn-primary{background:var(--clay); color:#fff;}
 
   .toast{position:fixed; bottom:96px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:11px 18px; border-radius:24px; font-size:13.5px; z-index:100; opacity:0; pointer-events:none; transition:opacity 0.25s;}
   .toast.show{opacity:1;}
 
-  .loading{display:flex; align-items:center; justify-content:center; height:100vh; color:#8a8680; font-size:14px;}
+  .loading{position:fixed; inset:0; z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:var(--navy); color:rgba(255,255,255,0.7); font-size:13.5px;}
+  .spinner{width:30px; height:30px; border-radius:50%; border:3px solid rgba(255,255,255,0.2); border-top-color:var(--lane); animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -153,7 +164,7 @@
     </nav>
   </div>
 
-  <div class="loading" id="loadingScreen">불러오는 중…</div>
+  <div class="loading" id="loadingScreen"><div class="spinner"></div><div>불러오는 중…</div></div>
 </div>
 
 <!-- 참가 신청 모달 -->
@@ -162,11 +173,22 @@
     <button class="modal-close" data-close="entryOverlay">✕</button>
     <h2>대회 참가 신청</h2>
     <div class="sub">참가할 대회 정보를 입력해주세요</div>
-    <div class="field">
+
+    <div class="mode-toggle" id="entryModeToggle">
+      <button class="mt-btn active" data-mode="existing" type="button">기존 대회</button>
+      <button class="mt-btn" data-mode="new" type="button">신규 대회</button>
+    </div>
+
+    <div class="field" id="entryExistingField">
+      <label>대회 선택 (예정된 대회만 표시돼요)</label>
+      <select id="entryRaceSelect"><option value="">대회를 선택하세요</option></select>
+    </div>
+    <div class="field" id="entryNewField" style="display:none;">
       <label>대회명</label>
       <input id="entryRaceName" list="raceNameList" placeholder="예: JTBC 서울마라톤">
       <datalist id="raceNameList"></datalist>
     </div>
+
     <div class="field">
       <label>대회일자</label>
       <input id="entryRaceDate" type="date">
@@ -180,9 +202,13 @@
         <option value="기타">기타</option>
       </select>
     </div>
+    <div class="field" id="entryDistanceField" style="display:none;">
+      <label>거리 (기타 종목)</label>
+      <input id="entryDistance" placeholder="예: 15km">
+    </div>
     <div class="field">
-      <label>특이사항 (선택)</label>
-      <textarea id="entryNote" placeholder="페이스메이커 신청, 단체 부스 등"></textarea>
+      <label>동반 참가 인원 (선택)</label>
+      <textarea id="entryNote" placeholder="예: 배우자, 자녀 2명과 함께 참가"></textarea>
     </div>
     <div class="actions">
       <button class="btn-ghost" data-close="entryOverlay">취소</button>
@@ -253,6 +279,7 @@
 
     <h2 style="margin-top:22px; font-size:19px;">참가자</h2>
     <div class="event-filter" id="raceEventFilter"></div>
+    <div id="raceParticipantAction"></div>
     <div id="raceParticipantList"></div>
   </div>
 </div>
@@ -266,6 +293,19 @@ const CONFIG = {
   GAS_URL: 'https://script.google.com/macros/s/AKfycbzBVJf0N2LOS__B7oF7O9H2oNrTTrrtYaYnM0P4udjsI6mF42Eci4_bRX2fnviRAU_D/exec'
 };
 const EVENT_CLASS = { '10K':'k10', 'HALF':'half', 'FULL':'full' };
+const EVENT_PREFERRED = ['10K','HALF','FULL'];
+function sortEvents_(events){
+  return events.slice().sort((a,b)=>{
+    const ia = EVENT_PREFERRED.indexOf(a), ib = EVENT_PREFERRED.indexOf(b);
+    if(ia===-1 && ib===-1) return a.localeCompare(b,'ko');
+    if(ia===-1) return 1;
+    if(ib===-1) return -1;
+    return ia-ib;
+  });
+}
+function escapeHtml(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 /* ================= 상태 =================
    ⚠️ 아티팩트 미리보기(채팅 내 미리보기)에서는 localStorage가 막혀있어 이름 기억 기능이 동작하지 않을 수 있지만,
@@ -329,7 +369,7 @@ document.querySelectorAll('.field textarea').forEach(ta=>{
 
 function linkify(text){
   const empty = !text || !text.trim();
-  const escaped = (text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const escaped = escapeHtml(text);
   const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/g;
   const linked = escaped.replace(urlRegex, (match)=>{
     const clean = match.replace(/[.,)]+$/,'');
@@ -347,18 +387,45 @@ document.querySelectorAll('[data-close]').forEach(b=>{
 });
 
 /* ================= 초기 로드 ================= */
-async function loadAll(){
+const DATA_CACHE_KEY = 'sio_data_cache_v1';
+
+function loadCachedData(){
+  try{
+    const raw = localStorage.getItem(DATA_CACHE_KEY);
+    if(!raw) return false;
+    const cached = JSON.parse(raw);
+    state.races = cached.races || [];
+    state.entries = cached.entries || [];
+    state.records = cached.records || [];
+    state.members = cached.members || [];
+    return true;
+  }catch(e){ return false; }
+}
+function saveCachedData(){
+  try{
+    localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({
+      races: state.races, entries: state.entries, records: state.records, members: state.members
+    }));
+  }catch(e){}
+}
+
+async function loadAll(background){
   try{
     const data = await apiGet();
-    if(!data.ok){ toast('데이터 로드 실패'); return; }
+    if(!data.ok){ if(!background) toast('데이터 로드 실패'); return; }
     state.races = data.races || [];
     state.entries = data.entries || [];
     state.records = data.records || [];
     state.members = data.members || [];
-    populateNameSelect();
+    saveCachedData();
     populateRaceDatalist();
+    if(state.user){
+      renderMine(); renderRaces();
+    }else{
+      populateNameSelect();
+    }
   }catch(err){
-    toast('서버 연결 실패 - GAS_URL 설정을 확인하세요');
+    if(!background) toast('서버 연결 실패 - GAS_URL 설정을 확인하세요');
     console.error(err);
   }
 }
@@ -477,11 +544,14 @@ function renderRaces(){
   main.innerHTML = `<div class="section-title">대회 전체 <span class="count">${races.length}개</span></div>` +
     races.map(r=>{
       const count = state.entries.filter(e=>e.raceId===r.id).length;
-      const cls = EVENT_CLASS[r.event] || 'etc';
+      const eventsForRace = sortEvents_([...new Set(state.entries.filter(e=>e.raceId===r.id).map(e=>e.event||'기타'))]);
+      const pillsHtml = eventsForRace.length
+        ? eventsForRace.map(ev=>`<span class="pill ${EVENT_CLASS[ev]||'etc'}">${escapeHtml(ev)}</span>`).join('')
+        : `<span class="pill etc">${escapeHtml(r.event||'종목 미정')}</span>`;
       return `<div class="bib-card" data-race="${r.id}">
         <div class="row1">
           <div><div class="rname">${r.raceName}</div><div class="rdate mono">${fmtDate(r.raceDate)}</div></div>
-          <span class="pill ${cls}">${r.event||'기타'}</span>
+          <div class="pill-group">${pillsHtml}</div>
         </div>
         <div class="row2"><span>${r.place||'장소 미정'}</span><span class="participants-badge">참가 ${count}명</span></div>
       </div>`;
@@ -493,25 +563,91 @@ function renderRaces(){
 }
 
 /* ================= 참가 신청 모달 ================= */
+let entryMode = 'existing';
+
+function toDateInputValue_(d){
+  const dt = new Date(d);
+  if(isNaN(dt)) return '';
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+
+function switchEntryMode(mode){
+  entryMode = mode;
+  document.querySelectorAll('#entryModeToggle .mt-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
+  document.getElementById('entryExistingField').style.display = mode==='existing' ? 'block' : 'none';
+  document.getElementById('entryNewField').style.display = mode==='new' ? 'block' : 'none';
+  const dateInput = document.getElementById('entryRaceDate');
+  if(mode==='existing'){
+    dateInput.readOnly = true;
+    dateInput.style.background = '#F2F0EC';
+    applySelectedRaceDate();
+  }else{
+    dateInput.readOnly = false;
+    dateInput.style.background = '#fff';
+    dateInput.value = '';
+  }
+}
+document.querySelectorAll('#entryModeToggle .mt-btn').forEach(b=>{
+  b.addEventListener('click', ()=>switchEntryMode(b.dataset.mode));
+});
+
+function populateEntryRaceSelect(){
+  const sel = document.getElementById('entryRaceSelect');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const future = state.races
+    .filter(r=>{ const d = new Date(r.raceDate); return !isNaN(d) && d >= today; })
+    .sort((a,b)=> new Date(a.raceDate) - new Date(b.raceDate));
+  sel.innerHTML = future.length
+    ? '<option value="">대회를 선택하세요</option>' + future.map(r=>`<option value="${r.id}">${escapeHtml(r.raceName)} (${fmtDate(r.raceDate)})</option>`).join('')
+    : '<option value="">예정된 대회가 없어요 - 신규 대회 탭을 이용해주세요</option>';
+}
+
+function applySelectedRaceDate(){
+  const race = state.races.find(r=>r.id===document.getElementById('entryRaceSelect').value);
+  document.getElementById('entryRaceDate').value = race ? toDateInputValue_(race.raceDate) : '';
+}
+document.getElementById('entryRaceSelect').addEventListener('change', applySelectedRaceDate);
+
+document.getElementById('entryEvent').addEventListener('change', ()=>{
+  document.getElementById('entryDistanceField').style.display = document.getElementById('entryEvent').value==='기타' ? 'block' : 'none';
+});
+
 document.getElementById('fabAdd').addEventListener('click', ()=>{
+  populateEntryRaceSelect();
+  switchEntryMode('existing');
   document.getElementById('entryRaceName').value='';
-  document.getElementById('entryRaceDate').value='';
   document.getElementById('entryEvent').value='10K';
+  document.getElementById('entryDistanceField').style.display='none';
+  document.getElementById('entryDistance').value='';
   document.getElementById('entryNote').value='';
   autoResizeTextarea(document.getElementById('entryNote'));
   open_('entryOverlay');
 });
 
 document.getElementById('entrySubmit').addEventListener('click', async ()=>{
-  const raceName = document.getElementById('entryRaceName').value.trim();
-  if(!raceName){ toast('대회명을 입력해주세요'); return; }
+  let raceName, raceDate;
+  if(entryMode==='existing'){
+    const race = state.races.find(r=>r.id===document.getElementById('entryRaceSelect').value);
+    if(!race){ toast('대회를 선택해주세요'); return; }
+    raceName = race.raceName;
+    raceDate = toDateInputValue_(race.raceDate);
+  }else{
+    raceName = document.getElementById('entryRaceName').value.trim();
+    if(!raceName){ toast('대회명을 입력해주세요'); return; }
+    raceDate = document.getElementById('entryRaceDate').value;
+  }
+  let event = document.getElementById('entryEvent').value;
+  if(event==='기타'){
+    const dist = document.getElementById('entryDistance').value.trim();
+    if(dist) event = `기타(${dist})`;
+  }
   const btn = document.getElementById('entrySubmit');
   btn.disabled = true; btn.textContent='신청 중…';
   const res = await apiPost('addEntry', {
     name: state.user,
     raceName,
-    raceDate: document.getElementById('entryRaceDate').value,
-    event: document.getElementById('entryEvent').value,
+    raceDate,
+    event,
     note: document.getElementById('entryNote').value.trim()
   });
   btn.disabled = false; btn.textContent='신청하기';
@@ -572,7 +708,6 @@ document.getElementById('entryDelete').addEventListener('click', async ()=>{
 /* ================= 대회 상세 (참가자 + 메모/잠금) ================= */
 let currentLockHeld = false;
 let raceParticipantFilter = 'all';
-const EVENT_ORDER = ['10K','HALF','FULL','기타'];
 
 async function openRaceModal(raceId){
   const race = state.races.find(r=>r.id===raceId);
@@ -617,11 +752,11 @@ function updateRaceMemoView(){
 function renderParticipants(raceId){
   const parts = state.entries.filter(e=>e.raceId===raceId);
   const counts = {};
-  parts.forEach(p=>{ const ev = p.event || '기타'; counts[ev] = (counts[ev]||0)+1; });
-  const events = EVENT_ORDER.filter(ev=>counts[ev]);
+  parts.forEach(p=>{ const ev = (p.event||'').trim() || '기타'; counts[ev] = (counts[ev]||0)+1; });
+  const events = sortEvents_(Object.keys(counts)); // 실제 존재하는 종목값을 전부 동적으로 표시 (고정 목록에 없는 값도 누락 없이 표시됨)
 
   const filterHtml = `<button class="ef-pill ${raceParticipantFilter==='all'?'active':''}" data-ev="all">전체 ${parts.length}</button>` +
-    events.map(ev=>`<button class="ef-pill ${raceParticipantFilter===ev?'active':''}" data-ev="${ev}">${ev} ${counts[ev]}</button>`).join('');
+    events.map(ev=>`<button class="ef-pill ${raceParticipantFilter===ev?'active':''}" data-ev="${escapeHtml(ev)}">${escapeHtml(ev)} ${counts[ev]}</button>`).join('');
   const filterEl = document.getElementById('raceEventFilter');
   filterEl.innerHTML = filterHtml;
   filterEl.querySelectorAll('.ef-pill').forEach(btn=>{
@@ -631,11 +766,50 @@ function renderParticipants(raceId){
     });
   });
 
-  const filtered = raceParticipantFilter==='all' ? parts : parts.filter(p=>(p.event||'기타')===raceParticipantFilter);
+  const filtered = raceParticipantFilter==='all' ? parts : parts.filter(p=>((p.event||'').trim()||'기타')===raceParticipantFilter);
   const list = document.getElementById('raceParticipantList');
   list.innerHTML = filtered.length
-    ? filtered.map(p=>`<div class="participant-row"><span class="pn">${p.name}</span><span class="pe mono">${p.event||''}</span></div>`).join('')
+    ? filtered.map(p=>`<div class="participant-row"><span class="pn">${escapeHtml(p.name)}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(p.event||'')}</span></div>`).join('')
     : `<div class="empty" style="padding:20px;">해당 종목 참가자가 없어요</div>`;
+
+  renderParticipantAction(raceId, parts);
+}
+
+function renderParticipantAction(raceId, parts){
+  const box = document.getElementById('raceParticipantAction');
+  if(raceParticipantFilter === 'all'){
+    box.innerHTML = '';
+    return;
+  }
+  const myEntry = parts.find(p => p.name===state.user && ((p.event||'').trim()||'기타')===raceParticipantFilter);
+  if(myEntry){
+    box.innerHTML = `<button class="btn-ghost small-action" id="quickActionBtn">'${escapeHtml(raceParticipantFilter)}' 참가 취소</button>`;
+    box.querySelector('#quickActionBtn').addEventListener('click', ()=>quickCancel_(myEntry, raceId));
+  }else{
+    box.innerHTML = `<button class="btn-primary small-action" id="quickActionBtn">'${escapeHtml(raceParticipantFilter)}' 참가하기</button>`;
+    box.querySelector('#quickActionBtn').addEventListener('click', ()=>quickJoin_(raceId, raceParticipantFilter));
+  }
+}
+
+async function quickCancel_(entry, raceId){
+  if(!confirm(`'${entry.raceName}' (${entry.event}) 참가를 취소할까요?`)) return;
+  const res = await apiPost('deleteEntry', {entryId: entry.id, name: state.user});
+  if(!res.ok){ toast(res.error||'취소 실패'); return; }
+  state.entries = state.entries.filter(e=>e.id!==entry.id);
+  toast('참가가 취소되었습니다');
+  renderMine(); renderRaces(); renderParticipants(raceId);
+}
+
+async function quickJoin_(raceId, event){
+  const race = state.races.find(r=>r.id===raceId);
+  if(!race) return;
+  const res = await apiPost('addEntry', {
+    name: state.user, raceName: race.raceName, raceDate: race.raceDate, event, note: ''
+  });
+  if(!res.ok){ toast(res.error||'신청 실패'); return; }
+  state.entries.push(res.entry);
+  toast('참가 신청 완료!');
+  renderMine(); renderRaces(); renderParticipants(raceId);
 }
 
 function updateLockBanner(race){
@@ -719,8 +893,16 @@ window.addEventListener('beforeunload', releaseLockIfHeld);
 
 /* ================= 시작 ================= */
 (async function init(){
-  await loadAll();
-  document.getElementById('loadingScreen').style.display = 'none';
+  const hadCache = loadCachedData();
+  if(hadCache){
+    populateNameSelect();
+    populateRaceDatalist();
+    document.getElementById('loadingScreen').style.display = 'none';
+    loadAll(true); // 최신 데이터로 백그라운드 갱신
+  }else{
+    await loadAll(false);
+    document.getElementById('loadingScreen').style.display = 'none';
+  }
 })();
 </script>
 </body>
