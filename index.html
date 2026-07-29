@@ -103,6 +103,16 @@
   .event-filter{display:flex; gap:6px; margin:10px 0 14px; flex-wrap:wrap;}
   .chart-card{background:var(--white); border:1px solid var(--mist); border-radius:14px; padding:14px 12px 4px; margin-bottom:16px;}
   .chart-canvas-wrap{position:relative; height:200px; width:100%;}
+  #mineChart{touch-action:none;}
+  .chart-date-label{position:absolute; background:var(--navy); color:#fff; font-size:11px; font-weight:600; padding:3px 7px; border-radius:6px; pointer-events:none; white-space:nowrap; z-index:5; transform:translateY(2px);}
+  .chart-info-panel{margin-top:8px; padding:10px 4px 2px; border-top:1px dashed var(--mist);}
+  .chart-info-placeholder{color:#a39d94; font-size:12.5px; text-align:center; padding:10px 0;}
+  .chart-info-date{font-family:'Roboto Mono',monospace; font-size:12px; color:var(--clay); font-weight:700; margin-bottom:8px;}
+  .chart-info-row{display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px;}
+  .chart-info-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+  .chart-info-ev{font-family:'Roboto Mono',monospace; font-weight:700; width:40px; flex-shrink:0;}
+  .chart-info-vals{color:var(--ink);}
+  .chart-info-empty{color:#a39d94; font-size:12.5px;}
   .chart-empty{padding:44px 20px; text-align:center; color:#a39d94; font-size:13.5px;}
   .mode-toggle{display:flex; gap:8px; margin-bottom:16px;}
   .races-filter-bar{display:flex; gap:8px; margin:0 0 14px; min-width:0;}
@@ -168,17 +178,32 @@
     <main id="mainMine">
       <div class="section-title">내 대회 <span class="count" id="mineCount"></span></div>
 
-      <div class="chart-card">
-        <div class="chart-canvas-wrap"><canvas id="mineChart"></canvas></div>
-        <div class="chart-empty" id="mineChartEmpty" style="display:none;">10K/HALF/FULL 목표·기록이 아직 없어요</div>
-        <div class="event-filter" id="mineChartFilter"></div>
+      <div class="mode-toggle" id="mineSubTabToggle">
+        <button class="mt-btn active" data-subtab="list" type="button">참가 정보</button>
+        <button class="mt-btn" data-subtab="chart" type="button">기록 보기</button>
       </div>
 
-      <div class="races-filter-bar">
-        <select id="mineYearFilter"></select>
-        <input id="mineSearchInput" type="text" placeholder="대회명 검색">
+      <div id="mineListView">
+        <div class="races-filter-bar">
+          <select id="mineYearFilter"></select>
+          <input id="mineSearchInput" type="text" placeholder="대회명 검색">
+        </div>
+        <div id="mineListContainer"></div>
       </div>
-      <div id="mineListContainer"></div>
+
+      <div id="mineChartView" style="display:none;">
+        <div class="chart-card">
+          <div class="chart-canvas-wrap">
+            <canvas id="mineChart"></canvas>
+            <div id="mineChartDateLabel" class="chart-date-label" style="display:none;"></div>
+          </div>
+          <div class="chart-empty" id="mineChartEmpty" style="display:none;">10K/HALF/FULL 목표·기록이 아직 없어요</div>
+          <div id="mineChartInfoPanel" class="chart-info-panel">
+            <div class="chart-info-placeholder">그래프를 눌러 날짜별 기록을 확인하세요</div>
+          </div>
+          <div class="event-filter" id="mineChartFilter"></div>
+        </div>
+      </div>
     </main>
     <main id="mainRaces" style="display:none;">
       <div class="section-title">대회 전체 <span class="count" id="racesCount"></span></div>
@@ -594,6 +619,28 @@ const CHART_EVENTS = ['10K','HALF','FULL'];
 const EVENT_COLOR = { '10K':'#2E7D4F', 'HALF':'#B5720B', 'FULL':'#C6402C' };
 let mineChartEvents = new Set(CHART_EVENTS); // 기본: 전체 종목 표시
 let mineChartInstance = null;
+let mineChartAllPoints = []; // 현재 표시 중인 모든 {x} 후보 (가장 가까운 지점 탐색용)
+let mineChartSelectedX = null; // 현재 크로스헤어가 위치한 x값(타임스탬프)
+let mineChartDragging = false;
+
+const mineCrosshairPlugin = {
+  id: 'mineCrosshair',
+  afterDatasetsDraw(chart){
+    if(mineChartSelectedX == null) return;
+    const {ctx, chartArea, scales} = chart;
+    const xPixel = scales.x.getPixelForValue(mineChartSelectedX);
+    if(xPixel < chartArea.left || xPixel > chartArea.right) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(xPixel, chartArea.top);
+    ctx.lineTo(xPixel, chartArea.bottom);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(27,42,65,0.55)';
+    ctx.setLineDash([4,4]);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
 
 function timeStrToSeconds_(str){
   if(!str) return null;
@@ -639,6 +686,7 @@ function renderMineChart(){
 
   const datasets = [];
   let hasAnyData = false;
+  mineChartAllPoints = [];
 
   CHART_EVENTS.forEach(ev=>{
     if(!mineChartEvents.has(ev)) return;
@@ -651,8 +699,8 @@ function renderMineChart(){
       if(!rec) return;
       const goalSec = timeStrToSeconds_(rec.goal);
       const resultSec = timeStrToSeconds_(rec.result);
-      if(goalSec!=null) goalPoints.push({x:d.getTime(), y:goalSec});
-      if(resultSec!=null) resultPoints.push({x:d.getTime(), y:resultSec});
+      if(goalSec!=null){ goalPoints.push({x:d.getTime(), y:goalSec}); mineChartAllPoints.push({x:d.getTime()}); }
+      if(resultSec!=null){ resultPoints.push({x:d.getTime(), y:resultSec}); mineChartAllPoints.push({x:d.getTime()}); }
     });
     goalPoints.sort((a,b)=>a.x-b.x);
     resultPoints.sort((a,b)=>a.x-b.x);
@@ -680,6 +728,7 @@ function renderMineChart(){
   if(!hasAnyData){
     canvas.style.display = 'none';
     emptyEl.style.display = 'block';
+    updateMineChartCrosshair(null);
     return;
   }
   canvas.style.display = 'block';
@@ -687,9 +736,11 @@ function renderMineChart(){
 
   mineChartInstance = new Chart(canvas.getContext('2d'), {
     data: { datasets },
+    plugins: [mineCrosshairPlugin],
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
       scales: {
         x: {
           type: 'linear',
@@ -704,22 +755,119 @@ function renderMineChart(){
       },
       plugins: {
         legend: { display:false },
-        tooltip: {
-          callbacks: {
-            title: (items)=> items.length ? fmtDateShort_(items[0].parsed.x) : '',
-            label: (item)=> `${item.dataset.label}: ${secondsToTimeStr_(item.parsed.y)}`
-          }
-        }
+        tooltip: { enabled:false }
       }
     }
   });
+
+  // 데이터가 갱신돼도 기존에 보고있던 크로스헤어 위치가 있으면 유지해서 다시 표시
+  if(mineChartSelectedX != null && mineChartAllPoints.some(p=>p.x===mineChartSelectedX)){
+    updateMineChartCrosshair(mineChartSelectedX);
+  }
 }
+
+function findNearestChartX_(targetX){
+  if(!mineChartAllPoints.length) return null;
+  let nearest = mineChartAllPoints[0].x;
+  let minDiff = Math.abs(nearest - targetX);
+  mineChartAllPoints.forEach(p=>{
+    const diff = Math.abs(p.x - targetX);
+    if(diff < minDiff){ minDiff = diff; nearest = p.x; }
+  });
+  return nearest;
+}
+
+function updateMineChartCrosshair(xValue){
+  mineChartSelectedX = xValue;
+  const dateLabel = document.getElementById('mineChartDateLabel');
+  const wrap = document.querySelector('#mineChartView .chart-canvas-wrap');
+
+  if(xValue == null || !mineChartInstance){
+    dateLabel.style.display = 'none';
+    renderMineChartInfoPanel(null);
+    if(mineChartInstance) mineChartInstance.draw();
+    return;
+  }
+
+  mineChartInstance.draw(); // 플러그인이 세로선을 다시 그리도록
+
+  const xPixel = mineChartInstance.scales.x.getPixelForValue(xValue);
+  const chartArea = mineChartInstance.chartArea;
+  dateLabel.textContent = fmtDate(xValue);
+  dateLabel.style.display = 'block';
+  dateLabel.style.top = (chartArea.bottom + 4) + 'px';
+  const wrapWidth = wrap.clientWidth;
+  const labelWidth = dateLabel.offsetWidth || 70;
+  let left = xPixel - labelWidth/2;
+  left = Math.max(2, Math.min(left, wrapWidth - labelWidth - 2));
+  dateLabel.style.left = left + 'px';
+
+  renderMineChartInfoPanel(xValue);
+}
+
+function renderMineChartInfoPanel(xValue){
+  const panel = document.getElementById('mineChartInfoPanel');
+  if(xValue == null){
+    panel.innerHTML = `<div class="chart-info-placeholder">그래프를 눌러 날짜별 기록을 확인하세요</div>`;
+    return;
+  }
+  const rows = CHART_EVENTS.filter(ev=>mineChartEvents.has(ev)).map(ev=>{
+    const entry = state.entries.find(e=>e.name===state.user && e.event===ev && !isNaN(new Date(e.raceDate)) && new Date(e.raceDate).getTime()===xValue);
+    const dot = `<span class="chart-info-dot" style="background:${EVENT_COLOR[ev]}"></span>`;
+    if(!entry){
+      return `<div class="chart-info-row">${dot}<span class="chart-info-ev">${ev}</span><span class="chart-info-empty">데이터 없음</span></div>`;
+    }
+    const rec = state.records.find(r=>r.entryId===entry.id);
+    const goalStr = rec && rec.goal ? rec.goal : '-';
+    const resultStr = rec && rec.result ? rec.result : '-';
+    return `<div class="chart-info-row">${dot}<span class="chart-info-ev">${ev}</span><span class="chart-info-vals">목표 ${goalStr} · 기록 ${resultStr}</span></div>`;
+  }).join('');
+  panel.innerHTML = `<div class="chart-info-date">${fmtDate(xValue)}</div>` + rows;
+}
+
+function handleMineChartPointer_(clientX){
+  if(!mineChartInstance) return;
+  const canvas = document.getElementById('mineChart');
+  const rect = canvas.getBoundingClientRect();
+  const pixelX = clientX - rect.left;
+  const dataX = mineChartInstance.scales.x.getValueForPixel(pixelX);
+  const nearestX = findNearestChartX_(dataX);
+  if(nearestX != null) updateMineChartCrosshair(nearestX);
+}
+
+document.getElementById('mineChart').addEventListener('pointerdown', (e)=>{
+  mineChartDragging = true;
+  handleMineChartPointer_(e.clientX);
+});
+document.getElementById('mineChart').addEventListener('pointermove', (e)=>{
+  if(!mineChartDragging) return;
+  handleMineChartPointer_(e.clientX);
+});
+window.addEventListener('pointerup', ()=>{ mineChartDragging = false; });
+window.addEventListener('pointercancel', ()=>{ mineChartDragging = false; });
+
+document.addEventListener('pointerdown', (e)=>{
+  if(mineChartSelectedX == null) return;
+  const wrap = document.querySelector('#mineChartView .chart-canvas-wrap');
+  if(wrap && !wrap.contains(e.target)) updateMineChartCrosshair(null);
+});
+
+let mineSubTab = 'list';
+document.querySelectorAll('#mineSubTabToggle .mt-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    mineSubTab = b.dataset.subtab;
+    document.querySelectorAll('#mineSubTabToggle .mt-btn').forEach(x=>x.classList.toggle('active', x===b));
+    document.getElementById('mineListView').style.display = mineSubTab==='list' ? 'block' : 'none';
+    document.getElementById('mineChartView').style.display = mineSubTab==='chart' ? 'block' : 'none';
+    if(mineSubTab==='chart') renderMineChart(); // 숨겨진 상태에서 그려지면 크기가 0이 되므로 보일 때 다시 그림
+  });
+});
 
 function renderMine(){
   populateMineYearFilter();
   renderMineList();
   renderMineChartFilter();
-  renderMineChart();
+  if(mineSubTab==='chart') renderMineChart();
 }
 
 function renderMineList(){
@@ -1008,7 +1156,7 @@ document.getElementById('recordSubmit').addEventListener('click', async ()=>{
   btn.disabled = false; btn.textContent='저장';
   if(!res.ok){ toast(res.error||'저장 실패'); return; }
   const idx = state.records.findIndex(r=>r.entryId===entry.id);
-  const newRec = res.record || {...state.records[idx], goal, result, memo};
+  const newRec = res.record || {...(state.records[idx]||{}), id: state.records[idx]?.id, entryId: entry.id, name: state.user, raceName: entry.raceName, goal, result, memo};
   if(idx>-1) state.records[idx] = newRec; else state.records.push(newRec);
   toast('저장 완료!');
   close_('recordOverlay');
