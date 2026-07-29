@@ -41,8 +41,6 @@
   /* ---------- Shell ---------- */
   #shell{display:none; flex-direction:column; min-height:100vh;}
   header.top{background:var(--navy); color:#fff; padding:16px 18px 14px; display:flex; align-items:center; gap:12px;}
-  header.top .bibtag{width:44px; height:44px; border-radius:8px; border:2px dashed var(--lane); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
-  header.top .bibtag span{font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:15px; color:var(--lane);}
   header.top .who{flex:1; min-width:0;}
   header.top .who .crew{font-size:11px; opacity:0.6; letter-spacing:0.08em; text-transform:uppercase;}
   header.top .who .name{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px;}
@@ -76,7 +74,7 @@
   nav.tabs button.active{color:var(--clay);}
   nav.tabs button .ic{font-size:19px;}
 
-  .fab{position:fixed; bottom:76px; left:50%; transform:translateX(calc(-50% + 202px)); width:52px; height:52px; border-radius:50%; background:var(--clay); color:#fff; border:none; font-size:26px; box-shadow:0 4px 10px rgba(198,64,44,0.35); cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:0;}
+  .fab{position:fixed; bottom:76px; right:max(16px, calc((100vw - 520px)/2 + 16px)); width:52px; height:52px; border-radius:50%; background:var(--clay); color:#fff; border:none; font-size:26px; box-shadow:0 4px 10px rgba(198,64,44,0.35); cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:0;}
   .fab:active{background:var(--clay-dark);}
 
   /* Modal */
@@ -88,8 +86,17 @@
   .field{margin-bottom:12px;}
   .field label{display:block; font-size:12.5px; font-weight:600; color:#6b6660; margin-bottom:5px;}
   .field input, .field select, .field textarea{width:100%; padding:11px 12px; border-radius:9px; border:1.5px solid var(--mist); font-size:15px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
-  .field textarea{resize:vertical; min-height:64px;}
+  .field textarea{resize:none; overflow:hidden; min-height:64px;}
   .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--clay);}
+  .link-row{display:flex; gap:8px; align-items:center;}
+  .link-row input{flex:1;}
+  .link-open-btn{flex-shrink:0; white-space:nowrap; font-size:13px; font-weight:600; color:var(--clay); text-decoration:none; padding:10px 12px; border:1.5px solid var(--mist); border-radius:9px;}
+  .memo-view{padding:11px 12px; border-radius:9px; border:1.5px solid var(--mist); background:#F2F0EC; font-size:15px; line-height:1.55; white-space:pre-wrap; word-break:break-word; min-height:64px; color:var(--ink);}
+  .memo-view.empty-memo{color:#a39d94;}
+  .memo-view a{color:var(--clay); text-decoration:underline; word-break:break-all;}
+  .event-filter{display:flex; gap:6px; margin:10px 0 14px; flex-wrap:wrap;}
+  .ef-pill{font-family:'Roboto Mono',monospace; font-size:12px; font-weight:600; padding:6px 11px; border-radius:20px; border:1.5px solid var(--mist); background:#fff; color:#8a8680; cursor:pointer;}
+  .ef-pill.active{background:var(--navy); color:#fff; border-color:var(--navy);}
   .modal .actions{display:flex; gap:8px; margin-top:16px;}
   .modal .actions button{flex:1; padding:13px; border-radius:10px; border:none; font-size:15px; font-weight:600; cursor:pointer;}
   .btn-primary{background:var(--clay); color:#fff;}
@@ -128,7 +135,6 @@
 
   <div id="shell">
     <header class="top">
-      <div class="bibtag"><span id="bibNo">--</span></div>
       <div class="who">
         <div class="crew">SIO RUNNING CREW</div>
         <div class="name" id="whoName">-</div>
@@ -230,18 +236,23 @@
     </div>
     <div class="field">
       <label>대회 링크</label>
-      <input id="raceLink" placeholder="접수/공식 사이트 URL">
+      <div class="link-row">
+        <input id="raceLink" placeholder="접수/공식 사이트 URL">
+        <a id="raceLinkOpen" href="#" target="_blank" rel="noopener" class="link-open-btn" style="display:none;">열기 ↗</a>
+      </div>
     </div>
     <div class="field">
       <label>메모 (공동 작성 - 한 명씩 편집)</label>
-      <textarea id="raceMemo" placeholder="주차 정보, 픽업 안내, 단체 신청 공지 등" rows="4"></textarea>
+      <div id="raceMemoView" class="memo-view"></div>
+      <textarea id="raceMemo" placeholder="주차 정보, 픽업 안내, 단체 신청 공지 등" rows="4" style="display:none;"></textarea>
     </div>
     <div class="actions" id="raceEditActions">
       <button class="btn-ghost" id="raceEditBtn">편집하기</button>
       <button class="btn-primary" id="raceSaveBtn" style="display:none;">저장하고 잠금 해제</button>
     </div>
 
-    <h2 style="margin-top:22px; font-size:19px;">참가자 <span class="mono" id="raceParticipantCount" style="color:var(--clay);"></span></h2>
+    <h2 style="margin-top:22px; font-size:19px;">참가자</h2>
+    <div class="event-filter" id="raceEventFilter"></div>
     <div id="raceParticipantList"></div>
   </div>
 </div>
@@ -257,8 +268,8 @@ const CONFIG = {
 const EVENT_CLASS = { '10K':'k10', 'HALF':'half', 'FULL':'full' };
 
 /* ================= 상태 =================
-   ⚠️ 아티팩트 미리보기 환경은 localStorage를 지원하지 않아 세션 변수로 로그인 상태를 유지합니다.
-   GitHub Pages 등 실제 배포 환경에서는 localStorage.setItem/getItem으로 바꿔 로그인 유지가 가능합니다. */
+   ⚠️ 아티팩트 미리보기(채팅 내 미리보기)에서는 localStorage가 막혀있어 이름 기억 기능이 동작하지 않을 수 있지만,
+   GitHub Pages 등 실제 배포 환경에서는 정상적으로 마지막 로그인 이름을 기억합니다. */
 let state = {
   user: null,
   races: [], entries: [], records: [], members: [],
@@ -267,6 +278,13 @@ let state = {
   activeEntry: null,
   lockHeartbeat: null
 };
+
+function saveLastName(name){
+  try{ localStorage.setItem('sio_last_name', name); }catch(e){}
+}
+function getLastName(){
+  try{ return localStorage.getItem('sio_last_name') || ''; }catch(e){ return ''; }
+}
 
 /* ================= API ================= */
 async function apiGet(){
@@ -294,15 +312,32 @@ function fmtDate(d){
   if(!d) return '날짜 미정';
   const dt = new Date(d);
   if(isNaN(dt)) return String(d);
-  return `${dt.getFullYear()}.${String(dt.getMonth()+1).padStart(2,'0')}.${String(dt.getDate()).padStart(2,'0')}`;
-}
-function bibNumberFor(name){
-  let h = 0;
-  for(let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) % 999;
-  return String(h).padStart(3,'0');
+  const days = ['일','월','화','수','목','금','토'];
+  return `${dt.getFullYear()}.${String(dt.getMonth()+1).padStart(2,'0')}.${String(dt.getDate()).padStart(2,'0')} (${days[dt.getDay()]})`;
 }
 function open_(id){ document.getElementById(id).classList.add('show'); }
 function close_(id){ document.getElementById(id).classList.remove('show'); }
+
+function autoResizeTextarea(ta){
+  if(!ta) return;
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+document.querySelectorAll('.field textarea').forEach(ta=>{
+  ta.addEventListener('input', ()=>autoResizeTextarea(ta));
+});
+
+function linkify(text){
+  const empty = !text || !text.trim();
+  const escaped = (text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/g;
+  const linked = escaped.replace(urlRegex, (match)=>{
+    const clean = match.replace(/[.,)]+$/,'');
+    const href = clean.startsWith('http') ? clean : 'https://'+clean;
+    return `<a href="${href}" target="_blank" rel="noopener">${clean}</a>`;
+  }).replace(/\n/g,'<br>');
+  return empty ? '메모가 없습니다' : linked;
+}
 document.querySelectorAll('[data-close]').forEach(b=>{
   b.addEventListener('click', ()=>{
     const id = b.getAttribute('data-close');
@@ -332,6 +367,15 @@ function populateNameSelect(){
   const sel = document.getElementById('nameSelect');
   sel.innerHTML = '<option value="">이름 선택</option>' +
     state.members.slice().sort().map(n=>`<option value="${n}">${n}</option>`).join('');
+  const lastName = getLastName();
+  if(lastName){
+    if(state.members.includes(lastName)){
+      sel.value = lastName;
+    }else{
+      document.getElementById('toggleInputMode').click();
+      document.getElementById('nameInput').value = lastName;
+    }
+  }
 }
 function populateRaceDatalist(){
   const dl = document.getElementById('raceNameList');
@@ -355,6 +399,7 @@ document.getElementById('enterBtn').addEventListener('click', async ()=>{
   const name = (inp.style.display !== 'none' ? inp.value : sel.value).trim();
   if(!name){ toast('이름을 입력해주세요'); return; }
   state.user = name;
+  saveLastName(name);
   if(!state.members.includes(name)){
     await apiPost('addMember', {name});
     state.members.push(name);
@@ -371,7 +416,6 @@ document.getElementById('logoutBtn').addEventListener('click', ()=>{
 function enterApp(){
   document.getElementById('splash').style.display = 'none';
   document.getElementById('shell').style.display = 'flex';
-  document.getElementById('bibNo').textContent = bibNumberFor(state.user);
   document.getElementById('whoName').textContent = state.user;
   renderMine();
   renderRaces();
@@ -454,6 +498,7 @@ document.getElementById('fabAdd').addEventListener('click', ()=>{
   document.getElementById('entryRaceDate').value='';
   document.getElementById('entryEvent').value='10K';
   document.getElementById('entryNote').value='';
+  autoResizeTextarea(document.getElementById('entryNote'));
   open_('entryOverlay');
 });
 
@@ -489,6 +534,7 @@ function openRecordModal(entryId){
   document.getElementById('recordGoal').value = rec?.goal || '';
   document.getElementById('recordResult').value = rec?.result || '';
   document.getElementById('recordMemo').value = rec?.memo || '';
+  autoResizeTextarea(document.getElementById('recordMemo'));
   open_('recordOverlay');
 }
 
@@ -525,29 +571,71 @@ document.getElementById('entryDelete').addEventListener('click', async ()=>{
 
 /* ================= 대회 상세 (참가자 + 메모/잠금) ================= */
 let currentLockHeld = false;
+let raceParticipantFilter = 'all';
+const EVENT_ORDER = ['10K','HALF','FULL','기타'];
 
 async function openRaceModal(raceId){
   const race = state.races.find(r=>r.id===raceId);
   if(!race) return;
   state.activeRace = race;
   currentLockHeld = false;
+  raceParticipantFilter = 'all';
 
   document.getElementById('raceTitle').textContent = race.raceName;
   document.getElementById('raceSub').textContent = `${fmtDate(race.raceDate)} · ${race.event||'종목 미정'}`;
   document.getElementById('racePlace').value = race.place||'';
   document.getElementById('raceLink').value = race.link||'';
   document.getElementById('raceMemo').value = race.memo||'';
+  updateRaceLinkOpen();
+  updateRaceMemoView();
   setRaceFieldsEditable(false);
   updateLockBanner(race);
-
-  const parts = state.entries.filter(e=>e.raceId===raceId);
-  document.getElementById('raceParticipantCount').textContent = `${parts.length}명`;
-  const list = document.getElementById('raceParticipantList');
-  list.innerHTML = parts.length
-    ? parts.map(p=>`<div class="participant-row"><span class="pn">${p.name}</span><span class="pe mono">${p.event||''}</span></div>`).join('')
-    : `<div class="empty" style="padding:20px;">아직 참가자가 없어요</div>`;
+  renderParticipants(raceId);
 
   open_('raceOverlay');
+}
+
+function updateRaceLinkOpen(){
+  const val = document.getElementById('raceLink').value.trim();
+  const btn = document.getElementById('raceLinkOpen');
+  if(val){
+    btn.href = val.startsWith('http') ? val : 'https://'+val;
+    btn.style.display = 'inline-block';
+  }else{
+    btn.style.display = 'none';
+  }
+}
+document.getElementById('raceLink').addEventListener('input', updateRaceLinkOpen);
+
+function updateRaceMemoView(){
+  const val = document.getElementById('raceMemo').value;
+  const view = document.getElementById('raceMemoView');
+  view.innerHTML = linkify(val);
+  view.classList.toggle('empty-memo', !val.trim());
+}
+
+function renderParticipants(raceId){
+  const parts = state.entries.filter(e=>e.raceId===raceId);
+  const counts = {};
+  parts.forEach(p=>{ const ev = p.event || '기타'; counts[ev] = (counts[ev]||0)+1; });
+  const events = EVENT_ORDER.filter(ev=>counts[ev]);
+
+  const filterHtml = `<button class="ef-pill ${raceParticipantFilter==='all'?'active':''}" data-ev="all">전체 ${parts.length}</button>` +
+    events.map(ev=>`<button class="ef-pill ${raceParticipantFilter===ev?'active':''}" data-ev="${ev}">${ev} ${counts[ev]}</button>`).join('');
+  const filterEl = document.getElementById('raceEventFilter');
+  filterEl.innerHTML = filterHtml;
+  filterEl.querySelectorAll('.ef-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      raceParticipantFilter = btn.dataset.ev;
+      renderParticipants(raceId);
+    });
+  });
+
+  const filtered = raceParticipantFilter==='all' ? parts : parts.filter(p=>(p.event||'기타')===raceParticipantFilter);
+  const list = document.getElementById('raceParticipantList');
+  list.innerHTML = filtered.length
+    ? filtered.map(p=>`<div class="participant-row"><span class="pn">${p.name}</span><span class="pe mono">${p.event||''}</span></div>`).join('')
+    : `<div class="empty" style="padding:20px;">해당 종목 참가자가 없어요</div>`;
 }
 
 function updateLockBanner(race){
@@ -567,10 +655,12 @@ function updateLockBanner(race){
 }
 
 function setRaceFieldsEditable(editable){
-  ['racePlace','raceLink','raceMemo'].forEach(id=>{
+  ['racePlace','raceLink'].forEach(id=>{
     document.getElementById(id).disabled = !editable;
     document.getElementById(id).style.background = editable ? '#fff' : '#F2F0EC';
   });
+  document.getElementById('raceMemo').style.display = editable ? 'block' : 'none';
+  document.getElementById('raceMemoView').style.display = editable ? 'none' : 'block';
   document.getElementById('raceEditBtn').style.display = editable ? 'none' : 'block';
   document.getElementById('raceSaveBtn').style.display = editable ? 'block' : 'none';
 }
@@ -586,6 +676,7 @@ document.getElementById('raceEditBtn').addEventListener('click', async ()=>{
   }
   currentLockHeld = true;
   setRaceFieldsEditable(true);
+  autoResizeTextarea(document.getElementById('raceMemo'));
   document.getElementById('raceMemo').focus();
   state.lockHeartbeat = setInterval(async ()=>{
     await apiPost('heartbeat', {raceId: race.id, user: state.user});
@@ -609,6 +700,8 @@ document.getElementById('raceSaveBtn').addEventListener('click', async ()=>{
     link: document.getElementById('raceLink').value.trim(),
     memo: document.getElementById('raceMemo').value.trim()
   });
+  updateRaceLinkOpen();
+  updateRaceMemoView();
   await releaseLockIfHeld();
   setRaceFieldsEditable(false);
   toast('저장되었습니다');
