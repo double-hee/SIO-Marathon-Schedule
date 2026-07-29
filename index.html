@@ -6,6 +6,7 @@
 <title>SIO 대회 현황</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Roboto+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
   :root{
     --clay:#C6402C;
@@ -92,15 +93,21 @@
   .link-row{display:flex; gap:8px; align-items:center;}
   .link-row input{flex:1;}
   .link-open-btn{flex-shrink:0; white-space:nowrap; font-size:13px; font-weight:600; color:var(--clay); text-decoration:none; padding:10px 12px; border:1.5px solid var(--mist); border-radius:9px;}
+  .time-input-row{display:flex; align-items:center; gap:6px;}
+  .time-input-row input{width:56px; flex:0 0 56px; min-width:0; text-align:center; padding:10px 4px;}
+  .time-sep{font-size:12.5px; color:#8a8680; margin-right:8px; flex-shrink:0;}
   .unit-suffix{flex-shrink:0; font-size:14px; font-weight:600; color:#8a8680;}
   .memo-view{padding:11px 12px; border-radius:9px; border:1.5px solid var(--mist); background:#F2F0EC; font-size:15px; line-height:1.55; white-space:pre-wrap; word-break:break-word; min-height:64px; color:var(--ink);}
   .memo-view.empty-memo{color:#a39d94;}
   .memo-view a{color:var(--clay); text-decoration:underline; word-break:break-all;}
   .event-filter{display:flex; gap:6px; margin:10px 0 14px; flex-wrap:wrap;}
+  .chart-card{background:var(--white); border:1px solid var(--mist); border-radius:14px; padding:14px 12px 4px; margin-bottom:16px;}
+  .chart-canvas-wrap{position:relative; height:200px; width:100%;}
+  .chart-empty{padding:44px 20px; text-align:center; color:#a39d94; font-size:13.5px;}
   .mode-toggle{display:flex; gap:8px; margin-bottom:16px;}
-  .races-filter-bar{display:flex; gap:8px; margin:0 0 14px;}
-  .races-filter-bar select{flex:0 0 108px; padding:10px 8px; border-radius:9px; border:1.5px solid var(--mist); background:#fff; font-size:14px; font-family:'Pretendard',sans-serif; color:var(--ink);}
-  .races-filter-bar input{flex:1; padding:10px 12px; border-radius:9px; border:1.5px solid var(--mist); background:#fff; font-size:14px; font-family:'Pretendard',sans-serif; color:var(--ink);}
+  .races-filter-bar{display:flex; gap:8px; margin:0 0 14px; min-width:0;}
+  .races-filter-bar select{flex:0 0 92px; min-width:0; padding:10px 6px; border-radius:9px; border:1.5px solid var(--mist); background:#fff; font-size:13.5px; font-family:'Pretendard',sans-serif; color:var(--ink);}
+  .races-filter-bar input{flex:1 1 0%; min-width:0; padding:10px 12px; border-radius:9px; border:1.5px solid var(--mist); background:#fff; font-size:14px; font-family:'Pretendard',sans-serif; color:var(--ink);}
   .races-filter-bar select:focus, .races-filter-bar input:focus{outline:none; border-color:var(--clay);}
   .mt-btn{flex:1; padding:10px; border-radius:9px; border:1.5px solid var(--mist); background:#fff; color:#8a8680; font-weight:600; font-size:14px; cursor:pointer;}
   .mt-btn.active{background:var(--navy); color:#fff; border-color:var(--navy);}
@@ -158,7 +165,21 @@
       <button class="logout" id="logoutBtn">로그아웃</button>
     </header>
 
-    <main id="mainMine"></main>
+    <main id="mainMine">
+      <div class="section-title">내 대회 <span class="count" id="mineCount"></span></div>
+
+      <div class="chart-card">
+        <div class="chart-canvas-wrap"><canvas id="mineChart"></canvas></div>
+        <div class="chart-empty" id="mineChartEmpty" style="display:none;">10K/HALF/FULL 목표·기록이 아직 없어요</div>
+        <div class="event-filter" id="mineChartFilter"></div>
+      </div>
+
+      <div class="races-filter-bar">
+        <select id="mineYearFilter"></select>
+        <input id="mineSearchInput" type="text" placeholder="대회명 검색">
+      </div>
+      <div id="mineListContainer"></div>
+    </main>
     <main id="mainRaces" style="display:none;">
       <div class="section-title">대회 전체 <span class="count" id="racesCount"></span></div>
       <div class="races-filter-bar">
@@ -240,11 +261,19 @@
     <div class="sub" id="recordSub"></div>
     <div class="field">
       <label>목표 기록</label>
-      <input id="recordGoal" placeholder="예: 서브4, 1:45:00">
+      <div class="time-input-row">
+        <input id="recordGoalH" type="number" inputmode="numeric" min="0" placeholder="0"><span class="time-sep">시간</span>
+        <input id="recordGoalM" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">분</span>
+        <input id="recordGoalS" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">초</span>
+      </div>
     </div>
     <div class="field">
       <label>달성 기록</label>
-      <input id="recordResult" placeholder="예: 3:52:11">
+      <div class="time-input-row">
+        <input id="recordResultH" type="number" inputmode="numeric" min="0" placeholder="0"><span class="time-sep">시간</span>
+        <input id="recordResultM" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">분</span>
+        <input id="recordResultS" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">초</span>
+      </div>
     </div>
     <div class="field">
       <label>메모</label>
@@ -533,33 +562,204 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 });
 
 /* ================= 내 대회 탭 ================= */
-function renderMine(){
-  const main = document.getElementById('mainMine');
-  const myEntries = state.entries.filter(e=>e.name===state.user)
-    .sort((a,b)=> new Date(a.raceDate||'2999-01-01') - new Date(b.raceDate||'2999-01-01'));
+let mineYearFilter = null;
+let mineSearchQuery = '';
 
-  if(myEntries.length===0){
-    main.innerHTML = `<div class="section-title">내 대회</div>
-      <div class="empty"><b>아직 신청한 대회가 없어요</b>오른쪽 아래 ＋ 버튼으로 참가 신청을 시작해보세요</div>`;
+function populateMineYearFilter(){
+  const sel = document.getElementById('mineYearFilter');
+  const currentYear = new Date().getFullYear();
+  if(mineYearFilter === null) mineYearFilter = String(currentYear); // 기본값: 올해
+
+  const myAllEntries = state.entries.filter(e=>e.name===state.user);
+  const years = new Set(
+    myAllEntries.map(e=>{ const d = new Date(e.raceDate); return isNaN(d) ? null : d.getFullYear(); }).filter(Boolean)
+  );
+  years.add(currentYear);
+  const sortedYears = [...years].sort((a,b)=>b-a);
+
+  sel.innerHTML = `<option value="all">전체 연도</option>` + sortedYears.map(y=>`<option value="${y}">${y}년</option>`).join('');
+  sel.value = mineYearFilter;
+}
+document.getElementById('mineYearFilter').addEventListener('change', ()=>{
+  mineYearFilter = document.getElementById('mineYearFilter').value;
+  renderMineList();
+});
+document.getElementById('mineSearchInput').addEventListener('input', ()=>{
+  mineSearchQuery = document.getElementById('mineSearchInput').value.trim();
+  renderMineList();
+});
+
+/* ================= 내 목표/기록 그래프 ================= */
+const CHART_EVENTS = ['10K','HALF','FULL'];
+const EVENT_COLOR = { '10K':'#2E7D4F', 'HALF':'#B5720B', 'FULL':'#C6402C' };
+let mineChartEvents = new Set(CHART_EVENTS); // 기본: 전체 종목 표시
+let mineChartInstance = null;
+
+function timeStrToSeconds_(str){
+  if(!str) return null;
+  const parts = String(str).split(':').map(Number);
+  if(parts.some(n=>isNaN(n))) return null;
+  if(parts.length===3) return parts[0]*3600+parts[1]*60+parts[2];
+  if(parts.length===2) return parts[0]*60+parts[1];
+  return null;
+}
+function secondsToTimeStr_(sec){
+  sec = Math.round(sec);
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = sec%60;
+  return h>0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+}
+function fmtDateShort_(ts){
+  const d = new Date(ts);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function renderMineChartFilter(){
+  const box = document.getElementById('mineChartFilter');
+  box.innerHTML = CHART_EVENTS.map(ev=>{
+    const active = mineChartEvents.has(ev);
+    const style = active ? `background:${EVENT_COLOR[ev]};border-color:${EVENT_COLOR[ev]};color:#fff;` : '';
+    return `<button class="ef-pill" data-ev="${ev}" style="${style}">${ev}</button>`;
+  }).join('');
+  box.querySelectorAll('.ef-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const ev = btn.dataset.ev;
+      if(mineChartEvents.has(ev)) mineChartEvents.delete(ev); else mineChartEvents.add(ev);
+      renderMineChartFilter();
+      renderMineChart();
+    });
+  });
+}
+
+function renderMineChart(){
+  const canvas = document.getElementById('mineChart');
+  const emptyEl = document.getElementById('mineChartEmpty');
+  const myEntries = state.entries.filter(e=>e.name===state.user && CHART_EVENTS.includes(e.event) && mineChartEvents.has(e.event));
+
+  const datasets = [];
+  let hasAnyData = false;
+
+  CHART_EVENTS.forEach(ev=>{
+    if(!mineChartEvents.has(ev)) return;
+    const goalPoints = [];
+    const resultPoints = [];
+    myEntries.filter(e=>e.event===ev).forEach(e=>{
+      const d = new Date(e.raceDate);
+      if(isNaN(d)) return;
+      const rec = state.records.find(r=>r.entryId===e.id);
+      if(!rec) return;
+      const goalSec = timeStrToSeconds_(rec.goal);
+      const resultSec = timeStrToSeconds_(rec.result);
+      if(goalSec!=null) goalPoints.push({x:d.getTime(), y:goalSec});
+      if(resultSec!=null) resultPoints.push({x:d.getTime(), y:resultSec});
+    });
+    goalPoints.sort((a,b)=>a.x-b.x);
+    resultPoints.sort((a,b)=>a.x-b.x);
+
+    if(goalPoints.length){
+      hasAnyData = true;
+      datasets.push({
+        type:'scatter', label:`${ev} 목표`, data: goalPoints,
+        backgroundColor: EVENT_COLOR[ev], borderColor: EVENT_COLOR[ev],
+        pointRadius:6, pointHoverRadius:8, showLine:false
+      });
+    }
+    if(resultPoints.length){
+      hasAnyData = true;
+      datasets.push({
+        type:'line', label:`${ev} 달성`, data: resultPoints,
+        borderColor: EVENT_COLOR[ev], backgroundColor: EVENT_COLOR[ev],
+        pointRadius:3, pointHoverRadius:5, borderWidth:2.5, tension:0.15, fill:false
+      });
+    }
+  });
+
+  if(mineChartInstance){ mineChartInstance.destroy(); mineChartInstance = null; }
+
+  if(!hasAnyData){
+    canvas.style.display = 'none';
+    emptyEl.style.display = 'block';
     return;
   }
-  main.innerHTML = `<div class="section-title">내 대회 <span class="count">${myEntries.length}건</span></div>` +
-    myEntries.map(e=>{
-      const rec = state.records.find(r=>r.entryId===e.id);
-      const cls = EVENT_CLASS[e.event] || 'etc';
-      const goalLine = rec && (rec.goal || rec.result)
-        ? `<div class="goalresult">${rec.goal?('목표 '+rec.goal):''}${rec.goal&&rec.result?' · ':''}${rec.result?('기록 '+rec.result):''}</div>`
-        : `<div>기록 없음 · 탭해서 입력</div>`;
-      return `<div class="bib-card" data-entry="${e.id}">
-        <div class="row1">
-          <div><div class="rname">${e.raceName}</div><div class="rdate mono">${fmtDate(e.raceDate)}</div></div>
-          <span class="pill ${cls}">${eventLabel_(e.event)||'기타'}</span>
-        </div>
-        <div class="row2">${goalLine}</div>
-      </div>`;
-    }).join('');
+  canvas.style.display = 'block';
+  emptyEl.style.display = 'none';
 
-  main.querySelectorAll('.bib-card').forEach(card=>{
+  mineChartInstance = new Chart(canvas.getContext('2d'), {
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: 'linear',
+          ticks: { callback: (v)=>fmtDateShort_(v), maxRotation:0, autoSkip:true, color:'#8a8680', font:{size:10} },
+          grid: { color:'#EFEDE8' }
+        },
+        y: {
+          type: 'linear',
+          ticks: { callback: (v)=>secondsToTimeStr_(v), color:'#8a8680', font:{size:10} },
+          grid: { color:'#EFEDE8' }
+        }
+      },
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          callbacks: {
+            title: (items)=> items.length ? fmtDateShort_(items[0].parsed.x) : '',
+            label: (item)=> `${item.dataset.label}: ${secondsToTimeStr_(item.parsed.y)}`
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderMine(){
+  populateMineYearFilter();
+  renderMineList();
+  renderMineChartFilter();
+  renderMineChart();
+}
+
+function renderMineList(){
+  const myAllEntries = state.entries.filter(e=>e.name===state.user);
+  let myEntries = myAllEntries.slice();
+
+  if(mineYearFilter !== 'all'){
+    myEntries = myEntries.filter(e=>{ const d = new Date(e.raceDate); return !isNaN(d) && String(d.getFullYear())===mineYearFilter; });
+  }
+  if(mineSearchQuery){
+    const q = mineSearchQuery.toLowerCase();
+    myEntries = myEntries.filter(e=> (e.raceName||'').toLowerCase().includes(q));
+  }
+  myEntries.sort((a,b)=> new Date(a.raceDate||'2999-01-01') - new Date(b.raceDate||'2999-01-01'));
+
+  document.getElementById('mineCount').textContent = `${myEntries.length}건`;
+  const container = document.getElementById('mineListContainer');
+
+  if(myEntries.length===0){
+    const reason = myAllEntries.length===0 ? '오른쪽 아래 ＋ 버튼으로 참가 신청을 시작해보세요' : '연도나 검색어를 확인해보세요';
+    container.innerHTML = `<div class="empty"><b>표시할 대회가 없어요</b>${reason}</div>`;
+    return;
+  }
+
+  container.innerHTML = myEntries.map(e=>{
+    const rec = state.records.find(r=>r.entryId===e.id);
+    const cls = EVENT_CLASS[e.event] || 'etc';
+    const goalLine = rec && (rec.goal || rec.result)
+      ? `<div class="goalresult">${rec.goal?('목표 '+rec.goal):''}${rec.goal&&rec.result?' · ':''}${rec.result?('기록 '+rec.result):''}</div>`
+      : `<div>기록 없음 · 탭해서 입력</div>`;
+    return `<div class="bib-card" data-entry="${e.id}">
+      <div class="row1">
+        <div><div class="rname">${e.raceName}</div><div class="rdate mono">${fmtDate(e.raceDate)}</div></div>
+        <span class="pill ${cls}">${eventLabel_(e.event)||'기타'}</span>
+      </div>
+      <div class="row2">${goalLine}</div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('.bib-card').forEach(card=>{
     card.addEventListener('click', ()=> openRecordModal(card.dataset.entry));
   });
 }
@@ -753,6 +953,33 @@ document.getElementById('entrySubmit').addEventListener('click', async ()=>{
 });
 
 /* ================= 목표/기록 모달 ================= */
+function parseTimeToHMS_(str){
+  if(!str) return {h:'', m:'', s:''};
+  const parts = String(str).split(':').map(p=>p.trim());
+  if(parts.length===3) return {h:parts[0]||'', m:parts[1]||'', s:parts[2]||''};
+  if(parts.length===2) return {h:'', m:parts[0]||'', s:parts[1]||''};
+  return {h:'', m:'', s:''}; // 예전 자유입력 데이터(예: '서브4')는 형식이 달라 비워둠
+}
+function fillTimeInputs_(prefix, str){
+  const {h,m,s} = parseTimeToHMS_(str);
+  document.getElementById(prefix+'H').value = h;
+  document.getElementById(prefix+'M').value = m;
+  document.getElementById(prefix+'S').value = s;
+}
+function readTimeInputs_(prefix){
+  const h = document.getElementById(prefix+'H').value.trim();
+  const m = document.getElementById(prefix+'M').value.trim();
+  const s = document.getElementById(prefix+'S').value.trim();
+  if(!h && !m && !s) return '';
+  const hh = h ? parseInt(h,10)||0 : 0;
+  const mm = m ? parseInt(m,10)||0 : 0;
+  const ss = s ? parseInt(s,10)||0 : 0;
+  return hh > 0 ? `${hh}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}` : `${mm}:${String(ss).padStart(2,'0')}`;
+}
+document.querySelectorAll('.time-input-row input').forEach(inp=>{
+  inp.addEventListener('input', ()=>{ inp.value = inp.value.replace(/[^0-9]/g,''); }); // 숫자만 입력되도록 강제
+});
+
 function openRecordModal(entryId){
   const entry = state.entries.find(e=>e.id===entryId);
   if(!entry) return;
@@ -760,8 +987,8 @@ function openRecordModal(entryId){
   const rec = state.records.find(r=>r.entryId===entryId);
   document.getElementById('recordTitle').textContent = entry.raceName;
   document.getElementById('recordSub').textContent = `${fmtDate(entry.raceDate)} · ${eventLabel_(entry.event)}`;
-  document.getElementById('recordGoal').value = rec?.goal || '';
-  document.getElementById('recordResult').value = rec?.result || '';
+  fillTimeInputs_('recordGoal', rec?.goal || '');
+  fillTimeInputs_('recordResult', rec?.result || '');
   document.getElementById('recordMemo').value = rec?.memo || '';
   autoResizeTextarea(document.getElementById('recordMemo'));
   open_('recordOverlay');
@@ -769,18 +996,19 @@ function openRecordModal(entryId){
 
 document.getElementById('recordSubmit').addEventListener('click', async ()=>{
   const entry = state.activeEntry;
+  const goal = readTimeInputs_('recordGoal');
+  const result = readTimeInputs_('recordResult');
+  const memo = document.getElementById('recordMemo').value.trim();
   const btn = document.getElementById('recordSubmit');
   btn.disabled = true; btn.textContent='저장 중…';
   const res = await apiPost('saveRecord', {
     entryId: entry.id, name: state.user, raceName: entry.raceName,
-    goal: document.getElementById('recordGoal').value.trim(),
-    result: document.getElementById('recordResult').value.trim(),
-    memo: document.getElementById('recordMemo').value.trim()
+    goal, result, memo
   });
   btn.disabled = false; btn.textContent='저장';
   if(!res.ok){ toast(res.error||'저장 실패'); return; }
   const idx = state.records.findIndex(r=>r.entryId===entry.id);
-  const newRec = res.record || {...state.records[idx], goal:document.getElementById('recordGoal').value, result:document.getElementById('recordResult').value, memo:document.getElementById('recordMemo').value};
+  const newRec = res.record || {...state.records[idx], goal, result, memo};
   if(idx>-1) state.records[idx] = newRec; else state.records.push(newRec);
   toast('저장 완료!');
   close_('recordOverlay');
@@ -874,17 +1102,12 @@ function renderParticipants(raceId){
   updateRaceDeleteButton(parts.length);
 }
 
+let raceDeletableCount = 0;
 function updateRaceDeleteButton(participantCount){
+  raceDeletableCount = participantCount;
   const btn = document.getElementById('raceDeleteBtn');
-  if(participantCount > 0){
-    btn.disabled = true;
-    btn.style.opacity = 0.5;
-    btn.textContent = `참가자가 있어 삭제할 수 없어요 (${participantCount}명)`;
-  }else{
-    btn.disabled = false;
-    btn.style.opacity = 1;
-    btn.textContent = '🗑 이 대회 삭제';
-  }
+  btn.textContent = '🗑 이 대회 삭제';
+  btn.style.opacity = participantCount > 0 ? 0.5 : 1;
 }
 
 function renderParticipantAction(raceId, parts){
@@ -1012,7 +1235,11 @@ document.getElementById('raceSaveBtn').addEventListener('click', async ()=>{
 
 document.getElementById('raceDeleteBtn').addEventListener('click', async ()=>{
   const race = state.activeRace;
-  if(!race || document.getElementById('raceDeleteBtn').disabled) return;
+  if(!race) return;
+  if(raceDeletableCount > 0){
+    toast(`참가자가 있어 삭제할 수 없어요 (${raceDeletableCount}명)`);
+    return;
+  }
   if(!confirm(`'${race.raceName}' 대회를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.`)) return;
 
   state.races = state.races.filter(r=>r.id!==race.id);
