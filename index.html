@@ -719,7 +719,8 @@ function renderMineChart(){
       datasets.push({
         type:'scatter', label:`${ev} 목표`, data: goalPoints,
         backgroundColor: '#fff', borderColor: EVENT_COLOR[ev], borderWidth: 2.5,
-        pointRadius:6, pointHoverRadius:8, showLine:false
+        pointRadius:6, pointHoverRadius:8, showLine:false,
+        order: 2 // 숫자가 클수록 먼저(아래에) 그려짐 - 목표를 기록보다 아래로
       });
     }
     if(resultPoints.length){
@@ -727,7 +728,8 @@ function renderMineChart(){
       datasets.push({
         type:'line', label:`${ev} 달성`, data: resultPoints,
         borderColor: EVENT_COLOR[ev], backgroundColor: EVENT_COLOR[ev],
-        pointRadius:3, pointHoverRadius:5, borderWidth:2.5, tension:0.15, fill:false
+        pointRadius:3, pointHoverRadius:5, borderWidth:2.5, tension:0.15, fill:false,
+        order: 1 // 숫자가 작을수록 나중(위)에 그려짐 - 기록을 목표보다 위로
       });
     }
   });
