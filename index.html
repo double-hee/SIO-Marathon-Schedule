@@ -38,6 +38,8 @@
   #splash{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; background:var(--navy); color:var(--white); min-height:100vh;}
   #splash{background:#000;}
   .logo-mark{width:100%; max-width:300px; height:auto; margin-bottom:6px; display:block;}
+  .logo-mark-wrap{position:relative; width:100%; max-width:300px; margin:0 auto;}
+  .logo-mark-svg{position:absolute; inset:0; width:100%; height:100%;}
   #splash p.tag{opacity:0.55; font-size:13px; margin:0 0 30px;}
   #splash select, #splash input{width:100%; max-width:280px; padding:13px 14px; border-radius:10px; border:none; font-size:16px; margin-bottom:10px; font-family:'Pretendard',sans-serif; background:rgba(255,255,255,0.08); color:#fff;}
   #splash select option{color:#000;}
@@ -164,17 +166,41 @@
   .toast.show{opacity:1;}
 
   .loading{position:fixed; inset:0; z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:var(--navy); color:rgba(255,255,255,0.7); font-size:13.5px;}
-  .track-loader{display:block;}
-  .lane-line{fill:none; stroke:rgba(255,255,255,0.32); stroke-width:4;}
-  .track-text{font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:34px; fill:#fff;}
-  .runner-dot{fill:var(--clay);}
+  .track-loader-wrap{position:relative; width:270px; max-width:78vw;}
+  .track-loader-img{display:block; width:100%; height:auto;}
+  .track-loader-svg{position:absolute; inset:0; width:100%; height:100%;}
+  .runner-dot{fill:var(--clay); stroke:#fff; stroke-width:10; filter:drop-shadow(0 0 10px var(--clay)) drop-shadow(0 0 24px var(--clay)) drop-shadow(0 0 40px rgba(198,64,44,0.6));}
 </style>
 </head>
 <body>
 <div id="app">
 
   <div id="splash">
-    <img class="logo-mark" src="sio-logo.jpg" alt="SIO - SLOW IS OK">
+    <div class="logo-mark-wrap">
+      <img class="logo-mark" src="sio-logo.jpg" alt="SIO - SLOW IS OK">
+      <svg class="logo-mark-svg" viewBox="0 0 3347 2070" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <path id="splash-lane1" d="M 836,72 L 2511,72 A 764,764 0 1 1 2511,1601 L 836,1601 A 764,764 0 1 1 836,72 Z"/>
+          <path id="splash-lane2" d="M 836,244 L 2511,244 A 592,592 0 1 1 2511,1428 L 836,1428 A 592,592 0 1 1 836,244 Z"/>
+          <path id="splash-lane3" d="M 836,417 L 2511,417 A 420,420 0 1 1 2511,1256 L 836,1256 A 420,420 0 1 1 836,417 Z"/>
+        </defs>
+        <circle r="75" class="runner-dot">
+          <animateMotion dur="6.0s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear">
+            <mpath href="#splash-lane1"/>
+          </animateMotion>
+        </circle>
+        <circle r="75" class="runner-dot">
+          <animateMotion dur="4.8s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" begin="0.15s">
+            <mpath href="#splash-lane2"/>
+          </animateMotion>
+        </circle>
+        <circle r="75" class="runner-dot">
+          <animateMotion dur="3.8s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" begin="0.3s">
+            <mpath href="#splash-lane3"/>
+          </animateMotion>
+        </circle>
+      </svg>
+    </div>
     <p class="tag">대회 현황 관리 · 크루원 참가·기록</p>
     <select id="nameSelect"><option value="">이름 선택</option></select>
     <input id="nameInput" type="text" placeholder="이름 직접 입력" style="display:none;">
@@ -243,33 +269,31 @@
   </div>
 
   <div class="loading" id="loadingScreen">
-    <svg class="track-loader" viewBox="0 0 300 180" width="220" aria-hidden="true">
-      <defs>
-        <path id="lane1" d="M 95,6 L 225,6 A 89,89 0 0 1 225,184 L 95,184 A 89,89 0 0 1 95,6 Z"/>
-        <path id="lane2" d="M 95,27 L 225,27 A 68,68 0 0 1 225,163 L 95,163 A 68,68 0 0 1 95,27 Z"/>
-        <path id="lane3" d="M 95,48 L 225,48 A 47,47 0 0 1 225,142 L 95,142 A 47,47 0 0 1 95,48 Z"/>
-      </defs>
-      <use href="#lane1" class="lane-line"/>
-      <use href="#lane2" class="lane-line"/>
-      <use href="#lane3" class="lane-line"/>
-      <text x="160" y="102" text-anchor="middle" class="track-text">SIO</text>
-
-      <circle r="5" class="runner-dot">
-        <animateMotion dur="3.4s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear">
-          <mpath href="#lane1"/>
-        </animateMotion>
-      </circle>
-      <circle r="5" class="runner-dot">
-        <animateMotion dur="2.7s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" begin="0.15s">
-          <mpath href="#lane2"/>
-        </animateMotion>
-      </circle>
-      <circle r="5" class="runner-dot">
-        <animateMotion dur="2.1s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" begin="0.3s">
-          <mpath href="#lane3"/>
-        </animateMotion>
-      </circle>
-    </svg>
+    <div class="track-loader-wrap">
+      <img src="sio-track-mark.jpg" class="track-loader-img" alt="">
+      <svg class="track-loader-svg" viewBox="0 0 3327 1652" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <path id="lane1" d="M 826,62 L 2501,62 A 764,764 0 1 1 2501,1591 L 826,1591 A 764,764 0 1 1 826,62 Z"/>
+          <path id="lane2" d="M 826,234 L 2501,234 A 592,592 0 1 1 2501,1418 L 826,1418 A 592,592 0 1 1 826,234 Z"/>
+          <path id="lane3" d="M 826,407 L 2501,407 A 420,420 0 1 1 2501,1246 L 826,1246 A 420,420 0 1 1 826,407 Z"/>
+        </defs>
+        <circle r="75" class="runner-dot">
+          <animateMotion dur="6.0s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear">
+            <mpath href="#lane1"/>
+          </animateMotion>
+        </circle>
+        <circle r="75" class="runner-dot">
+          <animateMotion dur="4.8s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" begin="0.15s">
+            <mpath href="#lane2"/>
+          </animateMotion>
+        </circle>
+        <circle r="75" class="runner-dot">
+          <animateMotion dur="3.8s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear" begin="0.3s">
+            <mpath href="#lane3"/>
+          </animateMotion>
+        </circle>
+      </svg>
+    </div>
     <div>불러오는 중…</div>
   </div>
 </div>
