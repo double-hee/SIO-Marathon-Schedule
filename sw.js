@@ -3,6 +3,7 @@ const APP_SHELL = [
   './',
   './index.html',
   './sio-logo.jpg',
+  './sio-track-mark.jpg',
   './icon-192.png',
   './icon-512.png',
   './manifest.json'
