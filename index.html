@@ -114,6 +114,11 @@
   .chart-info-vals{color:var(--ink);}
   .chart-info-empty{color:#a39d94; font-size:12.5px;}
   .chart-empty{padding:44px 20px; text-align:center; color:#a39d94; font-size:13.5px;}
+  .chart-legend{display:flex; gap:16px; justify-content:center; margin:4px 0 2px; font-size:11.5px; color:#8a8680;}
+  .legend-item{display:flex; align-items:center; gap:5px;}
+  .legend-swatch{width:10px; height:10px; border-radius:50%; display:inline-block;}
+  .legend-hollow{border:2px solid #8a8680; background:#fff;}
+  .legend-filled{background:#8a8680;}
   .mode-toggle{display:flex; gap:8px; margin-bottom:16px;}
   .races-filter-bar{display:flex; gap:8px; margin:0 0 14px; min-width:0;}
   .races-filter-bar select{flex:0 0 92px; min-width:0; padding:10px 6px; border-radius:9px; border:1.5px solid var(--mist); background:#fff; font-size:13.5px; font-family:'Pretendard',sans-serif; color:var(--ink);}
@@ -196,6 +201,10 @@
           <div class="chart-canvas-wrap">
             <canvas id="mineChart"></canvas>
             <div id="mineChartDateLabel" class="chart-date-label" style="display:none;"></div>
+          </div>
+          <div class="chart-legend" id="mineChartLegend" style="display:none;">
+            <span class="legend-item"><span class="legend-swatch legend-hollow"></span>목표</span>
+            <span class="legend-item"><span class="legend-swatch legend-filled"></span>기록</span>
           </div>
           <div class="chart-empty" id="mineChartEmpty" style="display:none;">10K/HALF/FULL 목표·기록이 아직 없어요</div>
           <div id="mineChartInfoPanel" class="chart-info-panel">
@@ -709,7 +718,7 @@ function renderMineChart(){
       hasAnyData = true;
       datasets.push({
         type:'scatter', label:`${ev} 목표`, data: goalPoints,
-        backgroundColor: EVENT_COLOR[ev], borderColor: EVENT_COLOR[ev],
+        backgroundColor: '#fff', borderColor: EVENT_COLOR[ev], borderWidth: 2.5,
         pointRadius:6, pointHoverRadius:8, showLine:false
       });
     }
@@ -725,14 +734,17 @@ function renderMineChart(){
 
   if(mineChartInstance){ mineChartInstance.destroy(); mineChartInstance = null; }
 
+  const legendEl = document.getElementById('mineChartLegend');
   if(!hasAnyData){
     canvas.style.display = 'none';
     emptyEl.style.display = 'block';
+    legendEl.style.display = 'none';
     updateMineChartCrosshair(null);
     return;
   }
   canvas.style.display = 'block';
   emptyEl.style.display = 'none';
+  legendEl.style.display = 'flex';
 
   mineChartInstance = new Chart(canvas.getContext('2d'), {
     data: { datasets },
