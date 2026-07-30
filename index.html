@@ -426,7 +426,8 @@ async function apiPost(action, payload){
     const res = await fetch(CONFIG.GAS_URL, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({action, ...payload})
+      body: JSON.stringify({action, ...payload}),
+      keepalive: true // 저장 직후 탭을 닫아도 요청이 최대한 끝까지 전송되도록
     });
     return await res.json();
   }catch(err){
@@ -1161,19 +1162,39 @@ document.getElementById('recordSubmit').addEventListener('click', async ()=>{
   const goal = readTimeInputs_('recordGoal');
   const result = readTimeInputs_('recordResult');
   const memo = document.getElementById('recordMemo').value.trim();
-  const btn = document.getElementById('recordSubmit');
-  btn.disabled = true; btn.textContent='저장 중…';
+
+  const idx = state.records.findIndex(r=>r.entryId===entry.id);
+  const previousRec = idx>-1 ? {...state.records[idx]} : null;
+  const optimisticRec = {
+    id: previousRec?.id || ('tmp_'+Date.now()),
+    entryId: entry.id, name: state.user, raceName: entry.raceName,
+    goal, result, memo, updatedAt: new Date().toISOString()
+  };
+  if(idx>-1) state.records[idx] = optimisticRec; else state.records.push(optimisticRec);
+
+  close_('recordOverlay');
+  toast('저장 완료!');
+  renderMine();
+
   const res = await apiPost('saveRecord', {
     entryId: entry.id, name: state.user, raceName: entry.raceName,
     goal, result, memo
   });
-  btn.disabled = false; btn.textContent='저장';
-  if(!res.ok){ toast(res.error||'저장 실패'); return; }
-  const idx = state.records.findIndex(r=>r.entryId===entry.id);
-  const newRec = res.record || {...(state.records[idx]||{}), id: state.records[idx]?.id, entryId: entry.id, name: state.user, raceName: entry.raceName, goal, result, memo};
-  if(idx>-1) state.records[idx] = newRec; else state.records.push(newRec);
-  toast('저장 완료!');
-  close_('recordOverlay');
+
+  if(!res.ok){
+    const idx2 = state.records.findIndex(r=>r.entryId===entry.id);
+    if(previousRec){
+      if(idx2>-1) state.records[idx2] = previousRec;
+    }else if(idx2>-1){
+      state.records.splice(idx2, 1);
+    }
+    toast(res.error||'저장 실패 - 되돌렸습니다');
+    renderMine();
+    return;
+  }
+  const idx3 = state.records.findIndex(r=>r.entryId===entry.id);
+  const newRec = res.record || optimisticRec;
+  if(idx3>-1) state.records[idx3] = newRec; else state.records.push(newRec);
   renderMine();
 });
 
