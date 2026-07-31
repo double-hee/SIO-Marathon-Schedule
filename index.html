@@ -682,13 +682,14 @@ function loadCachedData(){
     state.entries = cached.entries || [];
     state.records = cached.records || [];
     state.members = cached.members || [];
+    state.admins = cached.admins || [];
     return true;
   }catch(e){ return false; }
 }
 function saveCachedData(){
   try{
     localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({
-      races: state.races, entries: state.entries, records: state.records, members: state.members
+      races: state.races, entries: state.entries, records: state.records, members: state.members, admins: state.admins
     }));
   }catch(e){}
 }
