@@ -56,6 +56,10 @@
   header.top .who .crew{font-size:11px; opacity:0.6; letter-spacing:0.08em; text-transform:uppercase;}
   header.top .who .name{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px;}
   header.top button.logout{background:none; border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;}
+  header.top{flex-wrap:wrap; row-gap:8px;}
+  .admin-add-btn{background:var(--lane); color:var(--navy); border:none; border-radius:9px; padding:9px 13px; font-size:13px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:0 3px 10px rgba(242,183,5,0.4); animation:admin-btn-pulse 2.2s ease-in-out infinite;}
+  @keyframes admin-btn-pulse{0%,100%{box-shadow:0 3px 10px rgba(242,183,5,0.4);} 50%{box-shadow:0 3px 16px rgba(242,183,5,0.7);}}
+  .master-btn{background:rgba(255,255,255,0.14); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:9px; padding:9px 12px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap;}
 
   main{flex:1; padding:16px 16px 90px; overflow-y:auto;}
   .section-title{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:22px; margin:4px 0 12px; display:flex; align-items:center; justify-content:space-between;}
@@ -69,6 +73,10 @@
   .bib-card:active{transform:scale(0.99);}
   .bib-card .row1{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
   .bib-card .rname{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:19px; line-height:1.2;}
+  .dday-badge{display:inline-block; font-family:'Roboto Mono',monospace; font-size:11px; font-weight:700; color:var(--clay); background:#FBE7E3; padding:2px 7px; border-radius:20px; margin-left:6px; vertical-align:middle;}
+  .bib-card.next-highlight{border:1.5px solid var(--clay); box-shadow:0 0 0 1px var(--clay), 0 0 14px rgba(198,64,44,0.55), 0 0 28px rgba(198,64,44,0.3); animation:card-glow-pulse 2.2s ease-in-out infinite;}
+  @keyframes card-glow-pulse{0%,100%{box-shadow:0 0 0 1px var(--clay), 0 0 14px rgba(198,64,44,0.55), 0 0 28px rgba(198,64,44,0.3);} 50%{box-shadow:0 0 0 1px var(--clay), 0 0 22px rgba(198,64,44,0.8), 0 0 40px rgba(198,64,44,0.45);}}
+  .next-tag{display:inline-block; font-family:'Roboto Mono',monospace; font-size:10.5px; font-weight:700; color:#fff; background:var(--clay); padding:2px 8px; border-radius:20px; margin-bottom:6px; letter-spacing:0.03em;}
   .bib-card .rdate{font-family:'Roboto Mono',monospace; font-size:12.5px; color:#8a8680; margin-top:3px;}
   .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; font-family:'Roboto Mono',monospace; flex-shrink:0;}
   .pill-group{display:flex; flex-wrap:wrap; gap:4px; justify-content:flex-end; max-width:150px;}
@@ -77,6 +85,7 @@
   .pill.full{background:#FBE7E3; color:var(--clay);}
   .pill.etc{background:#EDEBFB; color:#5B4EBD;}
   .bib-card .row2{margin-top:10px; padding-top:10px; border-top:1px dashed var(--mist); display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:#8a8680;}
+  .names-inline{font-size:12px; color:#8a8680; word-break:break-word;}
   .bib-card .goalresult{font-family:'Roboto Mono',monospace; color:var(--ink);}
   .bib-card .participants-badge{font-family:'Roboto Mono',monospace; color:var(--clay); font-weight:600;}
 
@@ -87,7 +96,11 @@
   nav.tabs button .ic{font-size:19px; filter:grayscale(1); opacity:0.5; transition:filter 0.15s, opacity 0.15s;}
   nav.tabs button.active .ic{filter:none; opacity:1;}
 
-  .fab{position:fixed; bottom:76px; right:max(16px, calc((100vw - 520px)/2 + 16px)); width:52px; height:52px; border-radius:50%; background:var(--clay); color:#fff; border:none; font-size:26px; box-shadow:0 4px 10px rgba(198,64,44,0.35); cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:0;}
+  .cta-join-btn{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:16px; margin-bottom:16px; border:none; border-radius:14px; background:linear-gradient(135deg, var(--clay), #EA7C4F); color:#fff; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:19px; letter-spacing:0.02em; cursor:pointer; box-shadow:0 6px 18px rgba(198,64,44,0.45); animation:cta-glow 2.2s ease-in-out infinite; transition:transform 0.12s;}
+  .cta-join-btn:active{transform:scale(0.97);}
+  @keyframes cta-glow{0%,100%{box-shadow:0 6px 18px rgba(198,64,44,0.45);} 50%{box-shadow:0 6px 26px rgba(198,64,44,0.75), 0 0 22px rgba(198,64,44,0.4);}}
+  .hide-past-toggle{display:flex; align-items:center; gap:7px; font-size:12.5px; color:#6b6660; margin:-4px 0 12px; user-select:none; cursor:pointer;}
+  .hide-past-toggle input{width:15px; height:15px; accent-color:var(--clay); cursor:pointer;}
   .fab:active{background:var(--clay-dark);}
 
   /* Modal */
@@ -95,6 +108,20 @@
   .overlay.show{display:flex;}
   .modal{background:var(--paper); width:100%; max-width:520px; border-radius:18px 18px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto;}
   .modal h2{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:22px; margin:0 0 4px;}
+  .record-action-row{display:flex; align-items:center; gap:8px; margin:8px 0 10px; flex-wrap:wrap;}
+  .small-action-inline{border-radius:8px; cursor:pointer; white-space:nowrap;}
+  .small-action-inline.btn-ghost{background:#fff; border:1.5px solid var(--mist); color:var(--ink); font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
+  .small-action-inline.btn-danger-text{background:none; border:1.5px solid var(--clay); color:var(--clay); text-decoration:none; font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
+  .small-action-inline.btn-info-text{background:none; border:1.5px solid var(--navy); color:var(--navy); text-decoration:none; font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
+  #recordEventSelect{padding:6px 10px; border-radius:8px; border:1.5px solid var(--clay); font-size:13px; font-family:'Pretendard',sans-serif; color:var(--ink); background:#fff;}
+  #recordMemo{min-height:192px;}
+  .event-slot-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .event-slot-row input.rf-event-slot-input{width:100%; padding:13px 14px; border-radius:9px; border:1.5px solid var(--mist); font-size:16px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
+  .event-slot-row input.rf-event-slot-input:focus{outline:none; border-color:var(--clay);}
+  .event-slot-row label{flex-shrink:0; font-size:12.5px; color:#6b6660; width:52px;}
+  .event-slot-row input{flex:1;}
+  .admin-picker-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--mist); font-size:14.5px;}
+  .admin-picker-row input{width:17px; height:17px; accent-color:var(--clay); flex-shrink:0;}
   .modal .sub{font-size:12.5px; color:#8a8680; margin-bottom:16px;}
   .field{margin-bottom:12px;}
   .field label{display:block; font-size:12.5px; font-weight:600; color:#6b6660; margin-bottom:5px;}
@@ -108,6 +135,7 @@
   .time-input-row input{width:56px; flex:0 0 56px; min-width:0; text-align:center; padding:10px 4px;}
   .time-sep{font-size:12.5px; color:#8a8680; margin-right:8px; flex-shrink:0;}
   .unit-suffix{flex-shrink:0; font-size:14px; font-weight:600; color:#8a8680;}
+  #rfMemo{min-height:192px;}
   .memo-view{padding:11px 12px; border-radius:9px; border:1.5px solid var(--mist); background:#F2F0EC; font-size:15px; line-height:1.55; white-space:pre-wrap; word-break:break-word; min-height:64px; color:var(--ink);}
   .memo-view.empty-memo{color:#a39d94;}
   .memo-view a{color:var(--clay); text-decoration:underline; word-break:break-all;}
@@ -157,7 +185,6 @@
   .participant-row .pn{font-weight:600;}
   .participant-row .pe{font-family:'Roboto Mono',monospace; font-size:12px; color:#8a8680;}
   .companion-note{font-weight:400; font-size:12.5px; color:#8a8680;}
-  #raceParticipantAction{margin-bottom:10px;}
   .small-action{width:100%; padding:10px; border-radius:9px; border:none; font-size:13.5px; font-weight:600; cursor:pointer;}
   button.small-action.btn-ghost{border:1.5px solid var(--mist) !important; background:#fff; color:var(--ink);}
   button.small-action.btn-primary{background:var(--clay); color:#fff;}
@@ -216,11 +243,15 @@
         <div class="crew">SIO RUNNING CREW</div>
         <div class="name" id="whoName">-</div>
       </div>
+      <button class="admin-add-btn" id="adminAddRaceBtn" type="button" style="display:none;">➕ 대회 추가</button>
+      <button class="master-btn" id="masterAssignBtn" type="button" style="display:none;">👑 관리자 지정</button>
       <button class="logout" id="logoutBtn">로그아웃</button>
     </header>
 
     <main id="mainMine">
       <div class="section-title">내 대회 <span class="count" id="mineCount"></span></div>
+
+      <button class="cta-join-btn" id="ctaJoinBtn" type="button">🏁 참가 대회 등록하기</button>
 
       <div class="mode-toggle" id="mineSubTabToggle">
         <button class="mt-btn active" data-subtab="list" type="button">참가 정보</button>
@@ -232,6 +263,7 @@
           <select id="mineYearFilter"></select>
           <input id="mineSearchInput" type="text" placeholder="대회명 검색">
         </div>
+        <label class="hide-past-toggle"><input type="checkbox" id="mineHidePast" checked> 지난 대회 숨기기</label>
         <div id="mineListContainer"></div>
       </div>
 
@@ -259,10 +291,9 @@
         <select id="racesYearFilter"></select>
         <input id="racesSearchInput" type="text" placeholder="대회명 검색">
       </div>
+      <label class="hide-past-toggle"><input type="checkbox" id="racesHidePast" checked> 지난 대회 숨기기</label>
       <div id="racesListContainer"></div>
     </main>
-
-    <button class="fab" id="fabAdd">＋</button>
 
     <nav class="tabs">
       <button class="tab-btn active" data-tab="mine"><span class="ic">🏃</span>내 대회</button>
@@ -305,42 +336,19 @@
   <div class="modal modal-wrap">
     <button class="modal-close" data-close="entryOverlay">✕</button>
     <h2>대회 참가 신청</h2>
-    <div class="sub">참가할 대회 정보를 입력해주세요</div>
+    <div class="sub">참가할 대회를 선택해주세요</div>
 
-    <div class="mode-toggle" id="entryModeToggle">
-      <button class="mt-btn active" data-mode="existing" type="button">기존 대회</button>
-      <button class="mt-btn" data-mode="new" type="button">신규 대회</button>
-    </div>
-
-    <div class="field" id="entryExistingField">
+    <div class="field">
       <label>대회 선택 (예정된 대회만 표시돼요)</label>
       <select id="entryRaceSelect"><option value="">대회를 선택하세요</option></select>
     </div>
-    <div class="field" id="entryNewField" style="display:none;">
-      <label>대회명</label>
-      <input id="entryRaceName" list="raceNameList" placeholder="예: JTBC 서울마라톤">
-      <datalist id="raceNameList"></datalist>
-    </div>
-
     <div class="field">
       <label>대회일자</label>
-      <input id="entryRaceDate" type="date">
+      <input id="entryRaceDate" type="date" disabled>
     </div>
     <div class="field">
       <label>종목</label>
-      <select id="entryEvent">
-        <option value="10K">10K</option>
-        <option value="HALF">HALF</option>
-        <option value="FULL">FULL</option>
-        <option value="기타">기타</option>
-      </select>
-    </div>
-    <div class="field" id="entryDistanceField" style="display:none;">
-      <label>거리 (기타 종목)</label>
-      <div class="link-row">
-        <input id="entryDistance" type="number" inputmode="decimal" min="0" step="0.1" placeholder="예: 15">
-        <span class="unit-suffix">km</span>
-      </div>
+      <select id="entryEvent"><option value="">먼저 대회를 선택하세요</option></select>
     </div>
     <div class="field">
       <label>동반 참가 인원 (선택)</label>
@@ -358,6 +366,11 @@
   <div class="modal modal-wrap">
     <button class="modal-close" data-close="recordOverlay">✕</button>
     <h2 id="recordTitle">목표 · 기록</h2>
+    <div class="record-action-row">
+      <button class="small-action-inline btn-info-text" id="changeEventBtn" type="button">종목 변경</button>
+      <select id="recordEventSelect" style="display:none;"></select>
+      <button class="small-action-inline btn-danger-text" id="entryDeleteTop" type="button">참가 취소</button>
+    </div>
     <div class="sub" id="recordSub"></div>
     <div class="field">
       <label>목표 기록</label>
@@ -389,45 +402,101 @@
   </div>
 </div>
 
-<!-- 대회 상세 / 참가자 / 메모 모달 -->
+<!-- 대회 상세 / 참가자 모달 -->
 <div class="overlay" id="raceOverlay">
   <div class="modal modal-wrap">
     <button class="modal-close" data-close="raceOverlay">✕</button>
     <h2 id="raceTitle">대회명</h2>
     <div class="sub" id="raceSub"></div>
+    <div class="event-filter" id="raceAllEventsRow"></div>
 
-    <div id="lockBanner" class="lock-banner" style="display:none;">
-      <span class="lock-dot"></span><span id="lockText"></span>
+    <div class="actions" id="raceAdminActions" style="display:none;">
+      <button class="btn-ghost" id="raceEditOpenBtn" type="button">✏️ 대회 편집</button>
+      <button class="btn-danger-text" id="raceDeleteBtn" type="button">🗑 대회 삭제</button>
     </div>
 
     <div class="field">
       <label>장소</label>
-      <input id="racePlace" placeholder="예: 서울 잠실종합운동장">
+      <div id="racePlaceText" class="memo-view"></div>
     </div>
     <div class="field">
       <label>대회 링크</label>
       <div class="link-row">
-        <input id="raceLink" placeholder="접수/공식 사이트 URL">
+        <div id="raceLinkText" class="memo-view" style="flex:1;"></div>
         <a id="raceLinkOpen" href="#" target="_blank" rel="noopener" class="link-open-btn" style="display:none;">열기 ↗</a>
       </div>
     </div>
     <div class="field">
-      <label>메모 (공동 작성 - 한 명씩 편집)</label>
+      <label>기타 대회 정보</label>
       <div id="raceMemoView" class="memo-view"></div>
-      <textarea id="raceMemo" placeholder="주차 정보, 픽업 안내, 단체 신청 공지 등" rows="4" style="display:none;"></textarea>
-    </div>
-    <div class="actions" id="raceEditActions">
-      <button class="btn-ghost" id="raceEditBtn">편집하기</button>
-      <button class="btn-primary" id="raceSaveBtn" style="display:none;">저장하고 잠금 해제</button>
     </div>
 
     <h2 style="margin-top:22px; font-size:19px;">참가자</h2>
     <div class="event-filter" id="raceEventFilter"></div>
-    <div id="raceParticipantAction"></div>
     <div id="raceParticipantList"></div>
+  </div>
+</div>
 
+<!-- 관리자: 대회 추가/편집 모달 -->
+<div class="overlay" id="raceFormOverlay">
+  <div class="modal modal-wrap">
+    <button class="modal-close" data-close="raceFormOverlay">✕</button>
+    <h2 id="raceFormTitle">대회 추가</h2>
+    <div class="field">
+      <label>대회명</label>
+      <input id="rfName" placeholder="예: JTBC 서울마라톤">
+    </div>
+    <div class="field">
+      <label>대회일자</label>
+      <input id="rfDate" type="date">
+    </div>
+    <div class="field">
+      <label>시간</label>
+      <div class="time-input-row">
+        <input id="rfTimeH" type="number" inputmode="numeric" min="0" max="23" placeholder="0"><span class="time-sep">시</span>
+        <input id="rfTimeM" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">분</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>장소</label>
+      <input id="rfPlace" placeholder="예: 서울 잠실종합운동장">
+    </div>
+    <div class="field">
+      <label>종목 개수</label>
+      <input id="rfEventCount" type="number" inputmode="numeric" min="0" max="10" placeholder="예: 3">
+    </div>
+    <div id="rfEventSlots"></div>
+    <datalist id="rfEventOptions">
+      <option value="5">
+      <option value="10">
+      <option value="HALF">
+      <option value="FULL">
+    </datalist>
+    <div class="field">
+      <label>대회 사이트</label>
+      <input id="rfLink" placeholder="https://...">
+    </div>
+    <div class="field">
+      <label>기타 대회 정보</label>
+      <textarea id="rfMemo" placeholder="주차 정보, 접수 안내, 픽업 안내 등"></textarea>
+    </div>
     <div class="actions">
-      <button class="btn-danger-text" id="raceDeleteBtn">🗑 이 대회 삭제</button>
+      <button class="btn-ghost" data-close="raceFormOverlay">취소</button>
+      <button class="btn-primary" id="raceFormSubmit">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 마스터: 관리자 지정 모달 -->
+<div class="overlay" id="adminPickerOverlay">
+  <div class="modal modal-wrap">
+    <button class="modal-close" data-close="adminPickerOverlay">✕</button>
+    <h2>관리자 지정</h2>
+    <div class="sub">대회를 추가·수정·삭제할 수 있는 관리자를 선택하세요</div>
+    <div id="adminPickerList"></div>
+    <div class="actions">
+      <button class="btn-ghost" data-close="adminPickerOverlay">취소</button>
+      <button class="btn-primary" id="adminPickerSubmit">저장</button>
     </div>
   </div>
 </div>
@@ -459,6 +528,17 @@ function eventLabel_(ev){
   const m = ev.match(/기타\s*\((\d+(\.\d+)?)\s*km\)/i);
   return m ? `${m[1]}K` : ev;
 }
+function normalizeEventKey_(ev){
+  // '기타(11km)'(CSV로 가져온 옛 형식)와 '11K'(관리자 편집 화면의 새 형식)처럼
+  // 같은 거리를 가리키는 서로 다른 문자열 표기를 하나의 키로 통일해서 그룹핑/필터링에 씀
+  if(!ev) return '기타';
+  const upper = ev.toUpperCase();
+  if(upper==='HALF') return 'HALF';
+  if(upper==='FULL') return 'FULL';
+  const m = ev.match(/(\d+(\.\d+)?)/);
+  if(m) return `${m[1]}K`;
+  return ev;
+}
 function escapeHtml(s){
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -466,14 +546,18 @@ function escapeHtml(s){
 /* ================= 상태 =================
    ⚠️ 아티팩트 미리보기(채팅 내 미리보기)에서는 localStorage가 막혀있어 이름 기억 기능이 동작하지 않을 수 있지만,
    GitHub Pages 등 실제 배포 환경에서는 정상적으로 마지막 로그인 이름을 기억합니다. */
+const MASTER_NAME = '이중희';
+
 let state = {
   user: null,
-  races: [], entries: [], records: [], members: [],
+  races: [], entries: [], records: [], members: [], admins: [],
   tab: 'mine',
   activeRace: null,
-  activeEntry: null,
-  lockHeartbeat: null
+  activeEntry: null
 };
+
+function isMaster_(){ return state.user === MASTER_NAME; }
+function isAdmin_(){ return isMaster_() || state.admins.includes(state.user); }
 
 function saveLastName(name){
   try{ localStorage.setItem('sio_last_name', name); }catch(e){}
@@ -517,8 +601,47 @@ function fmtDate(d){
   const days = ['일','월','화','수','목','금','토'];
   return `${dt.getFullYear()}.${String(dt.getMonth()+1).padStart(2,'0')}.${String(dt.getDate()).padStart(2,'0')} (${days[dt.getDay()]})`;
 }
-function open_(id){ document.getElementById(id).classList.add('show'); }
-function close_(id){ document.getElementById(id).classList.remove('show'); }
+function daysUntil_(d){
+  const dt = new Date(d);
+  if(isNaN(dt)) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  dt.setHours(0,0,0,0);
+  return Math.round((dt-today)/86400000);
+}
+function ddayLabel_(d){
+  const diff = daysUntil_(d);
+  if(diff===null) return '';
+  if(diff===0) return 'D-DAY';
+  return diff>0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
+}
+let openModalCount = 0;
+let scrollLockY = 0;
+function lockBodyScroll_(){
+  scrollLockY = window.scrollY || window.pageYOffset || 0;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollLockY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+function unlockBodyScroll_(){
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, scrollLockY);
+}
+function open_(id){
+  document.getElementById(id).classList.add('show');
+  openModalCount++;
+  if(openModalCount === 1) lockBodyScroll_();
+}
+function close_(id){
+  document.getElementById(id).classList.remove('show');
+  openModalCount = Math.max(0, openModalCount - 1);
+  if(openModalCount === 0) unlockBodyScroll_();
+}
 
 function autoResizeTextarea(ta){
   if(!ta) return;
@@ -543,7 +666,6 @@ function linkify(text){
 document.querySelectorAll('[data-close]').forEach(b=>{
   b.addEventListener('click', ()=>{
     const id = b.getAttribute('data-close');
-    if(id === 'raceOverlay') releaseLockIfHeld();
     close_(id);
   });
 });
@@ -579,9 +701,10 @@ async function loadAll(background){
     state.entries = data.entries || [];
     state.records = data.records || [];
     state.members = data.members || [];
+    state.admins = data.admins || [];
     saveCachedData();
-    populateRaceDatalist();
     if(state.user){
+      updateAdminUI();
       renderMine(); renderRaces();
     }else{
       populateNameSelect();
@@ -606,12 +729,6 @@ function populateNameSelect(){
     }
   }
 }
-function populateRaceDatalist(){
-  const dl = document.getElementById('raceNameList');
-  const names = [...new Set(state.races.map(r=>r.raceName))];
-  dl.innerHTML = names.map(n=>`<option value="${n}">`).join('');
-}
-
 /* ================= 로그인 ================= */
 document.getElementById('toggleInputMode').addEventListener('click', ()=>{
   const sel = document.getElementById('nameSelect');
@@ -646,8 +763,14 @@ function enterApp(){
   document.getElementById('splash').style.display = 'none';
   document.getElementById('shell').style.display = 'flex';
   document.getElementById('whoName').textContent = state.user;
+  updateAdminUI();
   renderMine();
   renderRaces();
+}
+
+function updateAdminUI(){
+  document.getElementById('adminAddRaceBtn').style.display = isAdmin_() ? 'block' : 'none';
+  document.getElementById('masterAssignBtn').style.display = isMaster_() ? 'block' : 'none';
 }
 
 /* ================= 탭 전환 ================= */
@@ -658,7 +781,6 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     state.tab = btn.dataset.tab;
     document.getElementById('mainMine').style.display = state.tab==='mine' ? 'block' : 'none';
     document.getElementById('mainRaces').style.display = state.tab==='races' ? 'block' : 'none';
-    document.getElementById('fabAdd').style.display = state.tab==='mine' ? 'flex' : 'none';
   });
 });
 
@@ -951,6 +1073,8 @@ function renderMine(){
   if(mineSubTab==='chart') renderMineChart();
 }
 
+document.getElementById('mineHidePast').addEventListener('change', renderMineList);
+
 function renderMineList(){
   const myAllEntries = state.entries.filter(e=>e.name===state.user);
   let myEntries = myAllEntries.slice();
@@ -962,26 +1086,35 @@ function renderMineList(){
     const q = mineSearchQuery.toLowerCase();
     myEntries = myEntries.filter(e=> (e.raceName||'').toLowerCase().includes(q));
   }
+  if(document.getElementById('mineHidePast').checked){
+    myEntries = myEntries.filter(e=>{ const diff = daysUntil_(e.raceDate); return diff===null || diff>=0; });
+  }
   myEntries.sort((a,b)=> new Date(a.raceDate||'2999-01-01') - new Date(b.raceDate||'2999-01-01'));
 
   document.getElementById('mineCount').textContent = `${myEntries.length}건`;
   const container = document.getElementById('mineListContainer');
 
   if(myEntries.length===0){
-    const reason = myAllEntries.length===0 ? '오른쪽 아래 ＋ 버튼으로 참가 신청을 시작해보세요' : '연도나 검색어를 확인해보세요';
+    const reason = myAllEntries.length===0 ? '위의 "참가 대회 등록하기" 버튼으로 시작해보세요' : '연도나 검색어를 확인해보세요';
     container.innerHTML = `<div class="empty"><b>표시할 대회가 없어요</b>${reason}</div>`;
     return;
   }
 
+  const nextEntryId = myEntries.find(e=>{ const diff = daysUntil_(e.raceDate); return diff!==null && diff>=0; })?.id;
+
   container.innerHTML = myEntries.map(e=>{
     const rec = state.records.find(r=>r.entryId===e.id);
+    const race = state.races.find(r=>r.id===e.raceId);
     const cls = EVENT_CLASS[e.event] || 'etc';
     const goalLine = rec && (rec.goal || rec.result)
       ? `<div class="goalresult">${rec.goal?('목표 '+rec.goal):''}${rec.goal&&rec.result?' · ':''}${rec.result?('기록 '+rec.result):''}</div>`
       : `<div>기록 없음 · 탭해서 입력</div>`;
-    return `<div class="bib-card" data-entry="${e.id}">
+    const dday = ddayLabel_(e.raceDate);
+    const isNext = e.id === nextEntryId;
+    return `<div class="bib-card${isNext?' next-highlight':''}" data-entry="${e.id}">
+      ${isNext?'<div class="next-tag">🔥 다음 대회</div>':''}
       <div class="row1">
-        <div><div class="rname">${e.raceName}</div><div class="rdate mono">${fmtDate(e.raceDate)}</div></div>
+        <div><div class="rname">${e.raceName}${dday?`<span class="dday-badge">${dday}</span>`:''}</div><div class="rdate mono">${fmtDate(e.raceDate)}${race&&race.time?' '+race.time:''} · ${(race&&race.place)||'장소 미정'}</div></div>
         <span class="pill ${cls}">${eventLabel_(e.event)||'기타'}</span>
       </div>
       <div class="row2">${goalLine}</div>
@@ -1025,6 +1158,8 @@ function renderRaces(){
   renderRacesList();
 }
 
+document.getElementById('racesHidePast').addEventListener('change', renderRacesList);
+
 function renderRacesList(){
   let races = state.races.slice();
 
@@ -1034,6 +1169,9 @@ function renderRacesList(){
   if(racesSearchQuery){
     const q = racesSearchQuery.toLowerCase();
     races = races.filter(r=> (r.raceName||'').toLowerCase().includes(q));
+  }
+  if(document.getElementById('racesHidePast').checked){
+    races = races.filter(r=>{ const diff = daysUntil_(r.raceDate); return diff===null || diff>=0; });
   }
   races.sort((a,b)=> new Date(a.raceDate||'2999-01-01') - new Date(b.raceDate||'2999-01-01'));
 
@@ -1046,18 +1184,27 @@ function renderRacesList(){
     return;
   }
 
+  const nextRaceId = races.find(r=>{ const diff = daysUntil_(r.raceDate); return diff!==null && diff>=0; })?.id;
+
   container.innerHTML = races.map(r=>{
-    const count = state.entries.filter(e=>e.raceId===r.id).length;
-    const eventsForRace = sortEvents_([...new Set(state.entries.filter(e=>e.raceId===r.id).map(e=>e.event||'기타'))]);
+    const raceEntries = state.entries.filter(e=>e.raceId===r.id);
+    const count = raceEntries.length;
+    const eventsForRace = sortEvents_([...new Set(raceEntries.map(e=>normalizeEventKey_(e.event)))]);
     const pillsHtml = eventsForRace.length
       ? eventsForRace.map(ev=>`<span class="pill ${EVENT_CLASS[ev]||'etc'}">${escapeHtml(eventLabel_(ev))}</span>`).join('')
       : `<span class="pill etc">${escapeHtml(eventLabel_(r.event)||'종목 미정')}</span>`;
-    return `<div class="bib-card" data-race="${r.id}">
+    const namesInline = count
+      ? `<span class="names-inline">${escapeHtml(raceEntries.map(e=>e.name).sort((a,b)=>a.localeCompare(b,'ko')).join(', '))}</span>`
+      : '';
+    const dday = ddayLabel_(r.raceDate);
+    const isNext = r.id === nextRaceId;
+    return `<div class="bib-card${isNext?' next-highlight':''}" data-race="${r.id}">
+      ${isNext?'<div class="next-tag">🔥 다음 대회</div>':''}
       <div class="row1">
-        <div><div class="rname">${r.raceName}</div><div class="rdate mono">${fmtDate(r.raceDate)}</div></div>
+        <div><div class="rname">${r.raceName}${dday?`<span class="dday-badge">${dday}</span>`:''}</div><div class="rdate mono">${fmtDate(r.raceDate)}${r.time?' '+r.time:''} · ${r.place||'장소 미정'}</div></div>
         <div class="pill-group">${pillsHtml}</div>
       </div>
-      <div class="row2"><span>${r.place||'장소 미정'}</span><span class="participants-badge">참가 ${count}명</span></div>
+      <div class="row2" style="justify-content:flex-start; flex-wrap:wrap; gap:6px;"><span class="participants-badge">참가 ${count}명</span>${namesInline}</div>
     </div>`;
   }).join('');
 
@@ -1067,33 +1214,21 @@ function renderRacesList(){
 }
 
 /* ================= 참가 신청 모달 ================= */
-let entryMode = 'existing';
-
 function toDateInputValue_(d){
   const dt = new Date(d);
   if(isNaN(dt)) return '';
   return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
 }
 
-function switchEntryMode(mode){
-  entryMode = mode;
-  document.querySelectorAll('#entryModeToggle .mt-btn').forEach(b=>b.classList.toggle('active', b.dataset.mode===mode));
-  document.getElementById('entryExistingField').style.display = mode==='existing' ? 'block' : 'none';
-  document.getElementById('entryNewField').style.display = mode==='new' ? 'block' : 'none';
-  const dateInput = document.getElementById('entryRaceDate');
-  if(mode==='existing'){
-    dateInput.readOnly = true;
-    dateInput.style.background = '#F2F0EC';
-    applySelectedRaceDate();
-  }else{
-    dateInput.readOnly = false;
-    dateInput.style.background = '#fff';
-    dateInput.value = '';
+function getEventOptionsForRace_(race){
+  if(race.events){
+    const arr = race.events.split(',').map(s=>s.trim()).filter(Boolean);
+    if(arr.length) return arr;
   }
+  const fromEntries = [...new Set(state.entries.filter(e=>e.raceId===race.id).map(e=>e.event).filter(Boolean))];
+  if(fromEntries.length) return sortEvents_(fromEntries);
+  return ['10K','HALF','FULL'];
 }
-document.querySelectorAll('#entryModeToggle .mt-btn').forEach(b=>{
-  b.addEventListener('click', ()=>switchEntryMode(b.dataset.mode));
-});
 
 function populateEntryRaceSelect(){
   const sel = document.getElementById('entryRaceSelect');
@@ -1103,48 +1238,40 @@ function populateEntryRaceSelect(){
     .sort((a,b)=> new Date(a.raceDate) - new Date(b.raceDate));
   sel.innerHTML = future.length
     ? '<option value="">대회를 선택하세요</option>' + future.map(r=>`<option value="${r.id}">${escapeHtml(r.raceName)} (${fmtDate(r.raceDate)})</option>`).join('')
-    : '<option value="">예정된 대회가 없어요 - 신규 대회 탭을 이용해주세요</option>';
+    : '<option value="">예정된 대회가 없어요 - 관리자에게 등록을 요청해주세요</option>';
 }
 
-function applySelectedRaceDate(){
+function applySelectedRaceInfo(){
   const race = state.races.find(r=>r.id===document.getElementById('entryRaceSelect').value);
-  document.getElementById('entryRaceDate').value = race ? toDateInputValue_(race.raceDate) : '';
+  const dateInput = document.getElementById('entryRaceDate');
+  const eventSel = document.getElementById('entryEvent');
+  if(!race){
+    dateInput.value = '';
+    eventSel.innerHTML = '<option value="">먼저 대회를 선택하세요</option>';
+    return;
+  }
+  dateInput.value = toDateInputValue_(race.raceDate);
+  const options = getEventOptionsForRace_(race);
+  eventSel.innerHTML = options.map(ev=>`<option value="${escapeHtml(ev)}">${escapeHtml(eventLabel_(ev))}</option>`).join('');
 }
-document.getElementById('entryRaceSelect').addEventListener('change', applySelectedRaceDate);
+document.getElementById('entryRaceSelect').addEventListener('change', applySelectedRaceInfo);
 
-document.getElementById('entryEvent').addEventListener('change', ()=>{
-  document.getElementById('entryDistanceField').style.display = document.getElementById('entryEvent').value==='기타' ? 'block' : 'none';
-});
-
-document.getElementById('fabAdd').addEventListener('click', ()=>{
+document.getElementById('ctaJoinBtn').addEventListener('click', ()=>{
   populateEntryRaceSelect();
-  switchEntryMode('existing');
-  document.getElementById('entryRaceName').value='';
-  document.getElementById('entryEvent').value='10K';
-  document.getElementById('entryDistanceField').style.display='none';
-  document.getElementById('entryDistance').value='';
-  document.getElementById('entryNote').value='';
+  document.getElementById('entryRaceDate').value = '';
+  document.getElementById('entryEvent').innerHTML = '<option value="">먼저 대회를 선택하세요</option>';
+  document.getElementById('entryNote').value = '';
   autoResizeTextarea(document.getElementById('entryNote'));
   open_('entryOverlay');
 });
 
 document.getElementById('entrySubmit').addEventListener('click', async ()=>{
-  let raceName, raceDate;
-  if(entryMode==='existing'){
-    const race = state.races.find(r=>r.id===document.getElementById('entryRaceSelect').value);
-    if(!race){ toast('대회를 선택해주세요'); return; }
-    raceName = race.raceName;
-    raceDate = toDateInputValue_(race.raceDate);
-  }else{
-    raceName = document.getElementById('entryRaceName').value.trim();
-    if(!raceName){ toast('대회명을 입력해주세요'); return; }
-    raceDate = document.getElementById('entryRaceDate').value;
-  }
-  let event = document.getElementById('entryEvent').value;
-  if(event==='기타'){
-    const dist = document.getElementById('entryDistance').value.trim();
-    if(dist) event = `기타(${dist}km)`;
-  }
+  const race = state.races.find(r=>r.id===document.getElementById('entryRaceSelect').value);
+  if(!race){ toast('대회를 선택해주세요'); return; }
+  const raceName = race.raceName;
+  const raceDate = toDateInputValue_(race.raceDate);
+  const event = document.getElementById('entryEvent').value;
+  if(!event){ toast('종목을 선택해주세요'); return; }
   const note = document.getElementById('entryNote').value.trim();
 
   if(state.entries.some(e=>e.name===state.user && e.raceName===raceName)){
@@ -1153,32 +1280,202 @@ document.getElementById('entrySubmit').addEventListener('click', async ()=>{
   }
 
   // 낙관적 업데이트: 서버 응답을 기다리지 않고 화면부터 바로 갱신
-  let race = state.races.find(r=>r.raceName===raceName);
-  const isNewRace = !race;
-  if(!race){
-    race = { id:'tmp_'+Date.now(), raceName, raceDate, event, place:'', link:'', memo:'', updatedBy:'', updatedAt:'', lockUser:'', lockAt:'' };
-    state.races.push(race);
-  }
   const tempEntry = { id:'tmp_'+Date.now()+Math.random().toString(36).slice(2,6), timestamp:new Date().toISOString(), name:state.user, raceId:race.id, raceName, raceDate, event, note };
   state.entries.push(tempEntry);
   close_('entryOverlay');
   toast('참가 신청 완료!');
-  renderMine(); renderRaces(); populateRaceDatalist();
+  renderMine(); renderRaces();
 
   const res = await apiPost('addEntry', { name: state.user, raceName, raceDate, event, note });
   if(!res.ok){
     state.entries = state.entries.filter(e=>e.id!==tempEntry.id);
-    if(isNewRace) state.races = state.races.filter(r=>r.id!==race.id);
     toast(res.error || '신청 실패 - 되돌렸습니다');
-    renderMine(); renderRaces(); populateRaceDatalist();
+    renderMine(); renderRaces();
     return;
   }
   const eIdx = state.entries.findIndex(e=>e.id===tempEntry.id);
   if(eIdx>-1) state.entries[eIdx] = res.entry;
-  const rIdx = state.races.findIndex(r=>r.id===race.id);
-  if(rIdx>-1) state.races[rIdx] = res.race;
-  if(state.activeRace && state.activeRace.id===race.id) state.activeRace = res.race;
   renderMine(); renderRaces();
+});
+
+/* ================= 관리자: 대회 추가/편집 ================= */
+let raceFormMode = 'add'; // 'add' | 'edit'
+let raceFormEditingId = null;
+
+function renderEventSlots(count, presetValues){
+  const container = document.getElementById('rfEventSlots');
+  container.innerHTML = '';
+  for(let i=0;i<count;i++){
+    const row = document.createElement('div');
+    row.className = 'event-slot-row';
+    const label = document.createElement('label');
+    label.textContent = `종목 ${i+1}`;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.setAttribute('list','rfEventOptions');
+    input.placeholder = '5 / 10 / HALF / FULL';
+    input.className = 'rf-event-slot-input';
+    if(presetValues && presetValues[i]){
+      // 저장된 값(예: '10K')에서 순수 숫자/HALF/FULL만 다시 보여줌
+      const raw = presetValues[i];
+      const m = raw.match(/^(\d+(\.\d+)?)K$/i);
+      input.value = m ? m[1] : raw;
+    }
+    input.dataset.prevValid = input.value;
+    input.addEventListener('input', ()=>validateEventSlotInput_(input));
+    const suffix = document.createElement('span');
+    suffix.className = 'unit-suffix';
+    suffix.textContent = 'km';
+    row.appendChild(label);
+    row.appendChild(input);
+    row.appendChild(suffix);
+    container.appendChild(row);
+  }
+}
+
+function validateEventSlotInput_(inp){
+  const val = inp.value;
+  const upper = val.toUpperCase();
+  const isDecimal = /^\d*(\.\d{0,3})?$/.test(val); // 소수점 셋째 자리까지 허용
+  const isHalfPrefix = upper.length>0 && 'HALF'.startsWith(upper);
+  const isFullPrefix = upper.length>0 && 'FULL'.startsWith(upper);
+  if(val==='' || isDecimal || isHalfPrefix || isFullPrefix){
+    inp.dataset.prevValid = val;
+  }else{
+    inp.value = inp.dataset.prevValid || '';
+  }
+}
+
+document.getElementById('rfEventCount').addEventListener('input', ()=>{
+  let n = parseInt(document.getElementById('rfEventCount').value, 10);
+  if(isNaN(n) || n<0) n=0;
+  if(n>10) n=10;
+  renderEventSlots(n);
+});
+
+function collectEventSlotValues_(){
+  return Array.from(document.querySelectorAll('.rf-event-slot-input')).map(inp=>{
+    const v = inp.value.trim();
+    if(!v) return '';
+    const upper = v.toUpperCase();
+    if(upper==='HALF') return 'HALF';
+    if(upper==='FULL') return 'FULL';
+    if(/^\d+(\.\d{1,3})?$/.test(v)) return `${v}K`;
+    return ''; // HALF/FULL을 끝까지 입력하지 않은 값은 무시
+  }).filter(Boolean);
+}
+
+function fillRaceTimeInput_(timeStr){
+  const parts = (timeStr||'').split(':');
+  document.getElementById('rfTimeH').value = parts[0] ? parseInt(parts[0],10) : '';
+  document.getElementById('rfTimeM').value = parts[1] ? parseInt(parts[1],10) : '';
+}
+function readRaceTimeInput_(){
+  const h = document.getElementById('rfTimeH').value.trim();
+  const m = document.getElementById('rfTimeM').value.trim();
+  if(!h && !m) return '';
+  const hh = h ? parseInt(h,10)||0 : 0;
+  const mm = m ? parseInt(m,10)||0 : 0;
+  return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+
+function openRaceFormForAdd(){
+  raceFormMode = 'add';
+  raceFormEditingId = null;
+  document.getElementById('raceFormTitle').textContent = '대회 추가';
+  document.getElementById('rfName').value = '';
+  document.getElementById('rfDate').value = '';
+  fillRaceTimeInput_('');
+  document.getElementById('rfPlace').value = '';
+  document.getElementById('rfEventCount').value = '';
+  renderEventSlots(0);
+  document.getElementById('rfLink').value = '';
+  document.getElementById('rfMemo').value = '';
+  open_('raceFormOverlay');
+  requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('rfMemo')));
+}
+
+function openRaceFormForEdit(race){
+  raceFormMode = 'edit';
+  raceFormEditingId = race.id;
+  document.getElementById('raceFormTitle').textContent = '대회 편집';
+  document.getElementById('rfName').value = race.raceName || '';
+  document.getElementById('rfDate').value = toDateInputValue_(race.raceDate);
+  fillRaceTimeInput_(race.time || '');
+  document.getElementById('rfPlace').value = race.place || '';
+  const events = race.events ? race.events.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  document.getElementById('rfEventCount').value = events.length || '';
+  renderEventSlots(events.length, events);
+  document.getElementById('rfLink').value = race.link || '';
+  document.getElementById('rfMemo').value = race.memo || '';
+  open_('raceFormOverlay');
+  requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('rfMemo')));
+}
+
+document.getElementById('adminAddRaceBtn').addEventListener('click', openRaceFormForAdd);
+document.getElementById('raceEditOpenBtn').addEventListener('click', ()=>{
+  if(state.activeRace) openRaceFormForEdit(state.activeRace);
+});
+
+document.getElementById('raceFormSubmit').addEventListener('click', async ()=>{
+  const raceName = document.getElementById('rfName').value.trim();
+  const raceDate = document.getElementById('rfDate').value;
+  const time = readRaceTimeInput_();
+  const place = document.getElementById('rfPlace').value.trim();
+  const link = document.getElementById('rfLink').value.trim();
+  const memo = document.getElementById('rfMemo').value.trim();
+  const events = collectEventSlotValues_();
+
+  if(!raceName){ toast('대회명을 입력해주세요'); return; }
+  if(!raceDate){ toast('대회일자를 입력해주세요'); return; }
+
+  const btn = document.getElementById('raceFormSubmit');
+  btn.disabled = true; btn.textContent = '저장 중…';
+
+  if(raceFormMode==='add'){
+    const res = await apiPost('addRaceFull', { user: state.user, raceName, raceDate, time, place, events, link, memo });
+    btn.disabled = false; btn.textContent = '저장';
+    if(!res.ok){ toast(res.error||'추가 실패'); return; }
+    state.races.push(res.race);
+    close_('raceFormOverlay');
+    toast('대회가 추가되었습니다');
+    renderMine(); renderRaces();
+  }else{
+    const res = await apiPost('updateRaceFull', { user: state.user, raceId: raceFormEditingId, raceName, raceDate, time, place, events, link, memo });
+    btn.disabled = false; btn.textContent = '저장';
+    if(!res.ok){ toast(res.error||'수정 실패'); return; }
+    const idx = state.races.findIndex(r=>r.id===raceFormEditingId);
+    if(idx>-1) state.races[idx] = res.race;
+    state.entries.forEach(e=>{ if(e.raceId===raceFormEditingId){ e.raceName = raceName; e.raceDate = raceDate; } });
+    if(state.activeRace && state.activeRace.id===raceFormEditingId) state.activeRace = res.race;
+    close_('raceFormOverlay');
+    toast('대회 정보가 수정되었습니다');
+    renderMine(); renderRaces();
+    if(document.getElementById('raceOverlay').classList.contains('show')) openRaceModal(raceFormEditingId);
+  }
+});
+
+/* ================= 마스터: 관리자 지정 ================= */
+document.getElementById('masterAssignBtn').addEventListener('click', ()=>{
+  const list = document.getElementById('adminPickerList');
+  const names = state.members.slice().sort();
+  list.innerHTML = names.length
+    ? names.map(n=>`<label class="admin-picker-row"><input type="checkbox" value="${escapeHtml(n)}" ${state.admins.includes(n)?'checked':''}><span>${escapeHtml(n)}</span></label>`).join('')
+    : `<div class="empty" style="padding:20px;">등록된 크루원이 없어요</div>`;
+  open_('adminPickerOverlay');
+});
+
+document.getElementById('adminPickerSubmit').addEventListener('click', async ()=>{
+  const checked = Array.from(document.querySelectorAll('#adminPickerList input:checked')).map(i=>i.value);
+  const btn = document.getElementById('adminPickerSubmit');
+  btn.disabled = true; btn.textContent = '저장 중…';
+  const res = await apiPost('setAdmins', { user: state.user, admins: checked });
+  btn.disabled = false; btn.textContent = '저장';
+  if(!res.ok){ toast(res.error||'저장 실패'); return; }
+  state.admins = res.admins || checked;
+  close_('adminPickerOverlay');
+  toast('관리자 목록이 저장되었습니다');
+  updateAdminUI();
 });
 
 /* ================= 목표/기록 모달 ================= */
@@ -1216,12 +1513,53 @@ function openRecordModal(entryId){
   const rec = state.records.find(r=>r.entryId===entryId);
   document.getElementById('recordTitle').textContent = entry.raceName;
   document.getElementById('recordSub').textContent = `${fmtDate(entry.raceDate)} · ${eventLabel_(entry.event)}`;
+  document.getElementById('recordEventSelect').style.display = 'none';
   fillTimeInputs_('recordGoal', rec?.goal || '');
   fillTimeInputs_('recordResult', rec?.result || '');
   document.getElementById('recordMemo').value = rec?.memo || '';
-  autoResizeTextarea(document.getElementById('recordMemo'));
   open_('recordOverlay');
+  requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('recordMemo')));
 }
+
+document.getElementById('changeEventBtn').addEventListener('click', ()=>{
+  const sel = document.getElementById('recordEventSelect');
+  if(sel.style.display !== 'none'){ sel.style.display = 'none'; return; }
+  const entry = state.activeEntry;
+  if(!entry) return;
+  const race = state.races.find(r=>r.id===entry.raceId);
+  let options = race ? getEventOptionsForRace_(race) : [entry.event];
+  if(entry.event && !options.includes(entry.event)) options = [entry.event, ...options]; // 대회 종목 목록에서 빠졌어도 현재 내가 신청한 종목은 계속 표시
+  sel.innerHTML = options.map(ev=>`<option value="${escapeHtml(ev)}" ${ev===entry.event?'selected':''}>${escapeHtml(eventLabel_(ev))}</option>`).join('');
+  sel.style.display = 'inline-block';
+  sel.focus();
+});
+
+document.getElementById('recordEventSelect').addEventListener('change', async ()=>{
+  const sel = document.getElementById('recordEventSelect');
+  const newEvent = sel.value;
+  const entry = state.activeEntry;
+  sel.style.display = 'none';
+  if(!entry || newEvent===entry.event) return;
+
+  if(state.entries.some(e=>e.name===state.user && e.raceId===entry.raceId && e.id!==entry.id && e.event===newEvent)){
+    toast('이미 신청한 종목이에요');
+    return;
+  }
+
+  const oldEvent = entry.event;
+  entry.event = newEvent; // 낙관적 업데이트
+  document.getElementById('recordSub').textContent = `${fmtDate(entry.raceDate)} · ${eventLabel_(entry.event)}`;
+  toast('종목이 변경되었습니다');
+  renderMine(); renderRaces();
+
+  const res = await apiPost('updateEntryEvent', {entryId: entry.id, name: state.user, event: newEvent});
+  if(!res.ok){
+    entry.event = oldEvent;
+    document.getElementById('recordSub').textContent = `${fmtDate(entry.raceDate)} · ${eventLabel_(entry.event)}`;
+    toast(res.error||'변경 실패 - 되돌렸습니다');
+    renderMine(); renderRaces();
+  }
+});
 
 document.getElementById('recordSubmit').addEventListener('click', async ()=>{
   const entry = state.activeEntry;
@@ -1264,7 +1602,7 @@ document.getElementById('recordSubmit').addEventListener('click', async ()=>{
   renderMine();
 });
 
-document.getElementById('entryDelete').addEventListener('click', async ()=>{
+async function cancelParticipation_(){
   const entry = state.activeEntry;
   if(!confirm(`'${entry.raceName}' 참가를 취소할까요?`)) return;
   state.entries = state.entries.filter(e=>e.id!==entry.id);
@@ -1278,56 +1616,56 @@ document.getElementById('entryDelete').addEventListener('click', async ()=>{
     toast(res.error||'취소 실패 - 되돌렸습니다');
     renderMine(); renderRaces();
   }
-});
+}
+document.getElementById('entryDelete').addEventListener('click', cancelParticipation_);
+document.getElementById('entryDeleteTop').addEventListener('click', cancelParticipation_);
 
-/* ================= 대회 상세 (참가자 + 메모/잠금) ================= */
-let currentLockHeld = false;
+/* ================= 대회 상세 (참가자 관리) ================= */
 let raceParticipantFilter = 'all';
 
 async function openRaceModal(raceId){
   const race = state.races.find(r=>r.id===raceId);
   if(!race) return;
   state.activeRace = race;
-  currentLockHeld = false;
   raceParticipantFilter = 'all';
 
   document.getElementById('raceTitle').textContent = race.raceName;
-  document.getElementById('raceSub').textContent = `${fmtDate(race.raceDate)} · ${eventLabel_(race.event)||'종목 미정'}`;
-  document.getElementById('racePlace').value = race.place||'';
-  document.getElementById('raceLink').value = race.link||'';
-  document.getElementById('raceMemo').value = race.memo||'';
-  updateRaceLinkOpen();
-  updateRaceMemoView();
-  setRaceFieldsEditable(false);
-  updateLockBanner(race);
-  renderParticipants(raceId);
+  const timeStr = race.time ? ` ${race.time}` : '';
+  document.getElementById('raceSub').textContent = `${fmtDate(race.raceDate)}${timeStr}`;
 
+  const allEvents = getEventOptionsForRace_(race);
+  document.getElementById('raceAllEventsRow').innerHTML = allEvents.length
+    ? allEvents.map(ev=>`<span class="ef-pill" style="pointer-events:none;">${escapeHtml(eventLabel_(ev))}</span>`).join('')
+    : '';
+
+  document.getElementById('raceAdminActions').style.display = isAdmin_() ? 'flex' : 'none';
+
+  document.getElementById('racePlaceText').textContent = race.place || '장소 미정';
+  const linkVal = (race.link||'').trim();
+  document.getElementById('raceLinkText').innerHTML = linkVal ? linkify(linkVal) : '링크 없음';
+  updateRaceLinkOpen(linkVal);
+  const memoView = document.getElementById('raceMemoView');
+  memoView.innerHTML = linkify(race.memo||'');
+  memoView.classList.toggle('empty-memo', !(race.memo||'').trim());
+
+  renderParticipants(raceId);
   open_('raceOverlay');
 }
 
-function updateRaceLinkOpen(){
-  const val = document.getElementById('raceLink').value.trim();
+function updateRaceLinkOpen(link){
   const btn = document.getElementById('raceLinkOpen');
-  if(val){
-    btn.href = val.startsWith('http') ? val : 'https://'+val;
+  if(link){
+    btn.href = link.startsWith('http') ? link : 'https://'+link;
     btn.style.display = 'inline-block';
   }else{
     btn.style.display = 'none';
   }
 }
-document.getElementById('raceLink').addEventListener('input', updateRaceLinkOpen);
-
-function updateRaceMemoView(){
-  const val = document.getElementById('raceMemo').value;
-  const view = document.getElementById('raceMemoView');
-  view.innerHTML = linkify(val);
-  view.classList.toggle('empty-memo', !val.trim());
-}
 
 function renderParticipants(raceId){
   const parts = state.entries.filter(e=>e.raceId===raceId);
   const counts = {};
-  parts.forEach(p=>{ const ev = (p.event||'').trim() || '기타'; counts[ev] = (counts[ev]||0)+1; });
+  parts.forEach(p=>{ const key = normalizeEventKey_(p.event); counts[key] = (counts[key]||0)+1; });
   const events = sortEvents_(Object.keys(counts)); // 실제 존재하는 종목값을 전부 동적으로 표시 (고정 목록에 없는 값도 누락 없이 표시됨)
 
   const filterHtml = `<button class="ef-pill ${raceParticipantFilter==='all'?'active':''}" data-ev="all">전체 ${parts.length}</button>` +
@@ -1341,13 +1679,13 @@ function renderParticipants(raceId){
     });
   });
 
-  const filtered = raceParticipantFilter==='all' ? parts : parts.filter(p=>((p.event||'').trim()||'기타')===raceParticipantFilter);
+  const filtered = (raceParticipantFilter==='all' ? parts : parts.filter(p=>normalizeEventKey_(p.event)===raceParticipantFilter))
+    .slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
   const list = document.getElementById('raceParticipantList');
   list.innerHTML = filtered.length
     ? filtered.map(p=>`<div class="participant-row"><span class="pn">${escapeHtml(p.name)}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(eventLabel_(p.event))}</span></div>`).join('')
     : `<div class="empty" style="padding:20px;">해당 종목 참가자가 없어요</div>`;
 
-  renderParticipantAction(raceId, parts);
   updateRaceDeleteButton(parts.length);
 }
 
@@ -1355,164 +1693,34 @@ let raceDeletableCount = 0;
 function updateRaceDeleteButton(participantCount){
   raceDeletableCount = participantCount;
   const btn = document.getElementById('raceDeleteBtn');
-  btn.textContent = '🗑 이 대회 삭제';
-  btn.style.opacity = participantCount > 0 ? 0.5 : 1;
+  if(!btn) return;
+  btn.textContent = participantCount > 0 ? `🗑 대회 삭제 (참가자 ${participantCount}명)` : '🗑 대회 삭제';
+  btn.style.opacity = 1;
 }
-
-function renderParticipantAction(raceId, parts){
-  const box = document.getElementById('raceParticipantAction');
-  if(raceParticipantFilter === 'all'){
-    box.innerHTML = '';
-    return;
-  }
-  const myEntry = parts.find(p => p.name===state.user && ((p.event||'').trim()||'기타')===raceParticipantFilter);
-  if(myEntry){
-    box.innerHTML = `<button class="btn-ghost small-action" id="quickActionBtn">'${escapeHtml(raceParticipantFilter)}' 참가 취소</button>`;
-    box.querySelector('#quickActionBtn').addEventListener('click', ()=>quickCancel_(myEntry, raceId));
-  }else{
-    box.innerHTML = `<button class="btn-primary small-action" id="quickActionBtn">'${escapeHtml(raceParticipantFilter)}' 참가하기</button>`;
-    box.querySelector('#quickActionBtn').addEventListener('click', ()=>quickJoin_(raceId, raceParticipantFilter));
-  }
-}
-
-async function quickCancel_(entry, raceId){
-  if(!confirm(`'${entry.raceName}' (${eventLabel_(entry.event)}) 참가를 취소할까요?`)) return;
-  state.entries = state.entries.filter(e=>e.id!==entry.id);
-  toast('참가가 취소되었습니다');
-  renderMine(); renderRaces(); renderParticipants(raceId);
-
-  const res = await apiPost('deleteEntry', {entryId: entry.id, name: state.user});
-  if(!res.ok){
-    state.entries.push(entry);
-    toast(res.error||'취소 실패 - 되돌렸습니다');
-    renderMine(); renderRaces(); renderParticipants(raceId);
-  }
-}
-
-async function quickJoin_(raceId, event){
-  const race = state.races.find(r=>r.id===raceId);
-  if(!race) return;
-  if(state.entries.some(e=>e.name===state.user && e.raceId===raceId && ((e.event||'').trim()||'기타')===event)){
-    toast('이미 신청한 종목입니다');
-    return;
-  }
-  const tempEntry = { id:'tmp_'+Date.now()+Math.random().toString(36).slice(2,6), timestamp:new Date().toISOString(), name:state.user, raceId:race.id, raceName:race.raceName, raceDate:race.raceDate, event, note:'' };
-  state.entries.push(tempEntry);
-  toast('참가 신청 완료!');
-  renderMine(); renderRaces(); renderParticipants(raceId);
-
-  const res = await apiPost('addEntry', { name: state.user, raceName: race.raceName, raceDate: race.raceDate, event, note: '' });
-  if(!res.ok){
-    state.entries = state.entries.filter(e=>e.id!==tempEntry.id);
-    toast(res.error||'신청 실패 - 되돌렸습니다');
-    renderMine(); renderRaces(); renderParticipants(raceId);
-    return;
-  }
-  const idx = state.entries.findIndex(e=>e.id===tempEntry.id);
-  if(idx>-1) state.entries[idx] = res.entry;
-}
-
-function updateLockBanner(race){
-  const banner = document.getElementById('lockBanner');
-  const lockText = document.getElementById('lockText');
-  const editBtn = document.getElementById('raceEditBtn');
-  const now = new Date();
-  const expired = !race.lockAt || (now - new Date(race.lockAt)) > 5*60*1000;
-  if(race.lockUser && !expired && race.lockUser !== state.user){
-    banner.style.display='flex';
-    lockText.textContent = `${race.lockUser}님이 편집 중입니다 (잠시 후 다시 시도해주세요)`;
-    editBtn.disabled = true; editBtn.style.opacity=0.5;
-  }else{
-    banner.style.display='none';
-    editBtn.disabled = false; editBtn.style.opacity=1;
-  }
-}
-
-function setRaceFieldsEditable(editable){
-  ['racePlace','raceLink'].forEach(id=>{
-    document.getElementById(id).disabled = !editable;
-    document.getElementById(id).style.background = editable ? '#fff' : '#F2F0EC';
-  });
-  document.getElementById('raceMemo').style.display = editable ? 'block' : 'none';
-  document.getElementById('raceMemoView').style.display = editable ? 'none' : 'block';
-  document.getElementById('raceEditBtn').style.display = editable ? 'none' : 'block';
-  document.getElementById('raceSaveBtn').style.display = editable ? 'block' : 'none';
-}
-
-document.getElementById('raceEditBtn').addEventListener('click', async ()=>{
-  const race = state.activeRace;
-  const res = await apiPost('lockRace', {raceId: race.id, user: state.user});
-  if(!res.ok){
-    toast(res.error||'편집 잠금 실패');
-    race.lockUser = res.lockUser; race.lockAt = res.lockAt;
-    updateLockBanner(race);
-    return;
-  }
-  currentLockHeld = true;
-  setRaceFieldsEditable(true);
-  autoResizeTextarea(document.getElementById('raceMemo'));
-  document.getElementById('raceMemo').focus();
-  state.lockHeartbeat = setInterval(async ()=>{
-    await apiPost('heartbeat', {raceId: race.id, user: state.user});
-  }, 60000);
-});
-
-document.getElementById('raceSaveBtn').addEventListener('click', async ()=>{
-  const race = state.activeRace;
-  const btn = document.getElementById('raceSaveBtn');
-  btn.disabled = true; btn.textContent = '저장 중…';
-  const res = await apiPost('saveRaceMemo', {
-    raceId: race.id, user: state.user,
-    place: document.getElementById('racePlace').value.trim(),
-    link: document.getElementById('raceLink').value.trim(),
-    memo: document.getElementById('raceMemo').value.trim()
-  });
-  btn.disabled = false; btn.textContent = '저장하고 잠금 해제';
-  if(!res.ok){ toast(res.error||'저장 실패'); return; }
-  Object.assign(race, {
-    place: document.getElementById('racePlace').value.trim(),
-    link: document.getElementById('raceLink').value.trim(),
-    memo: document.getElementById('raceMemo').value.trim()
-  });
-  updateRaceLinkOpen();
-  updateRaceMemoView();
-  await releaseLockIfHeld();
-  setRaceFieldsEditable(false);
-  toast('저장되었습니다');
-  renderRaces();
-});
 
 document.getElementById('raceDeleteBtn').addEventListener('click', async ()=>{
   const race = state.activeRace;
-  if(!race) return;
-  if(raceDeletableCount > 0){
-    toast(`참가자가 있어 삭제할 수 없어요 (${raceDeletableCount}명)`);
-    return;
-  }
-  if(!confirm(`'${race.raceName}' 대회를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.`)) return;
+  if(!race || !isAdmin_()) return;
 
+  const warn = raceDeletableCount > 0
+    ? `\n참가자 ${raceDeletableCount}명의 신청 정보와 목표·기록도 함께 삭제됩니다.`
+    : '';
+  if(!confirm(`'${race.raceName}' 대회를 삭제할까요?${warn}\n이 작업은 되돌릴 수 없습니다.`)) return;
+
+  const removedEntryIds = new Set(state.entries.filter(e=>e.raceId===race.id).map(e=>e.id));
   state.races = state.races.filter(r=>r.id!==race.id);
-  await releaseLockIfHeld();
+  state.entries = state.entries.filter(e=>e.raceId!==race.id);
+  state.records = state.records.filter(rec=>!removedEntryIds.has(rec.entryId));
   close_('raceOverlay');
   toast('대회가 삭제되었습니다');
   renderMine(); renderRaces();
 
   const res = await apiPost('deleteRace', {raceId: race.id, user: state.user});
   if(!res.ok){
-    state.races.push(race);
-    toast(res.error||'삭제 실패 - 되돌렸습니다');
-    renderRaces();
+    toast(res.error||'삭제 실패 - 최신 정보로 다시 불러올게요');
+    loadAll(true);
   }
 });
-
-async function releaseLockIfHeld(){
-  clearInterval(state.lockHeartbeat);
-  if(currentLockHeld && state.activeRace){
-    await apiPost('unlockRace', {raceId: state.activeRace.id, user: state.user});
-    currentLockHeld = false;
-  }
-}
-window.addEventListener('beforeunload', releaseLockIfHeld);
 
 /* ================= 시작 ================= */
 if('serviceWorker' in navigator){
@@ -1525,7 +1733,6 @@ if('serviceWorker' in navigator){
   const hadCache = loadCachedData();
   if(hadCache){
     populateNameSelect();
-    populateRaceDatalist();
     document.getElementById('loadingScreen').style.display = 'none';
     loadAll(true); // 최신 데이터로 백그라운드 갱신
   }else{
