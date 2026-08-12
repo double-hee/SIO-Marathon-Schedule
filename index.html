@@ -421,10 +421,7 @@
     </div>
     <div class="field">
       <label>대회 링크</label>
-      <div class="link-row">
-        <div id="raceLinkText" class="memo-view" style="flex:1;"></div>
-        <a id="raceLinkOpen" href="#" target="_blank" rel="noopener" class="link-open-btn" style="display:none;">열기 ↗</a>
-      </div>
+      <div id="raceLinkText" class="memo-view"></div>
     </div>
     <div class="field">
       <label>기타 대회 정보</label>
@@ -1644,23 +1641,12 @@ async function openRaceModal(raceId){
   document.getElementById('racePlaceText').textContent = race.place || '장소 미정';
   const linkVal = (race.link||'').trim();
   document.getElementById('raceLinkText').innerHTML = linkVal ? linkify(linkVal) : '링크 없음';
-  updateRaceLinkOpen(linkVal);
   const memoView = document.getElementById('raceMemoView');
   memoView.innerHTML = linkify(race.memo||'');
   memoView.classList.toggle('empty-memo', !(race.memo||'').trim());
 
   renderParticipants(raceId);
   open_('raceOverlay');
-}
-
-function updateRaceLinkOpen(link){
-  const btn = document.getElementById('raceLinkOpen');
-  if(link){
-    btn.href = link.startsWith('http') ? link : 'https://'+link;
-    btn.style.display = 'inline-block';
-  }else{
-    btn.style.display = 'none';
-  }
 }
 
 function renderParticipants(raceId){
