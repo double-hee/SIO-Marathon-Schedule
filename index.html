@@ -85,7 +85,10 @@
   .pill.full{background:#FBE7E3; color:var(--clay);}
   .pill.etc{background:#EDEBFB; color:#5B4EBD;}
   .bib-card .row2{margin-top:10px; padding-top:10px; border-top:1px dashed var(--mist); display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:#8a8680;}
-  .names-inline{font-size:12px; color:#8a8680; word-break:break-word;}
+  .event-participant-list{margin-top:8px; padding-top:8px; border-top:1px dashed var(--mist);}
+  .event-participant-row{display:flex; gap:8px; padding:3px 0; font-size:12px; line-height:1.5;}
+  .event-participant-label{flex-shrink:0; width:42px; font-family:'Roboto Mono',monospace; font-weight:700; color:var(--clay);}
+  .event-participant-names{color:#6b6660; word-break:break-word;}
   .bib-card .goalresult{font-family:'Roboto Mono',monospace; color:var(--ink);}
   .bib-card .participants-badge{font-family:'Roboto Mono',monospace; color:var(--clay); font-weight:600;}
 
@@ -113,7 +116,6 @@
   .small-action-inline.btn-ghost{background:#fff; border:1.5px solid var(--mist); color:var(--ink); font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
   .small-action-inline.btn-danger-text{background:none; border:1.5px solid var(--clay); color:var(--clay); text-decoration:none; font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
   .small-action-inline.btn-info-text{background:none; border:1.5px solid var(--navy); color:var(--navy); text-decoration:none; font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
-  #recordEventSelect{padding:6px 10px; border-radius:8px; border:1.5px solid var(--clay); font-size:13px; font-family:'Pretendard',sans-serif; color:var(--ink); background:#fff;}
   #recordMemo{min-height:192px;}
   .event-slot-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
   .event-slot-row input.rf-event-slot-input{width:100%; padding:13px 14px; border-radius:9px; border:1.5px solid var(--mist); font-size:16px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
@@ -367,8 +369,7 @@
     <button class="modal-close" data-close="recordOverlay">✕</button>
     <h2 id="recordTitle">목표 · 기록</h2>
     <div class="record-action-row">
-      <button class="small-action-inline btn-info-text" id="changeEventBtn" type="button">종목 변경</button>
-      <select id="recordEventSelect" style="display:none;"></select>
+      <button class="small-action-inline btn-info-text" id="editEntryBtn" type="button">참가 수정</button>
       <button class="small-action-inline btn-danger-text" id="entryDeleteTop" type="button">참가 취소</button>
     </div>
     <div class="sub" id="recordSub"></div>
@@ -396,8 +397,26 @@
       <button class="btn-ghost" data-close="recordOverlay">닫기</button>
       <button class="btn-primary" id="recordSubmit">저장</button>
     </div>
+  </div>
+</div>
+
+<!-- 참가 수정 모달 (종목 / 동반 참가 인원) -->
+<div class="overlay" id="entryEditOverlay">
+  <div class="modal modal-wrap">
+    <button class="modal-close" data-close="entryEditOverlay">✕</button>
+    <h2>참가 수정</h2>
+    <div class="sub" id="entryEditSub"></div>
+    <div class="field">
+      <label>종목</label>
+      <select id="entryEditEvent"></select>
+    </div>
+    <div class="field">
+      <label>동반 참가 인원 (선택)</label>
+      <textarea id="entryEditNote" placeholder="예: 배우자, 자녀 2명과 함께 참가"></textarea>
+    </div>
     <div class="actions">
-      <button class="btn-danger-text" id="entryDelete">참가 취소</button>
+      <button class="btn-ghost" data-close="entryEditOverlay">취소</button>
+      <button class="btn-primary" id="entryEditSubmit">저장</button>
     </div>
   </div>
 </div>
@@ -1191,9 +1210,17 @@ function renderRacesList(){
     const pillsHtml = eventsForRace.length
       ? eventsForRace.map(ev=>`<span class="pill ${EVENT_CLASS[ev]||'etc'}">${escapeHtml(eventLabel_(ev))}</span>`).join('')
       : `<span class="pill etc">${escapeHtml(eventLabel_(r.event)||'종목 미정')}</span>`;
-    const namesInline = count
-      ? `<span class="names-inline">${escapeHtml(raceEntries.map(e=>e.name).sort((a,b)=>a.localeCompare(b,'ko')).join(', '))}</span>`
-      : '';
+
+    const groupedByEvent = {};
+    raceEntries.forEach(e=>{
+      const key = normalizeEventKey_(e.event);
+      (groupedByEvent[key] = groupedByEvent[key] || []).push(e.name);
+    });
+    const byEventHtml = eventsForRace.map(ev=>{
+      const names = (groupedByEvent[ev]||[]).sort((a,b)=>a.localeCompare(b,'ko')).join(', ');
+      return `<div class="event-participant-row"><span class="event-participant-label">${escapeHtml(eventLabel_(ev))}</span><span class="event-participant-names">${escapeHtml(names)}</span></div>`;
+    }).join('');
+
     const dday = ddayLabel_(r.raceDate);
     const isNext = r.id === nextRaceId;
     return `<div class="bib-card${isNext?' next-highlight':''}" data-race="${r.id}">
@@ -1202,7 +1229,8 @@ function renderRacesList(){
         <div><div class="rname">${r.raceName}${dday?`<span class="dday-badge">${dday}</span>`:''}</div><div class="rdate mono">${fmtDate(r.raceDate)}${r.time?' '+r.time:''} · ${r.place||'장소 미정'}</div></div>
         <div class="pill-group">${pillsHtml}</div>
       </div>
-      <div class="row2" style="justify-content:flex-start; flex-wrap:wrap; gap:6px;"><span class="participants-badge">참가 ${count}명</span>${namesInline}</div>
+      <div class="row2"><span class="participants-badge">참가 ${count}명</span></div>
+      ${byEventHtml ? `<div class="event-participant-list">${byEventHtml}</div>` : ''}
     </div>`;
   }).join('');
 
@@ -1511,7 +1539,6 @@ function openRecordModal(entryId){
   const rec = state.records.find(r=>r.entryId===entryId);
   document.getElementById('recordTitle').textContent = entry.raceName;
   document.getElementById('recordSub').textContent = `${fmtDate(entry.raceDate)} · ${eventLabel_(entry.event)}`;
-  document.getElementById('recordEventSelect').style.display = 'none';
   fillTimeInputs_('recordGoal', rec?.goal || '');
   fillTimeInputs_('recordResult', rec?.result || '');
   document.getElementById('recordMemo').value = rec?.memo || '';
@@ -1519,42 +1546,44 @@ function openRecordModal(entryId){
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('recordMemo')));
 }
 
-document.getElementById('changeEventBtn').addEventListener('click', ()=>{
-  const sel = document.getElementById('recordEventSelect');
-  if(sel.style.display !== 'none'){ sel.style.display = 'none'; return; }
+document.getElementById('editEntryBtn').addEventListener('click', ()=>{
   const entry = state.activeEntry;
   if(!entry) return;
   const race = state.races.find(r=>r.id===entry.raceId);
   let options = race ? getEventOptionsForRace_(race) : [entry.event];
   if(entry.event && !options.includes(entry.event)) options = [entry.event, ...options]; // 대회 종목 목록에서 빠졌어도 현재 내가 신청한 종목은 계속 표시
+
+  document.getElementById('entryEditSub').textContent = `${entry.raceName} · ${fmtDate(entry.raceDate)}`;
+  const sel = document.getElementById('entryEditEvent');
   sel.innerHTML = options.map(ev=>`<option value="${escapeHtml(ev)}" ${ev===entry.event?'selected':''}>${escapeHtml(eventLabel_(ev))}</option>`).join('');
-  sel.style.display = 'inline-block';
-  sel.focus();
+  document.getElementById('entryEditNote').value = entry.note || '';
+
+  close_('recordOverlay');
+  open_('entryEditOverlay');
+  requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('entryEditNote')));
 });
 
-document.getElementById('recordEventSelect').addEventListener('change', async ()=>{
-  const sel = document.getElementById('recordEventSelect');
-  const newEvent = sel.value;
+document.getElementById('entryEditSubmit').addEventListener('click', async ()=>{
   const entry = state.activeEntry;
-  sel.style.display = 'none';
-  if(!entry || newEvent===entry.event) return;
+  if(!entry) return;
+  const newEvent = document.getElementById('entryEditEvent').value;
+  const newNote = document.getElementById('entryEditNote').value.trim();
 
-  if(state.entries.some(e=>e.name===state.user && e.raceId===entry.raceId && e.id!==entry.id && e.event===newEvent)){
+  if(newEvent !== entry.event && state.entries.some(e=>e.name===state.user && e.raceId===entry.raceId && e.id!==entry.id && e.event===newEvent)){
     toast('이미 신청한 종목이에요');
     return;
   }
 
-  const oldEvent = entry.event;
-  entry.event = newEvent; // 낙관적 업데이트
-  document.getElementById('recordSub').textContent = `${fmtDate(entry.raceDate)} · ${eventLabel_(entry.event)}`;
-  toast('종목이 변경되었습니다');
+  const oldEvent = entry.event, oldNote = entry.note;
+  entry.event = newEvent; entry.note = newNote; // 낙관적 업데이트
+  close_('entryEditOverlay');
+  toast('참가 정보가 수정되었습니다');
   renderMine(); renderRaces();
 
-  const res = await apiPost('updateEntryEvent', {entryId: entry.id, name: state.user, event: newEvent});
+  const res = await apiPost('updateEntryEvent', {entryId: entry.id, name: state.user, event: newEvent, note: newNote});
   if(!res.ok){
-    entry.event = oldEvent;
-    document.getElementById('recordSub').textContent = `${fmtDate(entry.raceDate)} · ${eventLabel_(entry.event)}`;
-    toast(res.error||'변경 실패 - 되돌렸습니다');
+    entry.event = oldEvent; entry.note = oldNote;
+    toast(res.error||'수정 실패 - 되돌렸습니다');
     renderMine(); renderRaces();
   }
 });
@@ -1615,7 +1644,6 @@ async function cancelParticipation_(){
     renderMine(); renderRaces();
   }
 }
-document.getElementById('entryDelete').addEventListener('click', cancelParticipation_);
 document.getElementById('entryDeleteTop').addEventListener('click', cancelParticipation_);
 
 /* ================= 대회 상세 (참가자 관리) ================= */
@@ -1667,7 +1695,10 @@ function renderParticipants(raceId){
   });
 
   const filtered = (raceParticipantFilter==='all' ? parts : parts.filter(p=>normalizeEventKey_(p.event)===raceParticipantFilter))
-    .slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    .slice().sort((a,b)=>
+      eventDistanceKm_(normalizeEventKey_(a.event)) - eventDistanceKm_(normalizeEventKey_(b.event))
+      || a.name.localeCompare(b.name,'ko')
+    );
   const list = document.getElementById('raceParticipantList');
   list.innerHTML = filtered.length
     ? filtered.map(p=>`<div class="participant-row"><span class="pn">${escapeHtml(p.name)}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(eventLabel_(p.event))}</span></div>`).join('')
