@@ -85,6 +85,34 @@
   .pill.full{background:#FBE7E3; color:var(--clay);}
   .pill.etc{background:#EDEBFB; color:#5B4EBD;}
   .bib-card .row2{margin-top:10px; padding-top:10px; border-top:1px dashed var(--mist); display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:#8a8680;}
+  .apply-period-row{margin-top:8px; font-size:12px; color:var(--ink); display:flex; align-items:center; gap:7px; flex-wrap:wrap;}
+  .apply-period-row.apply-period-multi{flex-direction:column; align-items:flex-start; gap:5px;}
+  .apply-period-item-row{display:flex; align-items:center; gap:7px;}
+  .apply-period-item{white-space:nowrap; font-weight:600;}
+  .apply-status-tag{flex-shrink:0; font-family:'Roboto Mono',monospace; font-weight:700; font-size:11px; padding:3px 9px; border-radius:20px;}
+  .apply-status-tag.open{background:#E9F3EC; color:var(--green);}
+  .apply-status-tag.closed{background:#FBE7E3; color:var(--clay);}
+  .apply-status-tag.upcoming{background:#FFF1DC; color:#B5720B;}
+  .apply-status-tag.unknown{background:var(--mist); color:#8a8680;}
+  .apply-status-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;}
+  .apply-status-header label{margin-bottom:0;}
+  .apply-status-row{display:flex; align-items:center; gap:8px; padding:6px 0; font-size:13.5px; border-bottom:1px solid var(--mist);}
+  .apply-status-row:last-child{border-bottom:none;}
+  .apply-status-note{color:#8a8680; font-size:12px;}
+  .apply-type-row{display:flex; align-items:center; gap:9px; padding-bottom:10px; margin-bottom:10px; border-bottom:1.5px solid var(--mist);}
+  .apply-type-row label{flex-shrink:0; font-size:12.5px; font-weight:600; color:#6b6660;}
+  .apply-type-row select{flex:1; padding:8px 10px; border-radius:8px; border:1.5px solid var(--mist); font-size:13px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
+  .apply-status-event-block{padding:10px 0; border-bottom:1px solid var(--mist);}
+  .apply-status-event-block:last-child{border-bottom:none;}
+  .apply-status-event-title{font-family:'Roboto Mono',monospace; font-weight:700; font-size:12.5px; color:var(--clay); margin-bottom:6px;}
+  .apply-dt-row{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
+  .apply-dt-row label{flex-shrink:0; width:32px; font-size:12px; color:#6b6660;}
+  .apply-dt-row input[type="date"]{flex:1.3; min-width:0; padding:6px 5px; border-radius:7px; border:1.5px solid var(--mist); font-size:12px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
+  .apply-dt-row input[type="time"]{flex:1; min-width:0; padding:6px 5px; border-radius:7px; border:1.5px solid var(--mist); font-size:12px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
+  .apply-dt-row select.as-status{flex:1; min-width:0; padding:6px 5px; border-radius:7px; border:1.5px solid var(--mist); font-size:12px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
+  .as-note{width:100%; box-sizing:border-box; padding:7px 9px; border-radius:7px; border:1.5px solid var(--mist); font-size:12.5px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
+  .apply-status-actions{display:flex; gap:8px; margin-top:10px;}
+  .apply-status-actions button{flex:1; padding:10px; font-size:13px; border-radius:9px;}
   .event-participant-list{margin-top:8px; padding-top:8px; border-top:1px dashed var(--mist);}
   .event-participant-row{display:flex; gap:8px; padding:3px 0; font-size:12px; line-height:1.5;}
   .event-participant-label{flex-shrink:0; width:42px; font-family:'Roboto Mono',monospace; font-weight:700; color:var(--clay);}
@@ -112,6 +140,18 @@
   .modal{background:var(--paper); width:100%; max-width:520px; border-radius:18px 18px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto;}
   .modal h2{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:22px; margin:0 0 4px;}
   .record-action-row{display:flex; align-items:center; gap:8px; margin:8px 0 10px; flex-wrap:wrap;}
+  .record-info-row{display:flex; align-items:stretch; justify-content:space-between; gap:10px; margin-bottom:16px;}
+  .record-info-text{font-size:12.5px; color:#8a8680; line-height:1.6;}
+  .record-info-btn{flex-shrink:0; white-space:nowrap; font-size:12.5px; font-weight:700; padding:0 16px; border-radius:9px; background:var(--navy); border:1.5px solid var(--navy); color:#fff; box-shadow:0 3px 8px rgba(27,42,65,0.4); transition:transform 0.1s;}
+  .record-info-btn:active{transform:scale(0.97);}
+  .btn-loading{position:relative;}
+  .btn-loading-ring{position:absolute; inset:-1.5px; pointer-events:none; display:none;}
+  .btn-loading .btn-loading-ring{display:block;}
+  .comet-seg{fill:none; stroke:var(--clay); stroke-width:3; stroke-linecap:butt; stroke-dasharray:0.9 99.1;
+    animation:comet-dash 2.4s linear infinite;
+    animation-delay:calc(var(--i) * -0.024s);
+    opacity:calc((var(--i) + 1) / 24);}
+  @keyframes comet-dash{ from{stroke-dashoffset:0;} to{stroke-dashoffset:100;} }
   .small-action-inline{border-radius:8px; cursor:pointer; white-space:nowrap;}
   .small-action-inline.btn-ghost{background:#fff; border:1.5px solid var(--mist); color:var(--ink); font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
   .small-action-inline.btn-danger-text{background:none; border:1.5px solid var(--clay); color:var(--clay); text-decoration:none; font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
@@ -133,6 +173,8 @@
   .link-row{display:flex; gap:8px; align-items:center;}
   .link-row input{flex:1;}
   .link-open-btn{flex-shrink:0; white-space:nowrap; font-size:13px; font-weight:600; color:var(--clay); text-decoration:none; padding:10px 12px; border:1.5px solid var(--mist); border-radius:9px;}
+  #rfAutoFillBtn{min-width:178px; height:42px; padding:0 12px; display:inline-flex; align-items:center; justify-content:center; text-align:center; box-sizing:border-box;}
+  #checkStatusBtn{min-width:178px; height:42px; padding:0 12px; display:flex; align-items:center; justify-content:center; white-space:nowrap; box-sizing:border-box;}
   .time-input-row{display:flex; align-items:center; gap:6px;}
   .time-input-row input{width:56px; flex:0 0 56px; min-width:0; text-align:center; padding:10px 4px;}
   .time-sep{font-size:12.5px; color:#8a8680; margin-right:8px; flex-shrink:0;}
@@ -369,10 +411,16 @@
     <button class="modal-close" data-close="recordOverlay">✕</button>
     <h2 id="recordTitle">목표 · 기록</h2>
     <div class="record-action-row">
-      <button class="small-action-inline btn-info-text" id="editEntryBtn" type="button">참가 수정</button>
-      <button class="small-action-inline btn-danger-text" id="entryDeleteTop" type="button">참가 취소</button>
+      <button class="small-action-inline btn-info-text" id="editEntryBtn" type="button">✏️ 참가 수정</button>
+      <button class="small-action-inline btn-danger-text" id="entryDeleteTop" type="button">❌ 참가 취소</button>
     </div>
-    <div class="sub" id="recordSub"></div>
+    <div class="record-info-row">
+      <div class="record-info-text">
+        <div id="recordSubLine1"></div>
+        <div id="recordSubLine2"></div>
+      </div>
+      <button class="record-info-btn" id="recordViewRaceBtn" type="button">📋 대회 정보 보기</button>
+    </div>
     <div class="field">
       <label>목표 기록</label>
       <div class="time-input-row">
@@ -429,9 +477,9 @@
     <div class="sub" id="raceSub"></div>
     <div class="event-filter" id="raceAllEventsRow"></div>
 
-    <div class="actions" id="raceAdminActions" style="display:none;">
-      <button class="btn-ghost" id="raceEditOpenBtn" type="button">✏️ 대회 편집</button>
-      <button class="btn-danger-text" id="raceDeleteBtn" type="button">🗑 대회 삭제</button>
+    <div class="record-action-row" id="raceAdminActions" style="display:none;">
+      <button class="small-action-inline btn-info-text" id="raceEditOpenBtn" type="button">✏️ 대회 편집</button>
+      <button class="small-action-inline btn-danger-text" id="raceDeleteBtn" type="button">🗑 대회 삭제</button>
     </div>
 
     <div class="field">
@@ -447,6 +495,46 @@
       <div id="raceMemoView" class="memo-view"></div>
     </div>
 
+    <div class="field">
+      <div class="apply-status-header">
+        <label>종목별 신청현황</label>
+        <button class="small-action-inline btn-info-text" id="editApplyStatusBtn" type="button" style="display:none;">✏️ 편집</button>
+      </div>
+      <div id="applyStatusEditor"></div>
+      <div class="apply-status-actions" id="applyStatusActions" style="display:none;">
+        <button class="btn-ghost" id="checkStatusBtn" type="button">
+          <span class="btn-label">🔍 AI로 조회해서 채우기</span>
+          <svg class="btn-loading-ring" viewBox="0 0 178 42" aria-hidden="true">
+            <rect class="comet-seg" style="--i:0" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:1" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:2" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:3" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:4" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:5" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:6" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:7" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:8" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:9" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:10" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:11" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:12" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:13" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:14" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:15" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:16" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:17" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:18" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:19" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:20" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:21" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:22" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:23" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+          </svg>
+        </button>
+        <button class="btn-primary" id="saveApplyStatusBtn" type="button">저장</button>
+      </div>
+    </div>
+
     <h2 style="margin-top:22px; font-size:19px;">참가자</h2>
     <div class="event-filter" id="raceEventFilter"></div>
     <div id="raceParticipantList"></div>
@@ -458,6 +546,43 @@
   <div class="modal modal-wrap">
     <button class="modal-close" data-close="raceFormOverlay">✕</button>
     <h2 id="raceFormTitle">대회 추가</h2>
+
+    <div class="field">
+      <label>🤖 대회명 또는 링크로 자동 채우기 (선택)</label>
+      <div class="link-row">
+        <input id="rfAutoUrl" type="text" placeholder="예: JTBC 서울마라톤 (또는 홈페이지 URL)">
+        <button class="link-open-btn" id="rfAutoFillBtn" type="button">
+          <span class="btn-label">AI로 가져오기</span>
+          <svg class="btn-loading-ring" viewBox="0 0 178 42" aria-hidden="true">
+            <rect class="comet-seg" style="--i:0" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:1" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:2" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:3" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:4" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:5" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:6" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:7" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:8" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:9" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:10" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:11" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:12" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:13" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:14" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:15" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:16" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:17" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:18" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:19" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:20" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:21" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:22" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+            <rect class="comet-seg" style="--i:23" x="1.5" y="1.5" width="175" height="39" rx="9" ry="9" pathLength="100"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <div class="field">
       <label>대회명</label>
       <input id="rfName" placeholder="예: JTBC 서울마라톤">
@@ -478,10 +603,19 @@
       <input id="rfPlace" placeholder="예: 서울 잠실종합운동장">
     </div>
     <div class="field">
+      <label>신청 방식</label>
+      <select id="rfApplyType">
+        <option value="">미정</option>
+        <option value="선착순">선착순</option>
+        <option value="추첨">추첨</option>
+      </select>
+    </div>
+    <div class="field">
       <label>종목 개수</label>
       <input id="rfEventCount" type="number" inputmode="numeric" min="0" max="10" placeholder="예: 3">
     </div>
     <div id="rfEventSlots"></div>
+    <div id="rfScheduleSummary" class="sub" style="display:none;"></div>
     <datalist id="rfEventOptions">
       <option value="5">
       <option value="10">
@@ -610,6 +744,21 @@ function toast(msg){
   clearTimeout(t._timer);
   t._timer = setTimeout(()=>t.classList.remove('show'), 2200);
 }
+// AI 조회처럼 오래 걸리는 작업 중에 점을 늘려가며 "아직 진행 중"임을 보여줌 (Apps Script는 단일 호출이라 실제 세부 단계를 알 수 없어서, 있지도 않은 단계를 지어내지 않고 하나의 문구로 솔직하게 표시)
+function startDotsCycle_(btn, baseText, intervalMs){
+  intervalMs = intervalMs || 450;
+  const label = btn.querySelector('.btn-label') || btn;
+  let n = 0;
+  label.textContent = baseText;
+  const timer = setInterval(()=>{
+    n = (n+1) % 4;
+    label.textContent = baseText + '.'.repeat(n);
+  }, intervalMs);
+  return function stopDotsCycle_(finalText){
+    clearInterval(timer);
+    if(finalText !== undefined) label.textContent = finalText;
+  };
+}
 function fmtDate(d){
   if(!d) return '날짜 미정';
   const dt = new Date(d);
@@ -629,6 +778,80 @@ function ddayLabel_(d){
   if(diff===null) return '';
   if(diff===0) return 'D-DAY';
   return diff>0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
+}
+function formatOneSchedule_(s, status, applyType){
+  if(!s) return '';
+  const parts = [];
+  if(applyType) parts.push(applyType);
+  if(status==='신청예정' && s.start){
+    parts.push(`${fmtShortDate_(s.start)}${s.startTime?` ${s.startTime}`:''} 시작`);
+    parts.push(ddayLabel_(s.start));
+  }else if(s.end){
+    const startStr = s.start ? `${fmtShortDate_(s.start)}${s.startTime?` ${s.startTime}`:''} ~ ` : '';
+    parts.push(`${startStr}${fmtShortDate_(s.end)}${s.endTime?` ${s.endTime}`:''} 마감`);
+    parts.push(ddayLabel_(s.end));
+  }else if(s.start){
+    parts.push(`${fmtShortDate_(s.start)}${s.startTime?` ${s.startTime}`:''} 시작`);
+  }else{
+    return '';
+  }
+  return parts.join(' · ');
+}
+function combineDateTime_(dateStr, timeStr, endOfDay){
+  if(!dateStr) return null;
+  const t = timeStr || (endOfDay ? '23:59' : '00:00');
+  const dt = new Date(`${dateStr}T${t}:00`);
+  return isNaN(dt) ? null : dt;
+}
+function computeApplyStatus_(s){
+  if(!s) return null;
+  if(s.status) return s.status; // 관리자가 직접 지정했거나 AI 조회로 채운 값이 있으면 그걸 우선 사용
+  if(!s.start && !s.end) return null;
+  const now = new Date();
+  const startDt = combineDateTime_(s.start, s.startTime, false);
+  const endDt = combineDateTime_(s.end, s.endTime, true);
+  if(startDt && now < startDt) return '신청예정';
+  if(endDt && now > endDt) return '마감';
+  return '신청중';
+}
+function statusTagClass_(status){
+  if(status==='신청중') return 'open';
+  if(status==='마감') return 'closed';
+  if(status==='신청예정') return 'upcoming';
+  return 'unknown';
+}
+function statusTagHtml_(status){
+  return status ? `<span class="apply-status-tag ${statusTagClass_(status)}">${escapeHtml(status)}</span>` : '';
+}
+function renderApplyPeriodHtml_(race, eventsForRace){
+  const sched = (race.eventSchedules && typeof race.eventSchedules==='object') ? race.eventSchedules : {};
+  const applyType = race.applyType || '';
+  const withData = eventsForRace.filter(ev=>sched[ev] && (sched[ev].start||sched[ev].end));
+  if(!withData.length) return '';
+
+  // 마감인 종목은 카드에 표시하지 않음 - 신청중/신청예정만 보여줌
+  const openData = withData.filter(ev=>computeApplyStatus_(sched[ev])!=='마감');
+  if(!openData.length) return '';
+
+  const first = sched[openData[0]];
+  const allSame = openData.every(ev=>{
+    const s = sched[ev];
+    return s.start===first.start && s.startTime===first.startTime && s.end===first.end && s.endTime===first.endTime;
+  });
+  if(allSame){
+    const status = computeApplyStatus_(first);
+    const text = formatOneSchedule_(first, status, applyType);
+    if(!text && !status) return '';
+    return `<div class="apply-period-row">${statusTagHtml_(status)}${text?`<span>${escapeHtml(text)}</span>`:''}</div>`;
+  }
+  const items = openData.map(ev=>{
+    const s = sched[ev];
+    const status = computeApplyStatus_(s);
+    const text = formatOneSchedule_(s, status, applyType);
+    if(!text && !status) return '';
+    return `<div class="apply-period-item-row">${statusTagHtml_(status)}<span class="apply-period-item">${escapeHtml(eventLabel_(ev))}</span>${text?`<span>${escapeHtml(text)}</span>`:''}</div>`;
+  }).filter(Boolean);
+  return items.length ? `<div class="apply-period-row apply-period-multi">${items.join('')}</div>` : '';
 }
 let openModalCount = 0;
 let scrollLockY = 0;
@@ -1123,17 +1346,28 @@ function renderMineList(){
     const rec = state.records.find(r=>r.entryId===e.id);
     const race = state.races.find(r=>r.id===e.raceId);
     const cls = EVENT_CLASS[e.event] || 'etc';
+    const eventLabelText = `<span class="event-participant-label" style="display:inline;">${escapeHtml(eventLabel_(e.event)||'기타')}</span>`;
     const goalLine = rec && (rec.goal || rec.result)
-      ? `<div class="goalresult">${rec.goal?('목표 '+rec.goal):''}${rec.goal&&rec.result?' · ':''}${rec.result?('기록 '+rec.result):''}</div>`
-      : `<div>기록 없음 · 탭해서 입력</div>`;
+      ? `<div class="goalresult">${eventLabelText} ${rec.goal?('목표 '+rec.goal):''}${rec.goal&&rec.result?' · ':''}${rec.result?('기록 '+rec.result):''}</div>`
+      : `<div>${eventLabelText} 기록 없음 · 탭해서 입력</div>`;
     const dday = ddayLabel_(e.raceDate);
     const isNext = e.id === nextEntryId;
+    const mySchedule = race && race.eventSchedules ? race.eventSchedules[e.event] : null;
+    const myStatus = mySchedule ? computeApplyStatus_(mySchedule) : null;
+    const myShowSchedule = myStatus && myStatus !== '마감';
+    const myApplyText = myShowSchedule ? formatOneSchedule_(mySchedule, myStatus, race&&race.applyType) : '';
+    const raceEntries = state.entries.filter(en=>en.raceId===e.raceId);
+    const eventsForRace = sortEvents_([...new Set(raceEntries.map(en=>normalizeEventKey_(en.event)))]);
+    const pillsHtml = eventsForRace.length
+      ? eventsForRace.map(ev=>`<span class="pill ${EVENT_CLASS[ev]||'etc'}">${escapeHtml(eventLabel_(ev))}</span>`).join('')
+      : `<span class="pill ${cls}">${eventLabel_(e.event)||'기타'}</span>`;
     return `<div class="bib-card${isNext?' next-highlight':''}" data-entry="${e.id}">
       ${isNext?'<div class="next-tag">🔥 다음 대회</div>':''}
       <div class="row1">
         <div><div class="rname">${e.raceName}${dday?`<span class="dday-badge">${dday}</span>`:''}</div><div class="rdate mono">${fmtDate(e.raceDate)}${race&&race.time?' '+race.time:''} · ${(race&&race.place)||'장소 미정'}</div></div>
-        <span class="pill ${cls}">${eventLabel_(e.event)||'기타'}</span>
+        <div class="pill-group">${pillsHtml}</div>
       </div>
+      ${myShowSchedule?`<div class="apply-period-row">${statusTagHtml_(myStatus)}${myApplyText?`<span>${escapeHtml(myApplyText)}</span>`:''}</div>`:''}
       <div class="row2">${goalLine}</div>
     </div>`;
   }).join('');
@@ -1223,12 +1457,15 @@ function renderRacesList(){
 
     const dday = ddayLabel_(r.raceDate);
     const isNext = r.id === nextRaceId;
+    const raceOwnEvents = r.events ? r.events.split(',').map(s=>s.trim()).filter(Boolean) : eventsForRace;
+    const applyPeriodHtml = renderApplyPeriodHtml_(r, raceOwnEvents);
     return `<div class="bib-card${isNext?' next-highlight':''}" data-race="${r.id}">
       ${isNext?'<div class="next-tag">🔥 다음 대회</div>':''}
       <div class="row1">
         <div><div class="rname">${r.raceName}${dday?`<span class="dday-badge">${dday}</span>`:''}</div><div class="rdate mono">${fmtDate(r.raceDate)}${r.time?' '+r.time:''} · ${r.place||'장소 미정'}</div></div>
         <div class="pill-group">${pillsHtml}</div>
       </div>
+      ${applyPeriodHtml}
       <div class="row2"><span class="participants-badge">참가 ${count}명</span></div>
       ${byEventHtml ? `<div class="event-participant-list">${byEventHtml}</div>` : ''}
     </div>`;
@@ -1327,6 +1564,25 @@ document.getElementById('entrySubmit').addEventListener('click', async ()=>{
 /* ================= 관리자: 대회 추가/편집 ================= */
 let raceFormMode = 'add'; // 'add' | 'edit'
 let raceFormEditingId = null;
+let rfEventSchedules = {}; // { '10K': {start,end,type}, ... } - AI가 채우거나 기존 대회에서 불러옴
+
+function fmtShortDate_(d){
+  const dt = new Date(d);
+  if(isNaN(dt)) return '';
+  return `${dt.getMonth()+1}/${dt.getDate()}`;
+}
+function renderScheduleSummary(){
+  const el = document.getElementById('rfScheduleSummary');
+  const keys = Object.keys(rfEventSchedules).filter(k=> rfEventSchedules[k] && (rfEventSchedules[k].start || rfEventSchedules[k].end));
+  if(!keys.length){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display = 'block';
+  el.innerHTML = '📅 신청기간: ' + keys.map(k=>{
+    const s = rfEventSchedules[k];
+    const startStr = s.start ? `${fmtShortDate_(s.start)}${s.startTime?` ${s.startTime}`:''}` : '?';
+    const endStr = s.end ? `${fmtShortDate_(s.end)}${s.endTime?` ${s.endTime}`:''}` : '?';
+    return `${escapeHtml(eventLabel_(k))} ${startStr}~${endStr}`;
+  }).join(' · ');
+}
 
 function renderEventSlots(count, presetValues){
   const container = document.getElementById('rfEventSlots');
@@ -1409,14 +1665,18 @@ function openRaceFormForAdd(){
   raceFormMode = 'add';
   raceFormEditingId = null;
   document.getElementById('raceFormTitle').textContent = '대회 추가';
+  document.getElementById('rfAutoUrl').value = '';
   document.getElementById('rfName').value = '';
   document.getElementById('rfDate').value = '';
   fillRaceTimeInput_('');
   document.getElementById('rfPlace').value = '';
+  document.getElementById('rfApplyType').value = '';
   document.getElementById('rfEventCount').value = '';
   renderEventSlots(0);
   document.getElementById('rfLink').value = '';
   document.getElementById('rfMemo').value = '';
+  rfEventSchedules = {};
+  renderScheduleSummary();
   open_('raceFormOverlay');
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('rfMemo')));
 }
@@ -1425,18 +1685,77 @@ function openRaceFormForEdit(race){
   raceFormMode = 'edit';
   raceFormEditingId = race.id;
   document.getElementById('raceFormTitle').textContent = '대회 편집';
+  document.getElementById('rfAutoUrl').value = race.link || '';
   document.getElementById('rfName').value = race.raceName || '';
   document.getElementById('rfDate').value = toDateInputValue_(race.raceDate);
   fillRaceTimeInput_(race.time || '');
   document.getElementById('rfPlace').value = race.place || '';
+  document.getElementById('rfApplyType').value = race.applyType || '';
   const events = race.events ? race.events.split(',').map(s=>s.trim()).filter(Boolean) : [];
   document.getElementById('rfEventCount').value = events.length || '';
   renderEventSlots(events.length, events);
   document.getElementById('rfLink').value = race.link || '';
   document.getElementById('rfMemo').value = race.memo || '';
+  rfEventSchedules = (race.eventSchedules && typeof race.eventSchedules==='object') ? {...race.eventSchedules} : {};
+  renderScheduleSummary();
   open_('raceFormOverlay');
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('rfMemo')));
 }
+
+document.getElementById('rfAutoFillBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('rfAutoUrl').value.trim();
+  if(!input){ toast('대회명 또는 URL을 입력해주세요'); return; }
+  const isUrl = /^https?:\/\//i.test(input);
+
+  const btn = document.getElementById('rfAutoFillBtn');
+  btn.disabled = true;
+  btn.classList.add('btn-loading');
+
+  let res;
+  if(isUrl){
+    // 실제로 두 단계(페이지 가져오기 → AI 분석)를 순서대로 호출해서, 문구가 실제 진행 상황과 맞도록 함
+    let stop = startDotsCycle_(btn, '📄 페이지 가져오는 중');
+    const pageRes = await apiPost('fetchPageText', { user: state.user, url: input });
+    stop();
+    if(!pageRes.ok){
+      btn.classList.remove('btn-loading');
+      btn.disabled = false;
+      btn.querySelector('.btn-label').textContent = 'AI로 가져오기';
+      toast(pageRes.error||'페이지를 가져오지 못했어요');
+      return;
+    }
+    stop = startDotsCycle_(btn, '🤖 AI가 분석하는 중');
+    res = await apiPost('analyzeRaceText', { user: state.user, text: pageRes.text });
+    stop();
+  }else{
+    // 구글 검색 그라운딩은 AI 호출 하나로 검색+정리가 한번에 일어나서 세부 단계를 알 수 없음 - 있지도 않은 단계를 지어내지 않고 하나의 문구로 표시
+    const stop = startDotsCycle_(btn, '🔍 AI가 검색하는 중');
+    res = await apiPost('fetchRaceInfoByName', { user: state.user, raceName: input });
+    stop();
+  }
+
+  btn.classList.remove('btn-loading');
+  btn.disabled = false;
+  btn.querySelector('.btn-label').textContent = 'AI로 가져오기';
+  if(!res.ok){ toast(res.error||'정보를 가져오지 못했어요'); return; }
+
+  const d = res.data || {};
+  if(d.raceName) document.getElementById('rfName').value = d.raceName;
+  if(d.raceDate) document.getElementById('rfDate').value = d.raceDate;
+  if(d.time) fillRaceTimeInput_(d.time);
+  if(d.place) document.getElementById('rfPlace').value = d.place;
+  if(d.applyType) document.getElementById('rfApplyType').value = d.applyType;
+  if(Array.isArray(d.events) && d.events.length){
+    document.getElementById('rfEventCount').value = d.events.length;
+    renderEventSlots(d.events.length, d.events);
+  }
+  document.getElementById('rfLink').value = isUrl ? input : (d.link || '');
+  if(d.eventSchedules && typeof d.eventSchedules==='object'){
+    rfEventSchedules = d.eventSchedules;
+  }
+  renderScheduleSummary();
+  toast('AI가 정보를 채웠어요 - 확인 후 저장해주세요');
+});
 
 document.getElementById('adminAddRaceBtn').addEventListener('click', openRaceFormForAdd);
 document.getElementById('raceEditOpenBtn').addEventListener('click', ()=>{
@@ -1448,6 +1767,7 @@ document.getElementById('raceFormSubmit').addEventListener('click', async ()=>{
   const raceDate = document.getElementById('rfDate').value;
   const time = readRaceTimeInput_();
   const place = document.getElementById('rfPlace').value.trim();
+  const applyType = document.getElementById('rfApplyType').value;
   const link = document.getElementById('rfLink').value.trim();
   const memo = document.getElementById('rfMemo').value.trim();
   const events = collectEventSlotValues_();
@@ -1459,7 +1779,7 @@ document.getElementById('raceFormSubmit').addEventListener('click', async ()=>{
   btn.disabled = true; btn.textContent = '저장 중…';
 
   if(raceFormMode==='add'){
-    const res = await apiPost('addRaceFull', { user: state.user, raceName, raceDate, time, place, events, link, memo });
+    const res = await apiPost('addRaceFull', { user: state.user, raceName, raceDate, time, place, applyType, events, eventSchedules: rfEventSchedules, link, memo });
     btn.disabled = false; btn.textContent = '저장';
     if(!res.ok){ toast(res.error||'추가 실패'); return; }
     state.races.push(res.race);
@@ -1467,7 +1787,7 @@ document.getElementById('raceFormSubmit').addEventListener('click', async ()=>{
     toast('대회가 추가되었습니다');
     renderMine(); renderRaces();
   }else{
-    const res = await apiPost('updateRaceFull', { user: state.user, raceId: raceFormEditingId, raceName, raceDate, time, place, events, link, memo });
+    const res = await apiPost('updateRaceFull', { user: state.user, raceId: raceFormEditingId, raceName, raceDate, time, place, applyType, events, eventSchedules: rfEventSchedules, link, memo });
     btn.disabled = false; btn.textContent = '저장';
     if(!res.ok){ toast(res.error||'수정 실패'); return; }
     const idx = state.races.findIndex(r=>r.id===raceFormEditingId);
@@ -1478,6 +1798,7 @@ document.getElementById('raceFormSubmit').addEventListener('click', async ()=>{
     toast('대회 정보가 수정되었습니다');
     renderMine(); renderRaces();
     if(document.getElementById('raceOverlay').classList.contains('show')) openRaceModal(raceFormEditingId);
+    if(document.getElementById('recordOverlay').classList.contains('show') && state.activeRace) renderRaceInfoTab_(state.activeRace);
   }
 });
 
@@ -1536,15 +1857,24 @@ function openRecordModal(entryId){
   const entry = state.entries.find(e=>e.id===entryId);
   if(!entry) return;
   state.activeEntry = entry;
+  const race = state.races.find(r=>r.id===entry.raceId);
   const rec = state.records.find(r=>r.entryId===entryId);
   document.getElementById('recordTitle').textContent = entry.raceName;
-  document.getElementById('recordSub').textContent = `${fmtDate(entry.raceDate)} · ${eventLabel_(entry.event)}`;
+  document.getElementById('recordSubLine1').textContent = `${fmtDate(entry.raceDate)}${race&&race.time?' '+race.time:''} · ${eventLabel_(entry.event)}`;
+  document.getElementById('recordSubLine2').textContent = (race&&race.place) || '장소 미정';
   fillTimeInputs_('recordGoal', rec?.goal || '');
   fillTimeInputs_('recordResult', rec?.result || '');
   document.getElementById('recordMemo').value = rec?.memo || '';
+
   open_('recordOverlay');
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('recordMemo')));
 }
+
+document.getElementById('recordViewRaceBtn').addEventListener('click', ()=>{
+  const entry = state.activeEntry;
+  if(!entry) return;
+  openRaceModal(entry.raceId);
+});
 
 document.getElementById('editEntryBtn').addEventListener('click', ()=>{
   const entry = state.activeEntry;
@@ -1673,11 +2003,145 @@ async function openRaceModal(raceId){
   memoView.innerHTML = linkify(race.memo||'');
   memoView.classList.toggle('empty-memo', !(race.memo||'').trim());
 
+  document.querySelector('#checkStatusBtn .btn-label').textContent = '🔍 AI로 조회해서 채우기';
+  document.getElementById('applyStatusActions').style.display = 'none';
+  document.getElementById('editApplyStatusBtn').style.display = isAdmin_() ? 'inline-block' : 'none';
+  renderApplyStatusViewOnly_(race, 'applyStatusEditor');
+
   renderParticipants(raceId);
   open_('raceOverlay');
 }
 
-function renderParticipants(raceId){
+// 종목별 신청현황: 기본은 모두에게 읽기 전용으로 표시, 관리자는 "편집" 버튼을 눌러야 입력 폼으로 전환됨
+function renderApplyStatusViewOnly_(race, editorElId){
+  editorElId = editorElId || 'applyStatusEditor';
+  const sched = (race.eventSchedules && typeof race.eventSchedules==='object') ? race.eventSchedules : {};
+  const applyType = race.applyType || '';
+  const events = getEventOptionsForRace_(race);
+  const el = document.getElementById(editorElId);
+  const rows = events.map(ev=>{
+    const s = sched[ev] || {};
+    const status = computeApplyStatus_(s);
+    const text = formatOneSchedule_(s, status, applyType);
+    if(!status && !text) return '';
+    return `<div class="apply-status-row">
+      ${statusTagHtml_(status)}
+      <span>${escapeHtml(eventLabel_(ev))}</span>
+      ${text?`<span class="apply-status-note">${escapeHtml(text)}</span>`:''}
+    </div>`;
+  }).filter(Boolean);
+  el.innerHTML = rows.length ? rows.join('') : `<div class="apply-status-note">등록된 신청현황 정보가 없어요</div>`;
+}
+
+function renderApplyStatusEditForm_(race, editorElId, overrideData){
+  editorElId = editorElId || 'applyStatusEditor';
+  const sched = (race.eventSchedules && typeof race.eventSchedules==='object') ? race.eventSchedules : {};
+  const events = getEventOptionsForRace_(race);
+  const el = document.getElementById(editorElId);
+
+  const currentApplyType = (overrideData && overrideData.applyType !== undefined) ? overrideData.applyType : (race.applyType || '');
+  const typeOptions = ['','선착순','추첨'].map(v=>`<option value="${v}" ${currentApplyType===v?'selected':''}>${v||'미정'}</option>`).join('');
+
+  const eventRows = events.map(ev=>{
+    const override = overrideData && overrideData.events && overrideData.events[ev];
+    const s = override || sched[ev] || {};
+    const statusVal = s.status || '';
+    const statusOptions = ['','신청예정','신청중','마감'].map(v=>`<option value="${v}" ${statusVal===v?'selected':''}>${v||'미정'}</option>`).join('');
+    return `<div class="apply-status-event-block" data-event="${escapeHtml(ev)}">
+      <div class="apply-status-event-title">${escapeHtml(eventLabel_(ev))}</div>
+      <div class="apply-dt-row">
+        <label>상태</label>
+        <select class="as-status">${statusOptions}</select>
+      </div>
+      <div class="apply-dt-row">
+        <label>신청</label>
+        <input type="date" class="as-start-date" value="${escapeHtml(s.start||'')}">
+        <input type="time" class="as-start-time" value="${escapeHtml(s.startTime||'')}">
+      </div>
+      <div class="apply-dt-row">
+        <label>종료</label>
+        <input type="date" class="as-end-date" value="${escapeHtml(s.end||'')}">
+        <input type="time" class="as-end-time" value="${escapeHtml(s.endTime||'')}">
+      </div>
+      <input type="text" class="as-note" placeholder="비고 (선택)" value="${escapeHtml(s.note||'')}">
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="apply-type-row">
+      <label>신청 방식</label>
+      <select class="as-apply-type">${typeOptions}</select>
+    </div>
+    ${eventRows}`;
+}
+
+function handleEditApplyStatusClick_(editorElId, actionsElId){
+  const race = state.activeRace;
+  if(!race) return;
+  renderApplyStatusEditForm_(race, editorElId);
+  document.getElementById(actionsElId).style.display = 'flex';
+}
+document.getElementById('editApplyStatusBtn').addEventListener('click', ()=>handleEditApplyStatusClick_('applyStatusEditor','applyStatusActions'));
+
+async function handleCheckStatusClick_(editorElId, btnId){
+  const race = state.activeRace;
+  if(!race) return;
+  const btn = document.getElementById(btnId);
+  btn.disabled = true;
+  btn.classList.add('btn-loading');
+  const stop = startDotsCycle_(btn, '🔍 AI가 검색하는 중');
+
+  const events = getEventOptionsForRace_(race);
+  const res = await apiPost('checkRaceApplicationStatus', { user: state.user, raceName: race.raceName, link: race.link || '', events });
+
+  stop('🔍 AI로 조회해서 채우기');
+  btn.classList.remove('btn-loading');
+  btn.disabled = false;
+  if(!res.ok){ toast(res.error||'조회 실패'); return; }
+
+  const d = res.data || {};
+  renderApplyStatusEditForm_(race, editorElId, { applyType: d.applyType || '', events: d.events || {} });
+  toast('AI 조회 결과로 채웠어요 - 확인 후 저장해주세요');
+}
+document.getElementById('checkStatusBtn').addEventListener('click', ()=>handleCheckStatusClick_('applyStatusEditor','checkStatusBtn'));
+
+async function handleSaveApplyStatusClick_(editorElId, btnId, actionsElId){
+  const race = state.activeRace;
+  if(!race) return;
+  const editorEl = document.getElementById(editorElId);
+  const applyType = editorEl.querySelector('.as-apply-type').value;
+  const eventSchedules = {};
+  editorEl.querySelectorAll('.apply-status-event-block').forEach(block=>{
+    const ev = block.dataset.event;
+    eventSchedules[ev] = {
+      status: block.querySelector('.as-status').value,
+      start: block.querySelector('.as-start-date').value,
+      startTime: block.querySelector('.as-start-time').value,
+      end: block.querySelector('.as-end-date').value,
+      endTime: block.querySelector('.as-end-time').value,
+      note: block.querySelector('.as-note').value.trim()
+    };
+  });
+
+  const btn = document.getElementById(btnId);
+  btn.disabled = true; btn.textContent = '저장 중…';
+  const res = await apiPost('saveApplyStatus', { user: state.user, raceId: race.id, applyType, eventSchedules });
+  btn.disabled = false; btn.textContent = '저장';
+  if(!res.ok){ toast(res.error||'저장 실패'); return; }
+
+  race.applyType = res.applyType; // state.activeRace는 state.races 안의 객체와 동일 참조라 카드에도 바로 반영됨
+  race.eventSchedules = res.eventSchedules;
+  renderMine(); renderRaces();
+  document.getElementById(actionsElId).style.display = 'none';
+  renderApplyStatusViewOnly_(race, editorElId); // 저장 후 다시 보기 모드로 전환
+  toast('신청현황이 저장되었습니다');
+}
+document.getElementById('saveApplyStatusBtn').addEventListener('click', ()=>handleSaveApplyStatusClick_('applyStatusEditor','saveApplyStatusBtn','applyStatusActions'));
+
+function renderParticipants(raceId, filterElId, listElId, deleteBtnId){
+  filterElId = filterElId || 'raceEventFilter';
+  listElId = listElId || 'raceParticipantList';
+  deleteBtnId = deleteBtnId || 'raceDeleteBtn';
   const parts = state.entries.filter(e=>e.raceId===raceId);
   const counts = {};
   parts.forEach(p=>{ const key = normalizeEventKey_(p.event); counts[key] = (counts[key]||0)+1; });
@@ -1685,12 +2149,12 @@ function renderParticipants(raceId){
 
   const filterHtml = `<button class="ef-pill ${raceParticipantFilter==='all'?'active':''}" data-ev="all">전체 ${parts.length}</button>` +
     events.map(ev=>`<button class="ef-pill ${raceParticipantFilter===ev?'active':''}" data-ev="${escapeHtml(ev)}">${escapeHtml(eventLabel_(ev))} ${counts[ev]}</button>`).join('');
-  const filterEl = document.getElementById('raceEventFilter');
+  const filterEl = document.getElementById(filterElId);
   filterEl.innerHTML = filterHtml;
   filterEl.querySelectorAll('.ef-pill').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       raceParticipantFilter = btn.dataset.ev;
-      renderParticipants(raceId);
+      renderParticipants(raceId, filterElId, listElId, deleteBtnId);
     });
   });
 
@@ -1699,24 +2163,24 @@ function renderParticipants(raceId){
       eventDistanceKm_(normalizeEventKey_(a.event)) - eventDistanceKm_(normalizeEventKey_(b.event))
       || a.name.localeCompare(b.name,'ko')
     );
-  const list = document.getElementById('raceParticipantList');
+  const list = document.getElementById(listElId);
   list.innerHTML = filtered.length
     ? filtered.map(p=>`<div class="participant-row"><span class="pn">${escapeHtml(p.name)}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(eventLabel_(p.event))}</span></div>`).join('')
     : `<div class="empty" style="padding:20px;">해당 종목 참가자가 없어요</div>`;
 
-  updateRaceDeleteButton(parts.length);
+  updateRaceDeleteButton(parts.length, deleteBtnId);
 }
 
 let raceDeletableCount = 0;
-function updateRaceDeleteButton(participantCount){
+function updateRaceDeleteButton(participantCount, btnId){
   raceDeletableCount = participantCount;
-  const btn = document.getElementById('raceDeleteBtn');
+  const btn = document.getElementById(btnId || 'raceDeleteBtn');
   if(!btn) return;
   btn.textContent = participantCount > 0 ? `🗑 대회 삭제 (참가자 ${participantCount}명)` : '🗑 대회 삭제';
   btn.style.opacity = 1;
 }
 
-document.getElementById('raceDeleteBtn').addEventListener('click', async ()=>{
+async function deleteActiveRace_(closeOverlayId){
   const race = state.activeRace;
   if(!race || !isAdmin_()) return;
 
@@ -1729,7 +2193,7 @@ document.getElementById('raceDeleteBtn').addEventListener('click', async ()=>{
   state.races = state.races.filter(r=>r.id!==race.id);
   state.entries = state.entries.filter(e=>e.raceId!==race.id);
   state.records = state.records.filter(rec=>!removedEntryIds.has(rec.entryId));
-  close_('raceOverlay');
+  close_(closeOverlayId);
   toast('대회가 삭제되었습니다');
   renderMine(); renderRaces();
 
@@ -1738,7 +2202,8 @@ document.getElementById('raceDeleteBtn').addEventListener('click', async ()=>{
     toast(res.error||'삭제 실패 - 최신 정보로 다시 불러올게요');
     loadAll(true);
   }
-});
+}
+document.getElementById('raceDeleteBtn').addEventListener('click', ()=>deleteActiveRace_('raceOverlay'));
 
 /* ================= 시작 ================= */
 if('serviceWorker' in navigator){
