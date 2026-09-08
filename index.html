@@ -953,10 +953,18 @@ function saveCachedData(){
   }catch(e){}
 }
 
+let lastLocalUpdateAt = Date.now(); // 로컬 상태가 최신으로 반영된 마지막 시각 (편집 저장, 서버 재조회 등)
+
 async function loadAll(background){
+  const startedAt = Date.now();
   try{
     const data = await apiGet();
     if(!data.ok){ if(!background) toast('데이터 로드 실패'); return; }
+    if(startedAt < lastLocalUpdateAt){
+      // 이 요청이 시작된 뒤로 더 최신 로컬 변경(편집 저장 등)이 이미 반영됐으므로,
+      // 이 오래된 응답으로 화면/캐시를 덮어쓰지 않고 그대로 버림
+      return;
+    }
     state.races = data.races || [];
     state.entries = data.entries || [];
     state.records = data.records || [];
@@ -1331,6 +1339,7 @@ function renderMine(){
   renderMineList();
   renderMineChartFilter();
   if(mineSubTab==='chart') renderMineChart();
+  lastLocalUpdateAt = Date.now();
   saveCachedData();
 }
 
@@ -1428,6 +1437,7 @@ document.getElementById('racesSearchInput').addEventListener('input', ()=>{
 function renderRaces(){
   populateRacesYearFilter();
   renderRacesList();
+  lastLocalUpdateAt = Date.now();
   saveCachedData();
 }
 
