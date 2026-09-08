@@ -189,6 +189,7 @@
   #rfAutoFillBtn{min-width:178px; height:42px; padding:0 12px; display:inline-flex; align-items:center; justify-content:center; text-align:center; box-sizing:border-box;}
   #checkStatusBtn{min-width:178px; height:42px; padding:0 12px; display:flex; align-items:center; justify-content:center; white-space:nowrap; box-sizing:border-box;}
   .time-input-row{display:flex; align-items:center; gap:6px;}
+  .pace-display{margin-left:auto; flex-shrink:0; font-size:12px; font-weight:700; color:var(--clay); white-space:nowrap; font-family:'Roboto Mono',monospace;}
   .time-input-row input{width:56px; flex:0 0 56px; min-width:0; text-align:center; padding:10px 4px;}
   .time-sep{font-size:12.5px; color:#8a8680; margin-right:8px; flex-shrink:0;}
   .unit-suffix{flex-shrink:0; font-size:14px; font-weight:600; color:#8a8680;}
@@ -436,6 +437,7 @@
         <input id="recordGoalH" type="number" inputmode="numeric" min="0" placeholder="0"><span class="time-sep">시간</span>
         <input id="recordGoalM" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">분</span>
         <input id="recordGoalS" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">초</span>
+        <span class="pace-display" id="recordGoalPace"></span>
       </div>
     </div>
     <div class="field">
@@ -444,6 +446,7 @@
         <input id="recordResultH" type="number" inputmode="numeric" min="0" placeholder="0"><span class="time-sep">시간</span>
         <input id="recordResultM" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">분</span>
         <input id="recordResultS" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">초</span>
+        <span class="pace-display" id="recordResultPace"></span>
       </div>
     </div>
     <div class="field">
@@ -554,7 +557,7 @@
       <div id="participantEditExisting"></div>
       <div id="participantEditNew"></div>
       <datalist id="crewMemberList"></datalist>
-      <button class="btn-ghost" id="addParticipantRowBtn" type="button" style="width:100%; margin-top:8px;">+ 참가자 추가</button>
+      <button class="btn-ghost" id="addParticipantRowBtn" type="button" style="width:100%; margin-top:8px; padding:15px; font-size:14.5px; font-weight:600; border-radius:10px;">+ 참가자 추가</button>
       <div class="apply-status-actions">
         <button class="btn-ghost" id="cancelParticipantEditBtn" type="button">취소</button>
         <button class="btn-primary" id="saveParticipantsEditBtn" type="button">저장</button>
@@ -1956,8 +1959,29 @@ function readTimeInputs_(prefix){
   const ss = s ? parseInt(s,10)||0 : 0;
   return hh > 0 ? `${hh}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}` : `${mm}:${String(ss).padStart(2,'0')}`;
 }
+function updateRecordPaceDisplay_(){
+  const entry = state.activeEntry;
+  const distKm = entry ? eventDistanceKm_(entry.event) : 0;
+  ['Goal','Result'].forEach(kind=>{
+    const paceEl = document.getElementById('record'+kind+'Pace');
+    if(!paceEl) return;
+    if(!distKm || distKm>=9999){ paceEl.textContent=''; return; }
+    const h = parseInt(document.getElementById('record'+kind+'H').value,10)||0;
+    const m = parseInt(document.getElementById('record'+kind+'M').value,10)||0;
+    const s = parseInt(document.getElementById('record'+kind+'S').value,10)||0;
+    const totalSec = h*3600 + m*60 + s;
+    if(totalSec<=0){ paceEl.textContent=''; return; }
+    const paceSecPerKm = totalSec / distKm;
+    const pm = Math.floor(paceSecPerKm/60);
+    const ps = Math.round(paceSecPerKm%60);
+    paceEl.textContent = `평균 ${pm}'${String(ps).padStart(2,'0')}"/km`;
+  });
+}
 document.querySelectorAll('.time-input-row input').forEach(inp=>{
   inp.addEventListener('input', ()=>{ inp.value = inp.value.replace(/[^0-9]/g,''); }); // 숫자만 입력되도록 강제
+});
+document.querySelectorAll('#recordGoalH,#recordGoalM,#recordGoalS,#recordResultH,#recordResultM,#recordResultS').forEach(inp=>{
+  inp.addEventListener('input', updateRecordPaceDisplay_);
 });
 
 function openRecordModal(entryId){
@@ -1972,6 +1996,7 @@ function openRecordModal(entryId){
   fillTimeInputs_('recordGoal', rec?.goal || '');
   fillTimeInputs_('recordResult', rec?.result || '');
   document.getElementById('recordMemo').value = rec?.memo || '';
+  updateRecordPaceDisplay_();
 
   open_('recordOverlay');
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('recordMemo')));
