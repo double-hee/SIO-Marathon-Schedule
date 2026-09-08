@@ -1331,6 +1331,7 @@ function renderMine(){
   renderMineList();
   renderMineChartFilter();
   if(mineSubTab==='chart') renderMineChart();
+  saveCachedData();
 }
 
 document.getElementById('mineHidePast').addEventListener('change', renderMineList);
@@ -1427,6 +1428,7 @@ document.getElementById('racesSearchInput').addEventListener('input', ()=>{
 function renderRaces(){
   populateRacesYearFilter();
   renderRacesList();
+  saveCachedData();
 }
 
 document.getElementById('racesHidePast').addEventListener('change', renderRacesList);
