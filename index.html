@@ -115,7 +115,6 @@
   .apply-status-actions button{flex:1; padding:10px; font-size:13px; border-radius:9px;}
   .participant-edit-row{display:flex; align-items:center; gap:9px; padding:8px 0; border-bottom:1px solid var(--mist);}
   .participant-edit-row:last-child{border-bottom:none;}
-  .participant-edit-row input[type="checkbox"]{width:17px; height:17px; accent-color:var(--clay); flex-shrink:0;}
   .participant-edit-row .pe-name{flex:1; min-width:0; font-size:14px; font-weight:600; word-break:break-word;}
   .participant-edit-row .pe-event{flex-shrink:0; width:100px; padding:6px 5px; border-radius:7px; border:1.5px solid var(--mist); font-size:12.5px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
   .participant-new-row{display:flex; align-items:center; gap:7px; padding:7px 0;}
@@ -167,10 +166,15 @@
   .small-action-inline.btn-info-text{background:none; border:1.5px solid var(--navy); color:var(--navy); text-decoration:none; font-size:12px !important; font-weight:600 !important; padding:6px 11px !important;}
   #recordMemo{min-height:192px;}
   .event-slot-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
-  .event-slot-row input.rf-event-slot-input{width:100%; padding:13px 14px; border-radius:9px; border:1.5px solid var(--mist); font-size:16px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
-  .event-slot-row input.rf-event-slot-input:focus{outline:none; border-color:var(--clay);}
   .event-slot-row label{flex-shrink:0; font-size:12.5px; color:#6b6660; width:52px;}
-  .event-slot-row input{flex:1;}
+  .event-slot-input-wrap{position:relative; flex:1; min-width:0;}
+  .event-slot-input-wrap input.rf-event-slot-input{width:100%; box-sizing:border-box; padding:13px 14px; border-radius:9px; border:1.5px solid var(--mist); font-size:16px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
+  .event-slot-input-wrap input.rf-event-slot-input:focus{outline:none; border-color:var(--clay);}
+  .event-slot-dropdown{display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:#fff; border:1.5px solid var(--mist); border-radius:9px; box-shadow:0 6px 18px rgba(0,0,0,0.14); z-index:30; overflow:hidden;}
+  .event-slot-input-wrap.open .event-slot-dropdown{display:block;}
+  .event-slot-dropdown button{display:block; width:100%; box-sizing:border-box; text-align:left; padding:10px 14px; border:none; border-top:1px solid var(--mist); background:#fff; font-size:14.5px; color:var(--ink); cursor:pointer;}
+  .event-slot-dropdown button:first-child{border-top:none;}
+  .event-slot-dropdown button:active{background:var(--paper);}
   .admin-picker-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--mist); font-size:14.5px;}
   .admin-picker-row input{width:17px; height:17px; accent-color:var(--clay); flex-shrink:0;}
   .modal .sub{font-size:12.5px; color:#8a8680; margin-bottom:16px;}
@@ -549,6 +553,7 @@
     <div id="participantEditPanel" style="display:none;">
       <div id="participantEditExisting"></div>
       <div id="participantEditNew"></div>
+      <datalist id="crewMemberList"></datalist>
       <button class="btn-ghost" id="addParticipantRowBtn" type="button" style="width:100%; margin-top:8px;">+ 참가자 추가</button>
       <div class="apply-status-actions">
         <button class="btn-ghost" id="cancelParticipantEditBtn" type="button">취소</button>
@@ -620,7 +625,12 @@
       <input id="rfPlace" placeholder="예: 서울 잠실종합운동장">
     </div>
     <div class="field">
-      <label>신청 방식</label>
+      <label>종목 개수</label>
+      <input id="rfEventCount" type="number" inputmode="numeric" min="0" max="10" placeholder="예: 3">
+    </div>
+    <div id="rfEventSlots"></div>
+    <div class="field">
+      <label>신청 방식 (선택)</label>
       <select id="rfApplyType">
         <option value="">미정</option>
         <option value="선착순">선착순</option>
@@ -628,17 +638,9 @@
       </select>
     </div>
     <div class="field">
-      <label>종목 개수</label>
-      <input id="rfEventCount" type="number" inputmode="numeric" min="0" max="10" placeholder="예: 3">
+      <label>종목별 신청현황 (선택)</label>
+      <div id="rfApplyStatusEditor"></div>
     </div>
-    <div id="rfEventSlots"></div>
-    <div id="rfScheduleSummary" class="sub" style="display:none;"></div>
-    <datalist id="rfEventOptions">
-      <option value="5">
-      <option value="10">
-      <option value="HALF">
-      <option value="FULL">
-    </datalist>
     <div class="field">
       <label>대회 사이트</label>
       <input id="rfLink" placeholder="https://...">
@@ -1585,17 +1587,50 @@ function fmtShortDate_(d){
   if(isNaN(dt)) return '';
   return `${dt.getMonth()+1}/${dt.getDate()}`;
 }
-function renderScheduleSummary(){
-  const el = document.getElementById('rfScheduleSummary');
-  const keys = Object.keys(rfEventSchedules).filter(k=> rfEventSchedules[k] && (rfEventSchedules[k].start || rfEventSchedules[k].end));
-  if(!keys.length){ el.style.display='none'; el.innerHTML=''; return; }
-  el.style.display = 'block';
-  el.innerHTML = '📅 신청기간: ' + keys.map(k=>{
-    const s = rfEventSchedules[k];
-    const startStr = s.start ? `${fmtShortDate_(s.start)}${s.startTime?` ${s.startTime}`:''}` : '?';
-    const endStr = s.end ? `${fmtShortDate_(s.end)}${s.endTime?` ${s.endTime}`:''}` : '?';
-    return `${escapeHtml(eventLabel_(k))} ${startStr}~${endStr}`;
-  }).join(' · ');
+function renderRfApplyStatusEditor_(){
+  const el = document.getElementById('rfApplyStatusEditor');
+  const events = collectEventSlotValues_();
+  if(!events.length){
+    el.innerHTML = `<div class="apply-status-note">먼저 종목을 입력해주세요</div>`;
+    return;
+  }
+  el.innerHTML = events.map(ev=>{
+    const s = rfEventSchedules[ev] || {};
+    const statusOptions = ['','신청예정','신청중','마감'].map(v=>`<option value="${v}" ${(s.status||'')===v?'selected':''}>${v||'미정'}</option>`).join('');
+    return `<div class="apply-status-event-block" data-event="${escapeHtml(ev)}">
+      <div class="apply-status-event-title">${escapeHtml(eventLabel_(ev))}</div>
+      <div class="apply-dt-row">
+        <label>상태</label>
+        <select class="as-status">${statusOptions}</select>
+      </div>
+      <div class="apply-dt-row">
+        <label>신청</label>
+        <input type="date" class="as-start-date" value="${escapeHtml(s.start||'')}">
+        <input type="time" class="as-start-time" value="${escapeHtml(s.startTime||'')}">
+      </div>
+      <div class="apply-dt-row">
+        <label>종료</label>
+        <input type="date" class="as-end-date" value="${escapeHtml(s.end||'')}">
+        <input type="time" class="as-end-time" value="${escapeHtml(s.endTime||'')}">
+      </div>
+      <input type="text" class="as-note" placeholder="비고 (선택)" value="${escapeHtml(s.note||'')}">
+    </div>`;
+  }).join('');
+}
+
+// 폼을 그대로 제출/전환하기 전에, 화면에 입력된 최신 값을 rfEventSchedules에 반영
+function collectRfEventSchedules_(){
+  document.querySelectorAll('#rfApplyStatusEditor .apply-status-event-block').forEach(block=>{
+    const ev = block.dataset.event;
+    rfEventSchedules[ev] = {
+      status: block.querySelector('.as-status').value,
+      start: block.querySelector('.as-start-date').value,
+      startTime: block.querySelector('.as-start-time').value,
+      end: block.querySelector('.as-end-date').value,
+      endTime: block.querySelector('.as-end-time').value,
+      note: block.querySelector('.as-note').value.trim()
+    };
+  });
 }
 
 function renderEventSlots(count, presetValues){
@@ -1606,11 +1641,15 @@ function renderEventSlots(count, presetValues){
     row.className = 'event-slot-row';
     const label = document.createElement('label');
     label.textContent = `종목 ${i+1}`;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'event-slot-input-wrap';
+
     const input = document.createElement('input');
     input.type = 'text';
-    input.setAttribute('list','rfEventOptions');
     input.placeholder = '5 / 10 / HALF / FULL';
     input.className = 'rf-event-slot-input';
+    input.autocomplete = 'off';
     if(presetValues && presetValues[i]){
       // 저장된 값(예: '10K')에서 순수 숫자/HALF/FULL만 다시 보여줌
       const raw = presetValues[i];
@@ -1618,12 +1657,35 @@ function renderEventSlots(count, presetValues){
       input.value = m ? m[1] : raw;
     }
     input.dataset.prevValid = input.value;
-    input.addEventListener('input', ()=>validateEventSlotInput_(input));
+    input.addEventListener('input', ()=>{ validateEventSlotInput_(input); collectRfEventSchedules_(); renderRfApplyStatusEditor_(); });
+    input.addEventListener('focus', ()=>wrap.classList.add('open'));
+    input.addEventListener('blur', ()=>setTimeout(()=>wrap.classList.remove('open'), 150)); // 옵션 클릭이 먼저 처리되도록 지연
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'event-slot-dropdown';
+    ['5','10','HALF','FULL'].forEach(v=>{
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.textContent = v;
+      opt.addEventListener('mousedown', (e)=>e.preventDefault()); // blur보다 먼저 발생해 입력값이 사라지지 않게 함
+      opt.addEventListener('click', ()=>{
+        input.value = v;
+        input.dataset.prevValid = v;
+        wrap.classList.remove('open');
+        collectRfEventSchedules_();
+        renderRfApplyStatusEditor_();
+      });
+      dropdown.appendChild(opt);
+    });
+
+    wrap.appendChild(input);
+    wrap.appendChild(dropdown);
+
     const suffix = document.createElement('span');
     suffix.className = 'unit-suffix';
     suffix.textContent = 'km';
     row.appendChild(label);
-    row.appendChild(input);
+    row.appendChild(wrap);
     row.appendChild(suffix);
     container.appendChild(row);
   }
@@ -1646,7 +1708,9 @@ document.getElementById('rfEventCount').addEventListener('input', ()=>{
   let n = parseInt(document.getElementById('rfEventCount').value, 10);
   if(isNaN(n) || n<0) n=0;
   if(n>10) n=10;
+  collectRfEventSchedules_();
   renderEventSlots(n);
+  renderRfApplyStatusEditor_();
 });
 
 function collectEventSlotValues_(){
@@ -1690,7 +1754,7 @@ function openRaceFormForAdd(){
   document.getElementById('rfLink').value = '';
   document.getElementById('rfMemo').value = '';
   rfEventSchedules = {};
-  renderScheduleSummary();
+  renderRfApplyStatusEditor_();
   open_('raceFormOverlay');
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('rfMemo')));
 }
@@ -1711,7 +1775,7 @@ function openRaceFormForEdit(race){
   document.getElementById('rfLink').value = race.link || '';
   document.getElementById('rfMemo').value = race.memo || '';
   rfEventSchedules = (race.eventSchedules && typeof race.eventSchedules==='object') ? {...race.eventSchedules} : {};
-  renderScheduleSummary();
+  renderRfApplyStatusEditor_();
   open_('raceFormOverlay');
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('rfMemo')));
 }
@@ -1767,7 +1831,7 @@ document.getElementById('rfAutoFillBtn').addEventListener('click', async ()=>{
   if(d.eventSchedules && typeof d.eventSchedules==='object'){
     rfEventSchedules = d.eventSchedules;
   }
-  renderScheduleSummary();
+  renderRfApplyStatusEditor_();
   toast('AI가 정보를 채웠어요 - 확인 후 저장해주세요');
 });
 
@@ -1784,7 +1848,34 @@ document.getElementById('raceFormSubmit').addEventListener('click', async ()=>{
   const applyType = document.getElementById('rfApplyType').value;
   const link = document.getElementById('rfLink').value.trim();
   const memo = document.getElementById('rfMemo').value.trim();
+
+  // 종목 칸에 값은 있는데 완성되지 않은(예: 'HAL'처럼 HALF/FULL을 끝까지 안 쓴) 값이 있으면 저장 막고 지움
+  let invalidFound = false;
+  document.querySelectorAll('.rf-event-slot-input').forEach(inp=>{
+    const v = inp.value.trim();
+    if(!v) return;
+    const upper = v.toUpperCase();
+    const isValidNumber = /^\d+(\.\d+)?$/.test(v);
+    const isValidWord = upper==='HALF' || upper==='FULL';
+    if(!isValidNumber && !isValidWord){
+      invalidFound = true;
+      inp.value = '';
+      inp.dataset.prevValid = '';
+    }
+  });
+  if(invalidFound){
+    toast('HALF, FULL 외의 값은 입력할 수 없어요 - 잘못된 칸을 지웠어요');
+    collectRfEventSchedules_();
+    renderRfApplyStatusEditor_();
+    return;
+  }
+
   const events = collectEventSlotValues_();
+  if(!events.length){
+    toast('종목을 최소 1개 입력해주세요');
+    return;
+  }
+  collectRfEventSchedules_();
 
   if(!raceName){ toast('대회명을 입력해주세요'); return; }
   if(!raceDate){ toast('대회일자를 입력해주세요'); return; }
@@ -2191,16 +2282,26 @@ function renderParticipants(raceId, filterElId, listElId, deleteBtnId){
 }
 
 // 관리자용: 참가자 일괄 편집 (추가/삭제/종목변경)
+let pendingParticipantDeletions = [];
+
 function addParticipantRow_(eventOptions){
   const container = document.getElementById('participantEditNew');
   const row = document.createElement('div');
   row.className = 'participant-new-row';
   row.innerHTML = `
-    <input type="text" class="pn-name" placeholder="이름">
+    <input type="text" class="pn-name" list="crewMemberList" placeholder="이름">
     <select class="pn-event"><option value="">종목 선택</option>${eventOptions.map(ev=>`<option value="${escapeHtml(ev)}">${escapeHtml(eventLabel_(ev))}</option>`).join('')}</select>
     <button class="pn-remove" type="button">✕</button>
   `;
   row.querySelector('.pn-remove').addEventListener('click', ()=>row.remove());
+  const nameInput = row.querySelector('.pn-name');
+  nameInput.addEventListener('blur', ()=>{
+    const val = nameInput.value.trim();
+    if(val && !state.members.includes(val)){
+      toast('크루 멤버 명단에 없는 이름이에요');
+      nameInput.value = '';
+    }
+  });
   container.appendChild(row);
 }
 
@@ -2211,18 +2312,30 @@ function renderParticipantEditPanel_(raceId){
   const parts = state.entries.filter(e=>e.raceId===raceId)
     .slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
 
+  pendingParticipantDeletions = [];
+  document.getElementById('crewMemberList').innerHTML = state.members.map(m=>`<option value="${escapeHtml(m)}">`).join('');
+
   const existingEl = document.getElementById('participantEditExisting');
   existingEl.innerHTML = parts.length ? parts.map(p=>{
     const options = eventOptions.includes(p.event) ? eventOptions : [p.event, ...eventOptions].filter(Boolean);
     return `<div class="participant-edit-row" data-entry-id="${p.id}">
-      <input type="checkbox" class="pe-delete-check" title="삭제하려면 체크">
       <span class="pe-name">${escapeHtml(p.name)}</span>
       <select class="pe-event">${options.map(ev=>`<option value="${escapeHtml(ev)}" ${ev===p.event?'selected':''}>${escapeHtml(eventLabel_(ev))}</option>`).join('')}</select>
+      <button class="pn-remove pe-remove" type="button">✕</button>
     </div>`;
   }).join('') : `<div class="apply-status-note">참가자가 없어요</div>`;
 
+  existingEl.querySelectorAll('.participant-edit-row').forEach(row=>{
+    const entryId = row.dataset.entryId;
+    const entry = parts.find(p=>p.id===entryId);
+    row.querySelector('.pe-remove').addEventListener('click', ()=>{
+      if(!confirm(`'${entry ? entry.name : ''}' 참가자를 삭제할까요?`)) return;
+      pendingParticipantDeletions.push(entryId);
+      row.remove();
+    });
+  });
+
   document.getElementById('participantEditNew').innerHTML = '';
-  addParticipantRow_(eventOptions);
 }
 
 document.getElementById('editParticipantsBtn').addEventListener('click', ()=>{
@@ -2250,14 +2363,10 @@ document.getElementById('saveParticipantsEditBtn').addEventListener('click', asy
   const race = state.activeRace;
   if(!race) return;
 
-  const deletions = [];
+  const deletions = pendingParticipantDeletions.slice();
   const updates = [];
   document.querySelectorAll('#participantEditExisting .participant-edit-row').forEach(row=>{
     const entryId = row.dataset.entryId;
-    if(row.querySelector('.pe-delete-check').checked){
-      deletions.push(entryId);
-      return;
-    }
     const newEvent = row.querySelector('.pe-event').value;
     const entry = state.entries.find(e=>e.id===entryId);
     if(entry && entry.event !== newEvent){
