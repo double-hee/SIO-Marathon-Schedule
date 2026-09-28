@@ -2309,7 +2309,6 @@ function renderParticipants(raceId, filterElId, listElId, deleteBtnId){
 }
 
 // 관리자용: 참가자 일괄 편집 (추가/삭제/종목변경)
-let pendingParticipantDeletions = [];
 
 function addParticipantRow_(eventOptions){
   const container = document.getElementById('participantEditNew');
@@ -2339,13 +2338,12 @@ function renderParticipantEditPanel_(raceId){
   const parts = state.entries.filter(e=>e.raceId===raceId)
     .slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
 
-  pendingParticipantDeletions = [];
   document.getElementById('crewMemberList').innerHTML = state.members.map(m=>`<option value="${escapeHtml(m)}">`).join('');
 
   const existingEl = document.getElementById('participantEditExisting');
   existingEl.innerHTML = parts.length ? parts.map(p=>{
     const options = eventOptions.includes(p.event) ? eventOptions : [p.event, ...eventOptions].filter(Boolean);
-    return `<div class="participant-edit-row" data-entry-id="${p.id}">
+    return `<div class="participant-edit-row" data-entry-id="${p.id}" data-original-event="${escapeHtml(p.event||'')}">
       <span class="pe-name">${escapeHtml(p.name)}</span>
       <select class="pe-event">${options.map(ev=>`<option value="${escapeHtml(ev)}" ${ev===p.event?'selected':''}>${escapeHtml(eventLabel_(ev))}</option>`).join('')}</select>
       <button class="pn-remove pe-remove" type="button">✕</button>
@@ -2357,8 +2355,7 @@ function renderParticipantEditPanel_(raceId){
     const entry = parts.find(p=>p.id===entryId);
     row.querySelector('.pe-remove').addEventListener('click', ()=>{
       if(!confirm(`'${entry ? entry.name : ''}' 참가자를 삭제할까요?`)) return;
-      pendingParticipantDeletions.push(entryId);
-      row.remove();
+      row.remove(); // 화면에서 사라진 것 자체가 삭제 대상이라는 표시 - 저장 시점에 DOM을 그대로 신뢰해서 읽음
     });
   });
 
@@ -2390,14 +2387,19 @@ document.getElementById('saveParticipantsEditBtn').addEventListener('click', asy
   const race = state.activeRace;
   if(!race) return;
 
-  const deletions = pendingParticipantDeletions.slice();
+  // 삭제: 이 대회의 원래 참가자 중 지금 화면(DOM)에 더 이상 남아있지 않은 사람 = 삭제 대상
+  const originalIds = state.entries.filter(e=>e.raceId===race.id).map(e=>e.id);
+  const rows = document.querySelectorAll('#participantEditExisting .participant-edit-row');
+  const remainingIds = new Set(Array.from(rows).map(row=>row.dataset.entryId));
+  const deletions = originalIds.filter(id=>!remainingIds.has(id));
+
+  // 종목 변경: 렌더링 시점에 저장해둔 원래 값(data-original-event)과 현재 드롭다운 값을 비교
   const updates = [];
-  document.querySelectorAll('#participantEditExisting .participant-edit-row').forEach(row=>{
-    const entryId = row.dataset.entryId;
+  rows.forEach(row=>{
     const newEvent = row.querySelector('.pe-event').value;
-    const entry = state.entries.find(e=>e.id===entryId);
-    if(entry && entry.event !== newEvent){
-      updates.push({entryId, event: newEvent});
+    const originalEvent = row.dataset.originalEvent || '';
+    if(newEvent !== originalEvent){
+      updates.push({entryId: row.dataset.entryId, event: newEvent});
     }
   });
 
