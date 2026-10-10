@@ -2105,28 +2105,42 @@ async function apiPostBig_(action, payload){
   }
 }
 
-// 썸네일은 기기에 캐시해서 다음에 열 때 바로 보이게 함 (원본은 서버에 있고, 캐시는 지워져도 다시 받아옴)
-const ThumbCache = (()=>{
+// 썸네일과 사진 목록을 기기(IndexedDB)에 캐시: 모달을 열 때 서버 응답을 기다리지 않고 바로 보여주고, 서버와는 동시에 맞춰봄
+// (원본은 서버에 있고, 캐시는 지워져도 다시 받아옴)
+const PhotoCache = (()=>{
   let dbp = null;
   function db(){
     if(dbp) return dbp;
     dbp = new Promise((resolve, reject)=>{
       if(!window.indexedDB){ reject(new Error('no-idb')); return; }
-      const req = indexedDB.open('sio_photo_thumbs_v1', 1);
-      req.onupgradeneeded = ()=>req.result.createObjectStore('thumbs', {keyPath:'id'});
+      const req = indexedDB.open('sio_photo_thumbs_v1', 3);
+      req.onupgradeneeded = ()=>{
+        const d = req.result;
+        if(!d.objectStoreNames.contains('thumbs')) d.createObjectStore('thumbs', {keyPath:'id'});
+        if(!d.objectStoreNames.contains('lists')) d.createObjectStore('lists', {keyPath:'entryId'});
+        if(!d.objectStoreNames.contains('fulls')) d.createObjectStore('fulls', {keyPath:'id'});
+      };
       req.onsuccess = ()=>resolve(req.result);
       req.onerror = ()=>{ dbp = null; reject(req.error); };
     });
     return dbp;
   }
+  const get = (store, key)=>db().then(d=>new Promise((resolve)=>{
+    const r = d.transaction(store,'readonly').objectStore(store).get(key);
+    r.onsuccess = ()=>resolve(r.result || null);
+    r.onerror = ()=>resolve(null);
+  })).catch(()=>null);
+  const put = (store, val)=>db().then(d=>{ d.transaction(store,'readwrite').objectStore(store).put(val); }).catch(()=>{});
+  const del = (store, key)=>db().then(d=>{ d.transaction(store,'readwrite').objectStore(store).delete(key); }).catch(()=>{});
   return {
-    get: (id)=>db().then(d=>new Promise((resolve)=>{
-      const r = d.transaction('thumbs','readonly').objectStore('thumbs').get(id);
-      r.onsuccess = ()=>resolve(r.result ? r.result.blob : null);
-      r.onerror = ()=>resolve(null);
-    })).catch(()=>null),
-    put: (id, blob)=>db().then(d=>{ d.transaction('thumbs','readwrite').objectStore('thumbs').put({id, blob}); }).catch(()=>{}),
-    remove: (id)=>db().then(d=>{ d.transaction('thumbs','readwrite').objectStore('thumbs').delete(id); }).catch(()=>{})
+    getThumb: (id)=>get('thumbs', id).then(r=>r ? r.blob : null),
+    putThumb: (id, blob)=>put('thumbs', {id, blob}),
+    removeThumb: (id)=>del('thumbs', id),
+    getFull: (id)=>get('fulls', id).then(r=>r ? r.blob : null),
+    putFull: (id, blob)=>put('fulls', {id, blob}),
+    removeFull: (id)=>del('fulls', id),
+    getList: (entryId)=>get('lists', entryId).then(r=>r ? r.photos : null),
+    putList: (entryId, photos)=>put('lists', {entryId, photos})
   };
 })();
 
@@ -2177,12 +2191,12 @@ function compressImage_(file, maxSide, quality){
 
 async function getThumbUrl_(photoId){
   if(thumbUrls_.has(photoId)) return thumbUrls_.get(photoId);
-  let blob = await ThumbCache.get(photoId);
+  let blob = await PhotoCache.getThumb(photoId);
   if(!blob){
     const res = await apiPostBig_('getPhoto', {photoId, name: state.user, size:'thumb'});
     if(!res.ok) return null;
     blob = b64ToBlob_(res.data, 'image/jpeg');
-    ThumbCache.put(photoId, blob);
+    PhotoCache.putThumb(photoId, blob);
   }
   const url = URL.createObjectURL(blob);
   thumbUrls_.set(photoId, url);
@@ -2194,9 +2208,14 @@ async function openPhotoViewer_(photoId){
   img.src = fullPhotoUrls_.get(photoId) || thumbUrls_.get(photoId) || ''; // 원본을 받는 동안 썸네일을 먼저 보여줌
   open_('photoViewOverlay');
   if(!fullPhotoUrls_.has(photoId)){
-    const res = await apiPostBig_('getPhoto', {photoId, name: state.user, size:'full'});
-    if(!res.ok){ toast(res.error || '사진을 불러오지 못했어요'); return; }
-    fullPhotoUrls_.set(photoId, URL.createObjectURL(b64ToBlob_(res.data, 'image/jpeg')));
+    let blob = await PhotoCache.getFull(photoId); // 기기에 저장된 원본이 있으면 서버 요청 없이 바로 표시
+    if(!blob){
+      const res = await apiPostBig_('getPhoto', {photoId, name: state.user, size:'full'});
+      if(!res.ok){ toast(res.error || '사진을 불러오지 못했어요'); return; }
+      blob = b64ToBlob_(res.data, 'image/jpeg');
+      PhotoCache.putFull(photoId, blob);
+    }
+    fullPhotoUrls_.set(photoId, URL.createObjectURL(blob));
   }
   if(document.getElementById('photoViewOverlay').classList.contains('show')) img.src = fullPhotoUrls_.get(photoId);
 }
@@ -2231,7 +2250,9 @@ function drawPhotoGrid_(){
       const res = await apiPostBig_('deletePhoto', {photoId: p.id, name: state.user});
       if(!res.ok){ div.style.opacity = ''; toast(res.error || '사진 삭제에 실패했어요'); return; }
       photoItems_ = photoItems_.filter(x=>x.id!==p.id);
-      ThumbCache.remove(p.id);
+      PhotoCache.removeThumb(p.id);
+      PhotoCache.removeFull(p.id);
+      if(state.activeEntry) PhotoCache.putList(state.activeEntry.id, photoItems_);
       thumbUrls_.delete(p.id); fullPhotoUrls_.delete(p.id);
       drawPhotoGrid_();
     });
@@ -2270,12 +2291,31 @@ async function renderRecordPhotos_(){
   document.getElementById('recordPhotoCount').textContent = '';
   if(!entry){ grid.innerHTML = ''; return; }
   if(String(entry.id).startsWith('tmp_')){ drawPhotoGrid_(); return; }
-  grid.innerHTML = '<div class="photo-hint" style="margin:0;">사진 불러오는 중…</div>';
-  const res = await apiPostBig_('listPhotos', {entryId: entry.id, name: state.user});
+
+  // 서버 요청과 기기 캐시 읽기를 동시에 시작 - 캐시가 있으면 서버 응답 전에 바로 그려줌
+  const serverP = apiPostBig_('listPhotos', {entryId: entry.id, name: state.user});
+  const cachedList = await PhotoCache.getList(entry.id);
   if(token !== photoRenderToken_) return;
-  if(res.ok) photoItems_ = res.photos || [];
-  else photoLoadError_ = true;
-  drawPhotoGrid_();
+  let shown = false;
+  if(cachedList){
+    photoItems_ = cachedList;
+    drawPhotoGrid_();
+    shown = true;
+  }else{
+    grid.innerHTML = '<div class="photo-hint" style="margin:0;">사진 불러오는 중…</div>';
+  }
+
+  const res = await serverP;
+  if(token !== photoRenderToken_) return;
+  if(res.ok){
+    const serverList = res.photos || [];
+    PhotoCache.putList(entry.id, serverList);
+    const same = shown && serverList.length === photoItems_.length && serverList.every((p,i)=>p.id===photoItems_[i].id);
+    if(!same){ photoItems_ = serverList; drawPhotoGrid_(); }
+  }else if(!shown){
+    photoLoadError_ = true;
+    drawPhotoGrid_();
+  }
 }
 
 document.getElementById('recordPhotoInput').addEventListener('change', async (e)=>{
@@ -2299,9 +2339,12 @@ document.getElementById('recordPhotoInput').addEventListener('change', async (e)
         image: await blobToB64_(full), thumb: await blobToB64_(thumb)
       });
       if(!res.ok) throw new Error(res.error || 'upload-failed');
-      ThumbCache.put(res.photo.id, thumb);
+      PhotoCache.putThumb(res.photo.id, thumb);
       thumbUrls_.set(res.photo.id, URL.createObjectURL(thumb));
+      PhotoCache.putFull(res.photo.id, full); // 방금 올린 사진은 원본도 이미 있으니 기기에 저장해 크게 볼 때 바로 열림
+      fullPhotoUrls_.set(res.photo.id, URL.createObjectURL(full));
       if(token === photoRenderToken_) photoItems_.push(res.photo);
+      PhotoCache.getList(entry.id).then(l=>PhotoCache.putList(entry.id, [...(l||[]).filter(x=>x.id!==res.photo.id), res.photo]));
       added++;
     }catch(err){
       failed++; lastError = String(err.message || '');
