@@ -188,6 +188,19 @@
   .link-open-btn{flex-shrink:0; white-space:nowrap; font-size:13px; font-weight:600; color:var(--clay); text-decoration:none; padding:10px 12px; border:1.5px solid var(--mist); border-radius:9px;}
   #rfAutoFillBtn{min-width:178px; height:42px; padding:0 12px; display:inline-flex; align-items:center; justify-content:center; text-align:center; box-sizing:border-box;}
   #checkStatusBtn{min-width:178px; height:42px; padding:0 12px; display:flex; align-items:center; justify-content:center; white-space:nowrap; box-sizing:border-box;}
+  .photo-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .photo-thumb{position:relative; width:76px; height:76px; border-radius:10px; overflow:hidden; border:1.5px solid var(--mist); background:#eee; cursor:pointer;}
+  .photo-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .photo-thumb .photo-del{position:absolute; top:3px; right:3px; width:22px; height:22px; border-radius:50%; border:none; background:rgba(20,18,16,0.65); color:#fff; font-size:12px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;}
+  .photo-add{width:76px; height:76px; border-radius:10px; border:1.5px dashed #b9b3a8; background:#fff; color:#8a8680; font-size:12px; font-weight:600; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-family:'Pretendard',sans-serif;}
+  .photo-add b{font-size:22px; line-height:1; font-weight:500;}
+  .photo-loading{width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#a39d94; font-size:18px;}
+  .photo-thumb.pending{cursor:default;}
+  .photo-uploading{position:absolute; inset:0; background:rgba(20,18,16,0.55); color:#fff; font-size:11.5px; font-weight:600; display:flex; align-items:center; justify-content:center;}
+  .photo-hint{font-size:11.5px; color:#8a8680; margin-top:6px;}
+  #photoViewOverlay{background:rgba(0,0,0,0.92); align-items:center; z-index:60;}
+  #photoViewOverlay img{max-width:100%; max-height:86vh; object-fit:contain;}
+  #photoViewClose{position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; background:none; border:none; color:#fff; font-size:28px; cursor:pointer;}
   .time-input-row{display:flex; align-items:center; gap:6px;}
   .pace-display{margin-left:auto; flex-shrink:0; font-size:12px; font-weight:700; color:var(--clay); white-space:nowrap; font-family:'Roboto Mono',monospace;}
   .time-input-row input{width:56px; flex:0 0 56px; min-width:0; text-align:center; padding:10px 4px;}
@@ -198,13 +211,26 @@
   .memo-view.empty-memo{color:#a39d94;}
   .memo-view a{color:var(--clay); text-decoration:underline; word-break:break-all;}
   .event-filter{display:flex; gap:6px; margin:10px 0 14px; flex-wrap:wrap;}
+  .chart-filter-row{display:flex; align-items:center; gap:10px; margin-bottom:4px;}
+  .chart-filter-row .event-filter{margin:0;}
+  .chart-filter-label{flex-shrink:0; font-size:12.5px; font-weight:600; color:#6b6660;}
   .chart-card{background:var(--white); border:1px solid var(--mist); border-radius:14px; padding:14px 12px 4px; margin-bottom:16px;}
   .chart-canvas-wrap{position:relative; height:200px; width:100%;}
   #mineChart{touch-action:none;}
   .chart-date-label{position:absolute; background:var(--navy); color:#fff; font-size:11px; font-weight:600; padding:3px 7px; border-radius:6px; pointer-events:none; white-space:nowrap; z-index:5; transform:translateY(2px);}
   .chart-info-panel{margin-top:8px; padding:10px 4px 2px; border-top:1px dashed var(--mist);}
   .chart-info-placeholder{color:#a39d94; font-size:12.5px; text-align:center; padding:10px 0;}
-  .chart-info-date{font-family:'Roboto Mono',monospace; font-size:12px; color:var(--clay); font-weight:700; margin-bottom:8px;}
+  .chart-info-header{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px;}
+  .chart-info-date{font-family:'Roboto Mono',monospace; font-size:12px; color:var(--clay); font-weight:700;}
+  .chart-info-racename{font-family:'Pretendard',sans-serif; color:var(--ink); font-weight:600; margin-left:4px;}
+  .chart-info-edit-btn{flex-shrink:0;}
+  .chart-period-bar{position:relative; margin:-10px 0 16px;}
+  .chart-period-btn{width:100%; padding:11px; border-radius:9px; border:1.5px solid var(--mist); background:#fff; color:var(--ink); font-size:13.5px; font-weight:600; cursor:pointer; text-align:center; font-family:'Pretendard',sans-serif;}
+  .chart-period-menu{display:none; position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:30; background:#fff; border:1.5px solid var(--mist); border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.12); overflow:hidden;}
+  .chart-period-menu.open{display:block;}
+  .chart-period-opt{display:block; width:100%; padding:12px; border:none; background:#fff; color:var(--ink); font-size:14px; font-weight:500; text-align:center; cursor:pointer; font-family:'Pretendard',sans-serif;}
+  .chart-period-opt + .chart-period-opt{border-top:1px solid var(--mist);}
+  .chart-period-opt.active{background:rgba(198,64,44,0.08); color:var(--clay); font-weight:700;}
   .chart-info-row{display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px;}
   .chart-info-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
   .chart-info-ev{font-family:'Roboto Mono',monospace; font-weight:700; width:40px; flex-shrink:0;}
@@ -316,6 +342,11 @@
         <button class="mt-btn" data-subtab="chart" type="button">기록 보기</button>
       </div>
 
+      <div class="chart-period-bar" id="chartPeriodBar" style="display:none;">
+        <button class="chart-period-btn" id="chartPeriodBtn" type="button">📅 기간: 전체 기간</button>
+        <div class="chart-period-menu" id="chartPeriodMenu"></div>
+      </div>
+
       <div id="mineListView">
         <div class="races-filter-bar">
           <select id="mineYearFilter"></select>
@@ -327,6 +358,10 @@
 
       <div id="mineChartView" style="display:none;">
         <div class="chart-card">
+          <div class="chart-filter-row">
+            <span class="chart-filter-label">종목 필터</span>
+            <div class="event-filter" id="mineChartFilter"></div>
+          </div>
           <div class="chart-canvas-wrap">
             <canvas id="mineChart"></canvas>
             <div id="mineChartDateLabel" class="chart-date-label" style="display:none;"></div>
@@ -339,7 +374,6 @@
           <div id="mineChartInfoPanel" class="chart-info-panel">
             <div class="chart-info-placeholder">그래프를 눌러 날짜별 기록을 확인하세요</div>
           </div>
-          <div class="event-filter" id="mineChartFilter"></div>
         </div>
       </div>
     </main>
@@ -450,6 +484,12 @@
       </div>
     </div>
     <div class="field">
+      <label>사진 <span id="recordPhotoCount" style="font-weight:500; color:#a39d94;"></span></label>
+      <div class="photo-grid" id="recordPhotoGrid"></div>
+      <input type="file" id="recordPhotoInput" accept="image/*" multiple style="display:none;">
+      <div class="photo-hint">기록증, 대회 사진을 올려보세요. 사진은 서버에 안전하게 저장되어 다른 기기에서도 보이고, 나만 볼 수 있어요.</div>
+    </div>
+    <div class="field">
       <label>메모</label>
       <textarea id="recordMemo" placeholder="레이스 소감, 페이스 전략 등"></textarea>
     </div>
@@ -458,6 +498,12 @@
       <button class="btn-primary" id="recordSubmit">저장</button>
     </div>
   </div>
+</div>
+
+<!-- 사진 크게 보기 -->
+<div class="overlay" id="photoViewOverlay">
+  <button id="photoViewClose" type="button" aria-label="닫기">✕</button>
+  <img id="photoViewImg" alt="">
 </div>
 
 <!-- 참가 수정 모달 (종목 / 동반 참가 인원) -->
@@ -1143,7 +1189,15 @@ function renderMineChartFilter(){
 function renderMineChart(){
   const canvas = document.getElementById('mineChart');
   const emptyEl = document.getElementById('mineChartEmpty');
-  const myEntries = state.entries.filter(e=>e.name===state.user && CHART_EVENTS.includes(e.event) && mineChartEvents.has(e.event));
+  let myEntries = state.entries.filter(e=>e.name===state.user && CHART_EVENTS.includes(e.event) && mineChartEvents.has(e.event));
+  if(chartPeriodYears>0){
+    const minYear = new Date().getFullYear() - (chartPeriodYears-1); // 달력 연도 기준: 1년 = 올해만
+    myEntries = myEntries.filter(e=>{
+      const d = new Date(e.raceDate);
+      if(isNaN(d)) return false;
+      return d.getFullYear()>=minYear;
+    });
+  }
 
   const datasets = [];
   let hasAnyData = false;
@@ -1277,18 +1331,24 @@ function renderMineChartInfoPanel(xValue){
     panel.innerHTML = `<div class="chart-info-placeholder">그래프를 눌러 날짜별 기록을 확인하세요</div>`;
     return;
   }
-  const rows = CHART_EVENTS.filter(ev=>mineChartEvents.has(ev)).map(ev=>{
-    const entry = state.entries.find(e=>e.name===state.user && e.event===ev && !isNaN(new Date(e.raceDate)) && new Date(e.raceDate).getTime()===xValue);
-    const dot = `<span class="chart-info-dot" style="background:${EVENT_COLOR[ev]}"></span>`;
-    if(!entry){
-      return `<div class="chart-info-row">${dot}<span class="chart-info-ev">${ev}</span><span class="chart-info-empty">데이터 없음</span></div>`;
-    }
-    const rec = state.records.find(r=>r.entryId===entry.id);
-    const goalStr = rec && rec.goal ? rec.goal : '-';
-    const resultStr = rec && rec.result ? rec.result : '-';
-    return `<div class="chart-info-row">${dot}<span class="chart-info-ev">${ev}</span><span class="chart-info-vals">목표 ${goalStr} · 기록 ${resultStr}</span></div>`;
-  }).join('');
-  panel.innerHTML = `<div class="chart-info-date">${fmtDate(xValue)}</div>` + rows;
+  // 하루에 대회가 하나만 열리는 걸 전제로, 이 날짜에 해당하는 내 참가 건 하나만 찾음
+  const entry = state.entries.find(e=>e.name===state.user && CHART_EVENTS.includes(e.event) && !isNaN(new Date(e.raceDate)) && new Date(e.raceDate).getTime()===xValue);
+  if(!entry){
+    panel.innerHTML = `<div class="chart-info-date">${fmtDate(xValue)}</div><div class="chart-info-empty" style="padding:6px 0 2px;">데이터 없음</div>`;
+    return;
+  }
+  const rec = state.records.find(r=>r.entryId===entry.id);
+  const goalStr = rec && rec.goal ? rec.goal : '-';
+  const resultStr = rec && rec.result ? rec.result : '-';
+  const dot = `<span class="chart-info-dot" style="background:${EVENT_COLOR[entry.event]||'#8a8680'}"></span>`;
+  panel.innerHTML = `
+    <div class="chart-info-header">
+      <div class="chart-info-date">${fmtDate(xValue)} <span class="chart-info-racename">${escapeHtml(entry.raceName)}</span></div>
+      <button class="small-action-inline btn-info-text chart-info-edit-btn" type="button">✏️ 수정</button>
+    </div>
+    <div class="chart-info-row">${dot}<span class="chart-info-ev">${escapeHtml(eventLabel_(entry.event))}</span><span class="chart-info-vals">목표 ${goalStr} · 기록 ${resultStr}</span></div>
+  `;
+  panel.querySelector('.chart-info-edit-btn').addEventListener('click', ()=>openRecordModal(entry.id));
 }
 
 function handleMineChartPointer_(clientX){
@@ -1315,7 +1375,8 @@ window.addEventListener('pointercancel', ()=>{ mineChartDragging = false; });
 document.addEventListener('pointerdown', (e)=>{
   if(mineChartSelectedX == null) return;
   const wrap = document.querySelector('#mineChartView .chart-canvas-wrap');
-  if(wrap && !wrap.contains(e.target)) updateMineChartCrosshair(null);
+  const infoPanel = document.getElementById('mineChartInfoPanel');
+  if(wrap && !wrap.contains(e.target) && infoPanel && !infoPanel.contains(e.target)) updateMineChartCrosshair(null);
 });
 
 let mineSubTab = 'list';
@@ -1325,9 +1386,53 @@ document.querySelectorAll('#mineSubTabToggle .mt-btn').forEach(b=>{
     document.querySelectorAll('#mineSubTabToggle .mt-btn').forEach(x=>x.classList.toggle('active', x===b));
     document.getElementById('mineListView').style.display = mineSubTab==='list' ? 'block' : 'none';
     document.getElementById('mineChartView').style.display = mineSubTab==='chart' ? 'block' : 'none';
+    document.getElementById('chartPeriodBar').style.display = mineSubTab==='chart' ? 'block' : 'none';
     if(mineSubTab==='chart') renderMineChart(); // 숨겨진 상태에서 그려지면 크기가 0이 되므로 보일 때 다시 그림
   });
 });
+
+/* ================= 기록 보기 - 기간 (전체 기간 / 최근 N년) ================= */
+const CHART_PERIOD_KEY = 'sio_chart_period_v2';
+const CHART_PERIOD_OPTIONS = [
+  {years:0}, {years:1}, {years:2}, {years:3}, {years:4}, {years:5}
+];
+function chartPeriodLabel_(o){
+  if(o.years===0) return '전체 기간';
+  return `${o.years}년 (${new Date().getFullYear()-(o.years-1)}년~)`; // 달력 연도 기준
+}
+let chartPeriodYears = 0; // 0 = 전체 기간
+try{
+  const saved = parseInt(localStorage.getItem(CHART_PERIOD_KEY), 10);
+  if(CHART_PERIOD_OPTIONS.some(o=>o.years===saved)) chartPeriodYears = saved;
+}catch(e){}
+
+function renderChartPeriodUI_(){
+  const cur = CHART_PERIOD_OPTIONS.find(o=>o.years===chartPeriodYears) || CHART_PERIOD_OPTIONS[0];
+  document.getElementById('chartPeriodBtn').textContent = `📅 기간: ${chartPeriodLabel_(cur)}`;
+  const menu = document.getElementById('chartPeriodMenu');
+  menu.innerHTML = CHART_PERIOD_OPTIONS.map(o=>
+    `<button type="button" class="chart-period-opt${o.years===chartPeriodYears?' active':''}" data-years="${o.years}">${chartPeriodLabel_(o)}</button>`
+  ).join('');
+  menu.querySelectorAll('.chart-period-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      chartPeriodYears = parseInt(btn.dataset.years, 10);
+      try{ localStorage.setItem(CHART_PERIOD_KEY, String(chartPeriodYears)); }catch(e){}
+      menu.classList.remove('open');
+      renderChartPeriodUI_();
+      renderMineChart();
+    });
+  });
+}
+
+document.getElementById('chartPeriodBtn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  document.getElementById('chartPeriodMenu').classList.toggle('open');
+});
+document.addEventListener('click', (e)=>{
+  const bar = document.getElementById('chartPeriodBar');
+  if(bar && !bar.contains(e.target)) document.getElementById('chartPeriodMenu').classList.remove('open');
+});
+renderChartPeriodUI_();
 
 function renderMine(){
   populateMineYearFilter();
@@ -1984,6 +2089,237 @@ document.querySelectorAll('#recordGoalH,#recordGoalM,#recordGoalS,#recordResultH
   inp.addEventListener('input', updateRecordPaceDisplay_);
 });
 
+/* ================= 참가 기록 사진 (서버: 구글 드라이브에 저장) ================= */
+// 사진 업로드는 용량이 커서 keepalive(64KB 제한)를 쓰는 apiPost 대신 별도 함수로 보냄
+async function apiPostBig_(action, payload){
+  try{
+    const res = await fetch(CONFIG.GAS_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({action, ...payload})
+    });
+    return await res.json();
+  }catch(err){
+    console.error(err);
+    return { ok:false, error:'네트워크 오류가 발생했어요' };
+  }
+}
+
+// 썸네일은 기기에 캐시해서 다음에 열 때 바로 보이게 함 (원본은 서버에 있고, 캐시는 지워져도 다시 받아옴)
+const ThumbCache = (()=>{
+  let dbp = null;
+  function db(){
+    if(dbp) return dbp;
+    dbp = new Promise((resolve, reject)=>{
+      if(!window.indexedDB){ reject(new Error('no-idb')); return; }
+      const req = indexedDB.open('sio_photo_thumbs_v1', 1);
+      req.onupgradeneeded = ()=>req.result.createObjectStore('thumbs', {keyPath:'id'});
+      req.onsuccess = ()=>resolve(req.result);
+      req.onerror = ()=>{ dbp = null; reject(req.error); };
+    });
+    return dbp;
+  }
+  return {
+    get: (id)=>db().then(d=>new Promise((resolve)=>{
+      const r = d.transaction('thumbs','readonly').objectStore('thumbs').get(id);
+      r.onsuccess = ()=>resolve(r.result ? r.result.blob : null);
+      r.onerror = ()=>resolve(null);
+    })).catch(()=>null),
+    put: (id, blob)=>db().then(d=>{ d.transaction('thumbs','readwrite').objectStore('thumbs').put({id, blob}); }).catch(()=>{}),
+    remove: (id)=>db().then(d=>{ d.transaction('thumbs','readwrite').objectStore('thumbs').delete(id); }).catch(()=>{})
+  };
+})();
+
+const MAX_PHOTOS_PER_ENTRY = 10;
+const fullPhotoUrls_ = new Map(); // 이번 접속 중 한 번 받은 원본 (photoId -> object URL)
+const thumbUrls_ = new Map();     // photoId -> object URL
+let photoItems_ = [];             // 서버에 저장된 사진 목록 [{id, createdAt}]
+let photoPending_ = [];           // 업로드 중인 사진 [{key, url}]
+let photoRenderToken_ = 0;        // 모달을 빨리 닫고 다른 기록을 열었을 때 이전 결과가 덮어쓰지 않게
+let photoCount_ = 0;
+let photoLoadError_ = false;
+
+function b64ToBlob_(b64, type){
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], {type});
+}
+function blobToB64_(blob){
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = ()=>resolve(String(fr.result).split(',')[1] || '');
+    fr.onerror = ()=>reject(fr.error);
+    fr.readAsDataURL(blob);
+  });
+}
+
+function compressImage_(file, maxSide, quality){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.naturalWidth, h = img.naturalHeight;
+      const scale = Math.min(1, maxSide/Math.max(w,h));
+      w = Math.round(w*scale); h = Math.round(h*scale);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      c.toBlob(b=>{
+        URL.revokeObjectURL(url);
+        b ? resolve(b) : reject(new Error('compress-failed'));
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('load-failed')); };
+    img.src = url;
+  });
+}
+
+async function getThumbUrl_(photoId){
+  if(thumbUrls_.has(photoId)) return thumbUrls_.get(photoId);
+  let blob = await ThumbCache.get(photoId);
+  if(!blob){
+    const res = await apiPostBig_('getPhoto', {photoId, name: state.user, size:'thumb'});
+    if(!res.ok) return null;
+    blob = b64ToBlob_(res.data, 'image/jpeg');
+    ThumbCache.put(photoId, blob);
+  }
+  const url = URL.createObjectURL(blob);
+  thumbUrls_.set(photoId, url);
+  return url;
+}
+
+async function openPhotoViewer_(photoId){
+  const img = document.getElementById('photoViewImg');
+  img.src = fullPhotoUrls_.get(photoId) || thumbUrls_.get(photoId) || ''; // 원본을 받는 동안 썸네일을 먼저 보여줌
+  open_('photoViewOverlay');
+  if(!fullPhotoUrls_.has(photoId)){
+    const res = await apiPostBig_('getPhoto', {photoId, name: state.user, size:'full'});
+    if(!res.ok){ toast(res.error || '사진을 불러오지 못했어요'); return; }
+    fullPhotoUrls_.set(photoId, URL.createObjectURL(b64ToBlob_(res.data, 'image/jpeg')));
+  }
+  if(document.getElementById('photoViewOverlay').classList.contains('show')) img.src = fullPhotoUrls_.get(photoId);
+}
+
+function drawPhotoGrid_(){
+  const grid = document.getElementById('recordPhotoGrid');
+  grid.innerHTML = '';
+  photoCount_ = photoItems_.length;
+  document.getElementById('recordPhotoCount').textContent = photoItems_.length ? `${photoItems_.length}/${MAX_PHOTOS_PER_ENTRY}` : '';
+
+  photoItems_.forEach(p=>{
+    const div = document.createElement('div');
+    div.className = 'photo-thumb';
+    div.innerHTML = '<button class="photo-del" type="button" aria-label="사진 삭제">✕</button>';
+    const cached = thumbUrls_.get(p.id);
+    if(cached){
+      div.insertAdjacentHTML('afterbegin', `<img src="${cached}" alt="사진">`);
+    }else{
+      div.insertAdjacentHTML('afterbegin', '<div class="photo-loading">…</div>');
+      getThumbUrl_(p.id).then(url=>{
+        if(!div.isConnected) return;
+        const ph = div.querySelector('.photo-loading');
+        if(url && ph) ph.outerHTML = `<img src="${url}" alt="사진">`;
+        else if(ph) ph.textContent = '!';
+      });
+    }
+    div.addEventListener('click', ()=>openPhotoViewer_(p.id));
+    div.querySelector('.photo-del').addEventListener('click', async (ev)=>{
+      ev.stopPropagation();
+      if(!confirm('이 사진을 삭제할까요? 삭제하면 복구할 수 없어요.')) return;
+      div.style.opacity = '0.4';
+      const res = await apiPostBig_('deletePhoto', {photoId: p.id, name: state.user});
+      if(!res.ok){ div.style.opacity = ''; toast(res.error || '사진 삭제에 실패했어요'); return; }
+      photoItems_ = photoItems_.filter(x=>x.id!==p.id);
+      ThumbCache.remove(p.id);
+      thumbUrls_.delete(p.id); fullPhotoUrls_.delete(p.id);
+      drawPhotoGrid_();
+    });
+    grid.appendChild(div);
+  });
+
+  photoPending_.forEach(p=>{
+    const div = document.createElement('div');
+    div.className = 'photo-thumb pending';
+    div.innerHTML = `<img src="${p.url}" alt=""><div class="photo-uploading">업로드 중</div>`;
+    grid.appendChild(div);
+  });
+
+  if(photoLoadError_){
+    const retry = document.createElement('button');
+    retry.type = 'button'; retry.className = 'photo-add';
+    retry.innerHTML = '<b>↻</b>다시 불러오기';
+    retry.addEventListener('click', ()=>renderRecordPhotos_());
+    grid.appendChild(retry);
+    return;
+  }
+  if(photoItems_.length + photoPending_.length < MAX_PHOTOS_PER_ENTRY){
+    const add = document.createElement('button');
+    add.type = 'button'; add.className = 'photo-add';
+    add.innerHTML = '<b>＋</b>사진 추가';
+    add.addEventListener('click', ()=>document.getElementById('recordPhotoInput').click());
+    grid.appendChild(add);
+  }
+}
+
+async function renderRecordPhotos_(){
+  const entry = state.activeEntry;
+  const token = ++photoRenderToken_;
+  photoItems_ = []; photoPending_ = []; photoLoadError_ = false; photoCount_ = 0;
+  const grid = document.getElementById('recordPhotoGrid');
+  document.getElementById('recordPhotoCount').textContent = '';
+  if(!entry){ grid.innerHTML = ''; return; }
+  if(String(entry.id).startsWith('tmp_')){ drawPhotoGrid_(); return; }
+  grid.innerHTML = '<div class="photo-hint" style="margin:0;">사진 불러오는 중…</div>';
+  const res = await apiPostBig_('listPhotos', {entryId: entry.id, name: state.user});
+  if(token !== photoRenderToken_) return;
+  if(res.ok) photoItems_ = res.photos || [];
+  else photoLoadError_ = true;
+  drawPhotoGrid_();
+}
+
+document.getElementById('recordPhotoInput').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files || []);
+  e.target.value = '';
+  const entry = state.activeEntry;
+  if(!entry || !files.length) return;
+  if(String(entry.id).startsWith('tmp_')){ toast('참가 신청 저장 중이에요. 잠시 후 다시 시도해주세요'); return; }
+  const token = photoRenderToken_;
+  let added = 0, failed = 0, skipped = 0, lastError = '';
+  for(const f of files){
+    if(photoItems_.length + photoPending_.length >= MAX_PHOTOS_PER_ENTRY){ skipped++; continue; }
+    let pend = null;
+    try{
+      const [full, thumb] = await Promise.all([compressImage_(f, 1600, 0.82), compressImage_(f, 240, 0.7)]);
+      pend = {key: Math.random().toString(36).slice(2), url: URL.createObjectURL(thumb)};
+      photoPending_.push(pend);
+      if(token === photoRenderToken_) drawPhotoGrid_();
+      const res = await apiPostBig_('uploadPhoto', {
+        entryId: entry.id, name: state.user,
+        image: await blobToB64_(full), thumb: await blobToB64_(thumb)
+      });
+      if(!res.ok) throw new Error(res.error || 'upload-failed');
+      ThumbCache.put(res.photo.id, thumb);
+      thumbUrls_.set(res.photo.id, URL.createObjectURL(thumb));
+      if(token === photoRenderToken_) photoItems_.push(res.photo);
+      added++;
+    }catch(err){
+      failed++; lastError = String(err.message || '');
+    }finally{
+      if(pend){
+        photoPending_ = photoPending_.filter(x=>x!==pend);
+        URL.revokeObjectURL(pend.url);
+      }
+      if(token === photoRenderToken_) drawPhotoGrid_();
+    }
+  }
+  if(failed) toast(lastError && !/failed|Failed|network/i.test(lastError) ? lastError : '일부 사진을 올리지 못했어요');
+  else if(skipped) toast(`사진은 최대 ${MAX_PHOTOS_PER_ENTRY}장까지 올릴 수 있어요`);
+  else if(added) toast(`사진 ${added}장 저장 완료`);
+});
+
+document.getElementById('photoViewOverlay').addEventListener('click', ()=>close_('photoViewOverlay'));
+
 function openRecordModal(entryId){
   const entry = state.entries.find(e=>e.id===entryId);
   if(!entry) return;
@@ -1997,6 +2333,7 @@ function openRecordModal(entryId){
   fillTimeInputs_('recordResult', rec?.result || '');
   document.getElementById('recordMemo').value = rec?.memo || '';
   updateRecordPaceDisplay_();
+  renderRecordPhotos_();
 
   open_('recordOverlay');
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('recordMemo')));
@@ -2093,7 +2430,8 @@ document.getElementById('recordSubmit').addEventListener('click', async ()=>{
 
 async function cancelParticipation_(){
   const entry = state.activeEntry;
-  if(!confirm(`'${entry.raceName}' 참가를 취소할까요?`)) return;
+  const photoNote = photoCount_>0 ? `\n(저장된 사진 ${photoCount_}장도 함께 삭제돼요)` : '';
+  if(!confirm(`'${entry.raceName}' 참가를 취소할까요?${photoNote}`)) return;
   state.entries = state.entries.filter(e=>e.id!==entry.id);
   close_('recordOverlay');
   toast('참가가 취소되었습니다');
@@ -2104,6 +2442,7 @@ async function cancelParticipation_(){
     state.entries.push(entry);
     toast(res.error||'취소 실패 - 되돌렸습니다');
     renderMine(); renderRaces();
+    return;
   }
 }
 document.getElementById('entryDeleteTop').addEventListener('click', cancelParticipation_);
