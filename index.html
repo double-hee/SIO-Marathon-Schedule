@@ -487,7 +487,7 @@
       <label>사진 <span id="recordPhotoCount" style="font-weight:500; color:#a39d94;"></span></label>
       <div class="photo-grid" id="recordPhotoGrid"></div>
       <input type="file" id="recordPhotoInput" accept="image/*" multiple style="display:none;">
-      <div class="photo-hint">기록증, 대회 사진을 올려보세요. 사진은 서버에 안전하게 저장되어 다른 기기에서도 보이고, 나만 볼 수 있어요.</div>
+      <div class="photo-hint">기록증, 대회 사진을 올려보세요. 사진은 서버에 안전하게 저장되어 다른 기기에서도 보여요.</div>
     </div>
     <div class="field">
       <label>메모</label>
@@ -551,6 +551,12 @@
     <div class="field">
       <label>기타 대회 정보</label>
       <div id="raceMemoView" class="memo-view"></div>
+    </div>
+    <div class="field" id="racePhotoField" style="display:none;">
+      <label>사진 <span id="racePhotoCount" style="font-weight:500; color:#a39d94;"></span></label>
+      <div class="photo-grid" id="racePhotoGrid"></div>
+      <input type="file" id="racePhotoInput" accept="image/*" multiple style="display:none;">
+      <div class="photo-hint" id="racePhotoHint" style="display:none;">관리자만 사진을 추가·삭제할 수 있어요.</div>
     </div>
 
     <div class="field">
@@ -2147,11 +2153,6 @@ const PhotoCache = (()=>{
 const MAX_PHOTOS_PER_ENTRY = 10;
 const fullPhotoUrls_ = new Map(); // 이번 접속 중 한 번 받은 원본 (photoId -> object URL)
 const thumbUrls_ = new Map();     // photoId -> object URL
-let photoItems_ = [];             // 서버에 저장된 사진 목록 [{id, createdAt}]
-let photoPending_ = [];           // 업로드 중인 사진 [{key, url}]
-let photoRenderToken_ = 0;        // 모달을 빨리 닫고 다른 기록을 열었을 때 이전 결과가 덮어쓰지 않게
-let photoCount_ = 0;
-let photoLoadError_ = false;
 
 function b64ToBlob_(b64, type){
   const bin = atob(b64);
@@ -2220,145 +2221,178 @@ async function openPhotoViewer_(photoId){
   if(document.getElementById('photoViewOverlay').classList.contains('show')) img.src = fullPhotoUrls_.get(photoId);
 }
 
-function drawPhotoGrid_(){
-  const grid = document.getElementById('recordPhotoGrid');
-  grid.innerHTML = '';
-  photoCount_ = photoItems_.length;
-  document.getElementById('recordPhotoCount').textContent = photoItems_.length ? `${photoItems_.length}/${MAX_PHOTOS_PER_ENTRY}` : '';
+// 사진 갤러리: 참가 기록(본인만)과 대회 상세(모두 보기, 관리자만 추가/삭제)에서 같은 코드를 씀
+// cfg: gridId, countId, inputId, getKey() -> 사진을 묶는 키(없으면 null), canEdit() -> 추가/삭제 가능 여부, onUpdate(count)
+function createPhotoGallery_(cfg){
+  let items = [];       // 서버에 저장된 사진 목록 [{id, createdAt}]
+  let pending = [];     // 업로드 중인 사진 [{key, url}]
+  let token = 0;        // 모달을 빨리 닫고 다른 대상을 열었을 때 이전 결과가 덮어쓰지 않게
+  let loadError = false;
 
-  photoItems_.forEach(p=>{
-    const div = document.createElement('div');
-    div.className = 'photo-thumb';
-    div.innerHTML = '<button class="photo-del" type="button" aria-label="사진 삭제">✕</button>';
-    const cached = thumbUrls_.get(p.id);
-    if(cached){
-      div.insertAdjacentHTML('afterbegin', `<img src="${cached}" alt="사진">`);
-    }else{
-      div.insertAdjacentHTML('afterbegin', '<div class="photo-loading">…</div>');
-      getThumbUrl_(p.id).then(url=>{
-        if(!div.isConnected) return;
-        const ph = div.querySelector('.photo-loading');
-        if(url && ph) ph.outerHTML = `<img src="${url}" alt="사진">`;
-        else if(ph) ph.textContent = '!';
-      });
-    }
-    div.addEventListener('click', ()=>openPhotoViewer_(p.id));
-    div.querySelector('.photo-del').addEventListener('click', async (ev)=>{
-      ev.stopPropagation();
-      if(!confirm('이 사진을 삭제할까요? 삭제하면 복구할 수 없어요.')) return;
-      div.style.opacity = '0.4';
-      const res = await apiPostBig_('deletePhoto', {photoId: p.id, name: state.user});
-      if(!res.ok){ div.style.opacity = ''; toast(res.error || '사진 삭제에 실패했어요'); return; }
-      photoItems_ = photoItems_.filter(x=>x.id!==p.id);
-      PhotoCache.removeThumb(p.id);
-      PhotoCache.removeFull(p.id);
-      if(state.activeEntry) PhotoCache.putList(state.activeEntry.id, photoItems_);
-      thumbUrls_.delete(p.id); fullPhotoUrls_.delete(p.id);
-      drawPhotoGrid_();
-    });
-    grid.appendChild(div);
-  });
+  function notify(){ if(cfg.onUpdate) cfg.onUpdate(items.length); }
 
-  photoPending_.forEach(p=>{
-    const div = document.createElement('div');
-    div.className = 'photo-thumb pending';
-    div.innerHTML = `<img src="${p.url}" alt=""><div class="photo-uploading">업로드 중</div>`;
-    grid.appendChild(div);
-  });
+  function draw(){
+    const grid = document.getElementById(cfg.gridId);
+    const canEdit = cfg.canEdit();
+    grid.innerHTML = '';
+    document.getElementById(cfg.countId).textContent = items.length ? `${items.length}/${MAX_PHOTOS_PER_ENTRY}` : '';
 
-  if(photoLoadError_){
-    const retry = document.createElement('button');
-    retry.type = 'button'; retry.className = 'photo-add';
-    retry.innerHTML = '<b>↻</b>다시 불러오기';
-    retry.addEventListener('click', ()=>renderRecordPhotos_());
-    grid.appendChild(retry);
-    return;
-  }
-  if(photoItems_.length + photoPending_.length < MAX_PHOTOS_PER_ENTRY){
-    const add = document.createElement('button');
-    add.type = 'button'; add.className = 'photo-add';
-    add.innerHTML = '<b>＋</b>사진 추가';
-    add.addEventListener('click', ()=>document.getElementById('recordPhotoInput').click());
-    grid.appendChild(add);
-  }
-}
-
-async function renderRecordPhotos_(){
-  const entry = state.activeEntry;
-  const token = ++photoRenderToken_;
-  photoItems_ = []; photoPending_ = []; photoLoadError_ = false; photoCount_ = 0;
-  const grid = document.getElementById('recordPhotoGrid');
-  document.getElementById('recordPhotoCount').textContent = '';
-  if(!entry){ grid.innerHTML = ''; return; }
-  if(String(entry.id).startsWith('tmp_')){ drawPhotoGrid_(); return; }
-
-  // 서버 요청과 기기 캐시 읽기를 동시에 시작 - 캐시가 있으면 서버 응답 전에 바로 그려줌
-  const serverP = apiPostBig_('listPhotos', {entryId: entry.id, name: state.user});
-  const cachedList = await PhotoCache.getList(entry.id);
-  if(token !== photoRenderToken_) return;
-  let shown = false;
-  if(cachedList){
-    photoItems_ = cachedList;
-    drawPhotoGrid_();
-    shown = true;
-  }else{
-    grid.innerHTML = '<div class="photo-hint" style="margin:0;">사진 불러오는 중…</div>';
-  }
-
-  const res = await serverP;
-  if(token !== photoRenderToken_) return;
-  if(res.ok){
-    const serverList = res.photos || [];
-    PhotoCache.putList(entry.id, serverList);
-    const same = shown && serverList.length === photoItems_.length && serverList.every((p,i)=>p.id===photoItems_[i].id);
-    if(!same){ photoItems_ = serverList; drawPhotoGrid_(); }
-  }else if(!shown){
-    photoLoadError_ = true;
-    drawPhotoGrid_();
-  }
-}
-
-document.getElementById('recordPhotoInput').addEventListener('change', async (e)=>{
-  const files = Array.from(e.target.files || []);
-  e.target.value = '';
-  const entry = state.activeEntry;
-  if(!entry || !files.length) return;
-  if(String(entry.id).startsWith('tmp_')){ toast('참가 신청 저장 중이에요. 잠시 후 다시 시도해주세요'); return; }
-  const token = photoRenderToken_;
-  let added = 0, failed = 0, skipped = 0, lastError = '';
-  for(const f of files){
-    if(photoItems_.length + photoPending_.length >= MAX_PHOTOS_PER_ENTRY){ skipped++; continue; }
-    let pend = null;
-    try{
-      const [full, thumb] = await Promise.all([compressImage_(f, 1600, 0.82), compressImage_(f, 240, 0.7)]);
-      pend = {key: Math.random().toString(36).slice(2), url: URL.createObjectURL(thumb)};
-      photoPending_.push(pend);
-      if(token === photoRenderToken_) drawPhotoGrid_();
-      const res = await apiPostBig_('uploadPhoto', {
-        entryId: entry.id, name: state.user,
-        image: await blobToB64_(full), thumb: await blobToB64_(thumb)
-      });
-      if(!res.ok) throw new Error(res.error || 'upload-failed');
-      PhotoCache.putThumb(res.photo.id, thumb);
-      thumbUrls_.set(res.photo.id, URL.createObjectURL(thumb));
-      PhotoCache.putFull(res.photo.id, full); // 방금 올린 사진은 원본도 이미 있으니 기기에 저장해 크게 볼 때 바로 열림
-      fullPhotoUrls_.set(res.photo.id, URL.createObjectURL(full));
-      if(token === photoRenderToken_) photoItems_.push(res.photo);
-      PhotoCache.getList(entry.id).then(l=>PhotoCache.putList(entry.id, [...(l||[]).filter(x=>x.id!==res.photo.id), res.photo]));
-      added++;
-    }catch(err){
-      failed++; lastError = String(err.message || '');
-    }finally{
-      if(pend){
-        photoPending_ = photoPending_.filter(x=>x!==pend);
-        URL.revokeObjectURL(pend.url);
+    items.forEach(p=>{
+      const div = document.createElement('div');
+      div.className = 'photo-thumb';
+      div.innerHTML = canEdit ? '<button class="photo-del" type="button" aria-label="사진 삭제">✕</button>' : '';
+      const cached = thumbUrls_.get(p.id);
+      if(cached){
+        div.insertAdjacentHTML('afterbegin', `<img src="${cached}" alt="사진">`);
+      }else{
+        div.insertAdjacentHTML('afterbegin', '<div class="photo-loading">…</div>');
+        getThumbUrl_(p.id).then(url=>{
+          if(!div.isConnected) return;
+          const ph = div.querySelector('.photo-loading');
+          if(url && ph) ph.outerHTML = `<img src="${url}" alt="사진">`;
+          else if(ph) ph.textContent = '!';
+        });
       }
-      if(token === photoRenderToken_) drawPhotoGrid_();
+      div.addEventListener('click', ()=>openPhotoViewer_(p.id));
+      const delBtn = div.querySelector('.photo-del');
+      if(delBtn) delBtn.addEventListener('click', async (ev)=>{
+        ev.stopPropagation();
+        if(!confirm('이 사진을 삭제할까요? 삭제하면 복구할 수 없어요.')) return;
+        div.style.opacity = '0.4';
+        const res = await apiPostBig_('deletePhoto', {photoId: p.id, name: state.user});
+        if(!res.ok){ div.style.opacity = ''; toast(res.error || '사진 삭제에 실패했어요'); return; }
+        items = items.filter(x=>x.id!==p.id);
+        PhotoCache.removeThumb(p.id);
+        PhotoCache.removeFull(p.id);
+        const key = cfg.getKey();
+        if(key) PhotoCache.putList(key, items);
+        thumbUrls_.delete(p.id); fullPhotoUrls_.delete(p.id);
+        draw(); notify();
+      });
+      grid.appendChild(div);
+    });
+
+    pending.forEach(p=>{
+      const div = document.createElement('div');
+      div.className = 'photo-thumb pending';
+      div.innerHTML = `<img src="${p.url}" alt=""><div class="photo-uploading">업로드 중</div>`;
+      grid.appendChild(div);
+    });
+
+    if(loadError){
+      const retry = document.createElement('button');
+      retry.type = 'button'; retry.className = 'photo-add';
+      retry.innerHTML = '<b>↻</b>다시 불러오기';
+      retry.addEventListener('click', ()=>render());
+      grid.appendChild(retry);
+      return;
+    }
+    if(canEdit && items.length + pending.length < MAX_PHOTOS_PER_ENTRY){
+      const add = document.createElement('button');
+      add.type = 'button'; add.className = 'photo-add';
+      add.innerHTML = '<b>＋</b>사진 추가';
+      add.addEventListener('click', ()=>document.getElementById(cfg.inputId).click());
+      grid.appendChild(add);
     }
   }
-  if(failed) toast(lastError && !/failed|Failed|network/i.test(lastError) ? lastError : '일부 사진을 올리지 못했어요');
-  else if(skipped) toast(`사진은 최대 ${MAX_PHOTOS_PER_ENTRY}장까지 올릴 수 있어요`);
-  else if(added) toast(`사진 ${added}장 저장 완료`);
+
+  async function render(){
+    const key = cfg.getKey();
+    const myToken = ++token;
+    items = []; pending = []; loadError = false;
+    const grid = document.getElementById(cfg.gridId);
+    document.getElementById(cfg.countId).textContent = '';
+    if(!key){ grid.innerHTML = ''; notify(); return; }
+    if(String(key).startsWith('tmp_')){ draw(); notify(); return; }
+
+    // 서버 요청과 기기 캐시 읽기를 동시에 시작 - 캐시가 있으면 서버 응답 전에 바로 그려줌
+    const serverP = apiPostBig_('listPhotos', {entryId: key, name: state.user});
+    const cachedList = await PhotoCache.getList(key);
+    if(myToken !== token) return;
+    let shown = false;
+    if(cachedList){
+      items = cachedList;
+      draw(); notify();
+      shown = true;
+    }else{
+      grid.innerHTML = '<div class="photo-hint" style="margin:0;">사진 불러오는 중…</div>';
+    }
+
+    const res = await serverP;
+    if(myToken !== token) return;
+    if(res.ok){
+      const serverList = res.photos || [];
+      PhotoCache.putList(key, serverList);
+      const same = shown && serverList.length === items.length && serverList.every((p,i)=>p.id===items[i].id);
+      if(!same){ items = serverList; draw(); notify(); }
+    }else if(!shown){
+      loadError = true;
+      draw(); notify();
+    }
+  }
+
+  document.getElementById(cfg.inputId).addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    const key = cfg.getKey();
+    if(!key || !files.length || !cfg.canEdit()) return;
+    if(String(key).startsWith('tmp_')){ toast('참가 신청 저장 중이에요. 잠시 후 다시 시도해주세요'); return; }
+    const myToken = token;
+    let added = 0, failed = 0, skipped = 0, lastError = '';
+    for(const f of files){
+      if(items.length + pending.length >= MAX_PHOTOS_PER_ENTRY){ skipped++; continue; }
+      let pend = null;
+      try{
+        const [full, thumb] = await Promise.all([compressImage_(f, 1600, 0.82), compressImage_(f, 240, 0.7)]);
+        pend = {key: Math.random().toString(36).slice(2), url: URL.createObjectURL(thumb)};
+        pending.push(pend);
+        if(myToken === token) draw();
+        const res = await apiPostBig_('uploadPhoto', {
+          entryId: key, name: state.user,
+          image: await blobToB64_(full), thumb: await blobToB64_(thumb)
+        });
+        if(!res.ok) throw new Error(res.error || 'upload-failed');
+        PhotoCache.putThumb(res.photo.id, thumb);
+        thumbUrls_.set(res.photo.id, URL.createObjectURL(thumb));
+        PhotoCache.putFull(res.photo.id, full); // 방금 올린 사진은 원본도 이미 있으니 기기에 저장해 크게 볼 때 바로 열림
+        fullPhotoUrls_.set(res.photo.id, URL.createObjectURL(full));
+        if(myToken === token) items.push(res.photo);
+        PhotoCache.getList(key).then(l=>PhotoCache.putList(key, [...(l||[]).filter(x=>x.id!==res.photo.id), res.photo]));
+        added++;
+      }catch(err){
+        failed++; lastError = String(err.message || '');
+      }finally{
+        if(pend){
+          pending = pending.filter(x=>x!==pend);
+          URL.revokeObjectURL(pend.url);
+        }
+        if(myToken === token){ draw(); notify(); }
+      }
+    }
+    if(failed) toast(lastError && !/failed|Failed|network/i.test(lastError) ? lastError : '일부 사진을 올리지 못했어요');
+    else if(skipped) toast(`사진은 최대 ${MAX_PHOTOS_PER_ENTRY}장까지 올릴 수 있어요`);
+    else if(added) toast(`사진 ${added}장 저장 완료`);
+  });
+
+  return { render, count: ()=>items.length };
+}
+
+// 참가 기록: 본인만 추가/삭제 (서버도 본인 확인)
+const recordGallery = createPhotoGallery_({
+  gridId:'recordPhotoGrid', countId:'recordPhotoCount', inputId:'recordPhotoInput',
+  getKey: ()=> state.activeEntry ? state.activeEntry.id : null,
+  canEdit: ()=> true
+});
+
+// 대회 상세: 모든 크루원이 보고, 관리자만 추가/삭제 (서버도 관리자 확인). 사진 키는 'race_<대회id>'
+const raceGallery = createPhotoGallery_({
+  gridId:'racePhotoGrid', countId:'racePhotoCount', inputId:'racePhotoInput',
+  getKey: ()=> state.activeRace ? 'race_'+state.activeRace.id : null,
+  canEdit: ()=> isAdmin_(),
+  onUpdate: (count)=>{
+    // 관리자가 아니면 사진이 있을 때만 영역을 보여줌
+    document.getElementById('racePhotoField').style.display = (isAdmin_() || count>0) ? 'block' : 'none';
+  }
 });
 
 document.getElementById('photoViewOverlay').addEventListener('click', ()=>close_('photoViewOverlay'));
@@ -2376,7 +2410,7 @@ function openRecordModal(entryId){
   fillTimeInputs_('recordResult', rec?.result || '');
   document.getElementById('recordMemo').value = rec?.memo || '';
   updateRecordPaceDisplay_();
-  renderRecordPhotos_();
+  recordGallery.render();
 
   open_('recordOverlay');
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('recordMemo')));
@@ -2473,7 +2507,7 @@ document.getElementById('recordSubmit').addEventListener('click', async ()=>{
 
 async function cancelParticipation_(){
   const entry = state.activeEntry;
-  const photoNote = photoCount_>0 ? `\n(저장된 사진 ${photoCount_}장도 함께 삭제돼요)` : '';
+  const photoNote = recordGallery.count()>0 ? `\n(저장된 사진 ${recordGallery.count()}장도 함께 삭제돼요)` : '';
   if(!confirm(`'${entry.raceName}' 참가를 취소할까요?${photoNote}`)) return;
   state.entries = state.entries.filter(e=>e.id!==entry.id);
   close_('recordOverlay');
@@ -2526,6 +2560,10 @@ async function openRaceModal(raceId){
   document.getElementById('participantEditPanel').style.display = 'none';
   document.getElementById('raceEventFilter').style.display = 'flex';
   document.getElementById('raceParticipantList').style.display = 'block';
+
+  document.getElementById('racePhotoField').style.display = isAdmin_() ? 'block' : 'none';
+  document.getElementById('racePhotoHint').style.display = isAdmin_() ? 'block' : 'none';
+  raceGallery.render();
 
   renderParticipants(raceId);
   open_('raceOverlay');
