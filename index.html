@@ -199,7 +199,9 @@
   .photo-uploading{position:absolute; inset:0; background:rgba(20,18,16,0.55); color:#fff; font-size:11.5px; font-weight:600; display:flex; align-items:center; justify-content:center;}
   .photo-hint{font-size:11.5px; color:#8a8680; margin-top:6px;}
   #photoViewOverlay{background:rgba(0,0,0,0.92); align-items:center; z-index:60;}
-  #photoViewOverlay img{max-width:100%; max-height:86vh; object-fit:contain;}
+  #photoViewOverlay{touch-action:none; overflow:hidden;}
+  #photoViewOverlay img{max-width:100%; max-height:86vh; object-fit:contain; touch-action:none; user-select:none; -webkit-user-select:none; -webkit-user-drag:none; will-change:transform; transform-origin:center center;}
+  #photoViewHint{position:absolute; left:0; right:0; bottom:calc(18px + env(safe-area-inset-bottom)); text-align:center; color:rgba(255,255,255,0.6); font-size:12px; pointer-events:none; transition:opacity .4s;}
   #photoViewClose{position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; background:none; border:none; color:#fff; font-size:28px; cursor:pointer;}
   .time-input-row{display:flex; align-items:center; gap:6px;}
   .pace-display{margin-left:auto; flex-shrink:0; font-size:12px; font-weight:700; color:var(--clay); white-space:nowrap; font-family:'Roboto Mono',monospace;}
@@ -503,7 +505,8 @@
 <!-- 사진 크게 보기 -->
 <div class="overlay" id="photoViewOverlay">
   <button id="photoViewClose" type="button" aria-label="닫기">✕</button>
-  <img id="photoViewImg" alt="">
+  <img id="photoViewImg" alt="" draggable="false">
+  <div id="photoViewHint">두 번 탭하거나 두 손가락으로 벌려서 확대</div>
 </div>
 
 <!-- 참가 수정 모달 (종목 / 동반 참가 인원) -->
@@ -1896,6 +1899,80 @@ function openRaceFormForEdit(race){
   requestAnimationFrame(()=>autoResizeTextarea(document.getElementById('rfMemo')));
 }
 
+// AI가 "10km", "하프마라톤", "2026.10.25(일)" 처럼 제각각 돌려줘도 폼이 쓰는 표기('10K','HALF','FULL', YYYY-MM-DD, HH:MM)로 통일
+// (서버에서도 같은 정리를 하지만, 서버가 예전 버전이어도 폼에 엉뚱하게 들어가지 않도록 한 번 더 방어)
+function aiEventKey_(raw){
+  const t = String(raw ?? '').trim().toLowerCase().replace(/\s+/g,'');
+  if(!t) return '';
+  if(t.includes('half') || t.includes('하프')) return 'HALF';
+  if(t.includes('full') || t.includes('풀') || t==='마라톤' || t==='marathon') return 'FULL';
+  const m = t.match(/(\d+(?:\.\d+)?)/);
+  if(!m) return '';
+  const km = parseFloat(m[1]);
+  if(!isFinite(km) || km<=0 || km>200) return '';
+  if(km>=21 && km<21.3) return 'HALF';
+  if(km>=42 && km<42.4) return 'FULL';
+  return `${Math.round(km*1000)/1000}K`;
+}
+function aiDate_(v){
+  const m = String(v ?? '').match(/(\d{4})\D{1,3}(\d{1,2})\D{1,3}(\d{1,2})/);
+  if(!m) return '';
+  const mo = parseInt(m[2],10), d = parseInt(m[3],10);
+  if(mo<1 || mo>12 || d<1 || d>31) return '';
+  return `${m[1]}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function aiTime_(v){
+  const str = String(v ?? '').trim();
+  const m = str.match(/(\d{1,2})\s*(?:[:시]\s*(\d{1,2})?)?/);
+  if(!m) return '';
+  let h = parseInt(m[1],10);
+  const mi = m[2] ? parseInt(m[2],10) : 0;
+  if(/오후|pm/i.test(str) && h<12) h += 12;
+  if(/오전|am/i.test(str) && h===12) h = 0;
+  if(h>23 || mi>59) return '';
+  return `${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}`;
+}
+function aiStatus_(v){
+  const str = String(v ?? '');
+  if(/예정|오픈\s*전|시작\s*전/.test(str)) return '신청예정';
+  if(/마감|종료|closed/i.test(str)) return '마감';
+  if(/중|진행|open/i.test(str)) return '신청중';
+  return '';
+}
+function normalizeAiResult_(d){
+  d = (d && typeof d==='object') ? d : {};
+  const schedules = {};
+  if(d.eventSchedules && typeof d.eventSchedules==='object'){
+    Object.keys(d.eventSchedules).forEach(rk=>{
+      const k = aiEventKey_(rk);
+      if(!k) return;
+      const s0 = d.eventSchedules[rk] || {};
+      const item = { status: aiStatus_(s0.status), start: aiDate_(s0.start), startTime: aiTime_(s0.startTime),
+                     end: aiDate_(s0.end), endTime: aiTime_(s0.endTime), note: String(s0.note ?? '').trim() };
+      if(!schedules[k]) schedules[k] = item;
+      else Object.keys(item).forEach(f=>{ if(!schedules[k][f] && item[f]) schedules[k][f] = item[f]; });
+    });
+  }
+  const set = new Set();
+  (Array.isArray(d.events) ? d.events : []).forEach(e=>{ const k = aiEventKey_(e); if(k) set.add(k); });
+  if(!set.size) Object.keys(schedules).forEach(k=>set.add(k));
+  const dist = k=> k==='HALF' ? 21.1 : k==='FULL' ? 42.2 : (parseFloat(k)||0);
+  const events = [...set].sort((a,b)=>dist(a)-dist(b)).slice(0,10); // 종목 칸은 최대 10개
+  const eventSchedules = {};
+  events.forEach(k=>{ if(schedules[k]) eventSchedules[k] = schedules[k]; });
+  const link = String(d.link ?? '').trim();
+  const at = String(d.applyType ?? '');
+  return {
+    raceName: String(d.raceName ?? '').trim(),
+    raceDate: aiDate_(d.raceDate),
+    time: aiTime_(d.time),
+    place: String(d.place ?? '').trim(),
+    link: /^https?:\/\//i.test(link) ? link : '',
+    applyType: at.includes('추첨') ? '추첨' : at.includes('선착') ? '선착순' : '',
+    events, eventSchedules
+  };
+}
+
 document.getElementById('rfAutoFillBtn').addEventListener('click', async ()=>{
   const input = document.getElementById('rfAutoUrl').value.trim();
   if(!input){ toast('대회명 또는 URL을 입력해주세요'); return; }
@@ -1933,20 +2010,18 @@ document.getElementById('rfAutoFillBtn').addEventListener('click', async ()=>{
   btn.querySelector('.btn-label').textContent = 'AI로 가져오기';
   if(!res.ok){ toast(res.error||'정보를 가져오지 못했어요'); return; }
 
-  const d = res.data || {};
+  const d = normalizeAiResult_(res.data);
   if(d.raceName) document.getElementById('rfName').value = d.raceName;
   if(d.raceDate) document.getElementById('rfDate').value = d.raceDate;
   if(d.time) fillRaceTimeInput_(d.time);
   if(d.place) document.getElementById('rfPlace').value = d.place;
   if(d.applyType) document.getElementById('rfApplyType').value = d.applyType;
-  if(Array.isArray(d.events) && d.events.length){
+  if(d.events.length){
     document.getElementById('rfEventCount').value = d.events.length;
     renderEventSlots(d.events.length, d.events);
   }
   document.getElementById('rfLink').value = isUrl ? input : (d.link || '');
-  if(d.eventSchedules && typeof d.eventSchedules==='object'){
-    rfEventSchedules = d.eventSchedules;
-  }
+  if(Object.keys(d.eventSchedules).length) rfEventSchedules = d.eventSchedules; // AI가 신청현황을 찾았을 때만 교체 (못 찾았으면 기존 입력 유지)
   renderRfApplyStatusEditor_();
   toast('AI가 정보를 채웠어요 - 확인 후 저장해주세요');
 });
@@ -2206,6 +2281,7 @@ async function getThumbUrl_(photoId){
 
 async function openPhotoViewer_(photoId){
   const img = document.getElementById('photoViewImg');
+  if(window.resetPhotoZoom_) window.resetPhotoZoom_();
   img.src = fullPhotoUrls_.get(photoId) || thumbUrls_.get(photoId) || ''; // 원본을 받는 동안 썸네일을 먼저 보여줌
   open_('photoViewOverlay');
   if(!fullPhotoUrls_.has(photoId)){
@@ -2395,7 +2471,126 @@ const raceGallery = createPhotoGallery_({
   }
 });
 
-document.getElementById('photoViewOverlay').addEventListener('click', ()=>close_('photoViewOverlay'));
+/* 사진 확대: 핀치(두 손가락), 더블탭, 마우스 휠, 확대 상태에서 드래그로 이동 */
+const PHOTO_ZOOM_MAX = 6;
+const photoZoom = { s:1, tx:0, ty:0 };
+
+function photoZoomClampPan_(s, tx, ty, imgW, imgH, vw, vh){
+  const maxX = Math.max(0, (imgW*s - vw)/2);
+  const maxY = Math.max(0, (imgH*s - vh)/2);
+  return { tx: Math.min(maxX, Math.max(-maxX, tx)), ty: Math.min(maxY, Math.max(-maxY, ty)) };
+}
+// (px,py)=화면상 기준점, (cx,cy)=화면 중심: 기준점 아래의 그림 부분이 그대로 유지되도록 확대/축소
+function photoZoomAt_(cur, newS, px, py, cx, cy){
+  const s2 = Math.min(PHOTO_ZOOM_MAX, Math.max(1, newS));
+  const k = s2 / cur.s;
+  return { s:s2, tx: (px-cx) - k*((px-cx) - cur.tx), ty: (py-cy) - k*((py-cy) - cur.ty) };
+}
+
+(function setupPhotoZoom_(){
+  const overlay = document.getElementById('photoViewOverlay');
+  const img = document.getElementById('photoViewImg');
+  const hint = document.getElementById('photoViewHint');
+  const pointers = new Map();
+  let pinch = null;       // {dist, s0, mx, my, tx0, ty0}
+  let lastTap = {t:0, x:0, y:0};
+  let moved = false;
+
+  function apply(animate){
+    const vw = overlay.clientWidth, vh = overlay.clientHeight;
+    const c = photoZoomClampPan_(photoZoom.s, photoZoom.tx, photoZoom.ty, img.offsetWidth, img.offsetHeight, vw, vh);
+    photoZoom.tx = c.tx; photoZoom.ty = c.ty;
+    img.style.transition = animate ? 'transform .2s ease' : 'none';
+    img.style.transform = `translate(${photoZoom.tx}px, ${photoZoom.ty}px) scale(${photoZoom.s})`;
+  }
+  window.resetPhotoZoom_ = function(){
+    photoZoom.s = 1; photoZoom.tx = 0; photoZoom.ty = 0;
+    pointers.clear(); pinch = null;
+    img.style.transition = 'none';
+    img.style.transform = '';
+    hint.style.opacity = '1';
+    clearTimeout(window.__photoHintTimer);
+    window.__photoHintTimer = setTimeout(()=>{ hint.style.opacity = '0'; }, 2500);
+  };
+  const center = ()=>({ cx: overlay.clientWidth/2, cy: overlay.clientHeight/2 });
+  const dist = (a,b)=>Math.hypot(a.x-b.x, a.y-b.y);
+
+  img.addEventListener('pointerdown', (e)=>{
+    img.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, {x:e.clientX, y:e.clientY, sx:e.clientX, sy:e.clientY});
+    moved = false;
+    if(pointers.size === 2){
+      const [a,b] = [...pointers.values()];
+      pinch = { dist: dist(a,b), s0: photoZoom.s, mx:(a.x+b.x)/2, my:(a.y+b.y)/2, tx0: photoZoom.tx, ty0: photoZoom.ty };
+    }
+  });
+
+  img.addEventListener('pointermove', (e)=>{
+    const p = pointers.get(e.pointerId);
+    if(!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    if(Math.hypot(e.clientX-p.sx, e.clientY-p.sy) > 8) moved = true;
+    p.x = e.clientX; p.y = e.clientY;
+    if(pointers.size === 2 && pinch){
+      const [a,b] = [...pointers.values()];
+      const { cx, cy } = center();
+      const base = { s: pinch.s0, tx: pinch.tx0, ty: pinch.ty0 };
+      const z = photoZoomAt_(base, pinch.s0 * dist(a,b)/pinch.dist, pinch.mx, pinch.my, cx, cy);
+      // 두 손가락 중심점이 움직인 만큼 같이 이동
+      photoZoom.s = z.s;
+      photoZoom.tx = z.tx + ((a.x+b.x)/2 - pinch.mx);
+      photoZoom.ty = z.ty + ((a.y+b.y)/2 - pinch.my);
+      apply(false);
+    }else if(pointers.size === 1 && photoZoom.s > 1){
+      photoZoom.tx += dx; photoZoom.ty += dy;
+      apply(false);
+    }
+  });
+
+  function endPointer(e){
+    const p = pointers.get(e.pointerId);
+    if(!p) return;
+    pointers.delete(e.pointerId);
+    pinch = null;
+    if(pointers.size === 1){ // 핀치 후 남은 손가락으로 이어서 이동할 수 있게 기준 재설정
+      const rest = [...pointers.values()][0];
+      rest.sx = rest.x; rest.sy = rest.y;
+    }
+    if(e.type === 'pointerup' && !moved && pointers.size === 0){
+      const now = Date.now();
+      if(now - lastTap.t < 300 && Math.hypot(e.clientX-lastTap.x, e.clientY-lastTap.y) < 30){
+        const { cx, cy } = center();
+        const z = photoZoom.s > 1 ? photoZoomAt_(photoZoom, 1, e.clientX, e.clientY, cx, cy)
+                                  : photoZoomAt_(photoZoom, 2.5, e.clientX, e.clientY, cx, cy);
+        photoZoom.s = z.s; photoZoom.tx = z.tx; photoZoom.ty = z.ty;
+        if(photoZoom.s === 1){ photoZoom.tx = 0; photoZoom.ty = 0; }
+        apply(true);
+        lastTap.t = 0;
+      }else{
+        lastTap = {t: now, x: e.clientX, y: e.clientY};
+      }
+    }
+    if(photoZoom.s < 1.02 && pointers.size === 0){ photoZoom.s = 1; photoZoom.tx = 0; photoZoom.ty = 0; apply(true); }
+  }
+  img.addEventListener('pointerup', endPointer);
+  img.addEventListener('pointercancel', endPointer);
+
+  // 마우스 휠 (PC)
+  overlay.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const { cx, cy } = center();
+    const z = photoZoomAt_(photoZoom, photoZoom.s * (e.deltaY < 0 ? 1.2 : 1/1.2), e.clientX, e.clientY, cx, cy);
+    photoZoom.s = z.s; photoZoom.tx = z.tx; photoZoom.ty = z.ty;
+    if(photoZoom.s === 1){ photoZoom.tx = 0; photoZoom.ty = 0; }
+    apply(false);
+  }, {passive:false});
+
+  // 닫기: 배경(사진 바깥)을 누르거나 ✕. 사진 위의 탭은 확대 조작이라 닫지 않음
+  overlay.addEventListener('click', (e)=>{
+    if(e.target === overlay) close_('photoViewOverlay');
+  });
+  document.getElementById('photoViewClose').addEventListener('click', ()=>close_('photoViewOverlay'));
+})();
 
 function openRecordModal(entryId){
   const entry = state.entries.find(e=>e.id===entryId);
