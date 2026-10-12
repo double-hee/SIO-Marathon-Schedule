@@ -356,7 +356,7 @@
       <div id="mineListView">
         <div class="races-filter-bar">
           <select id="mineYearFilter"></select>
-          <input id="mineSearchInput" type="text" placeholder="대회명 검색">
+          <input id="mineSearchInput" type="text" placeholder="대회명, 장소, 참가자 등 검색">
         </div>
         <label class="hide-past-toggle"><input type="checkbox" id="mineHidePast" checked> 지난 대회 숨기기</label>
         <div id="mineListContainer"></div>
@@ -387,7 +387,7 @@
       <div class="section-title">대회 전체 <span class="count" id="racesCount"></span></div>
       <div class="races-filter-bar">
         <select id="racesYearFilter"></select>
-        <input id="racesSearchInput" type="text" placeholder="대회명 검색">
+        <input id="racesSearchInput" type="text" placeholder="대회명, 장소, 참가자 등 검색">
       </div>
       <label class="hide-past-toggle"><input type="checkbox" id="racesHidePast" checked> 지난 대회 숨기기</label>
       <div id="racesListContainer"></div>
@@ -1520,8 +1520,17 @@ function renderMineList(){
     myEntries = myEntries.filter(e=>{ const d = new Date(e.raceDate); return !isNaN(d) && String(d.getFullYear())===mineYearFilter; });
   }
   if(mineSearchQuery){
-    const q = mineSearchQuery.toLowerCase();
-    myEntries = myEntries.filter(e=> (e.raceName||'').toLowerCase().includes(q));
+    // 대회명 + 대회 정보(장소·메모·종목 등) + 같은 대회 참가자 + 내 기록/메모까지 검색
+    myEntries = myEntries.filter(e=>{
+      const race = state.races.find(r=>r.id===e.raceId);
+      const rec = state.records.find(r=>r.entryId===e.id);
+      const hay = [
+        race ? raceSearchText_(race) : (e.raceName||'').toLowerCase(),
+        e.raceName, e.note, eventLabel_(e.event),
+        rec ? `${rec.goal||''} ${rec.result||''} ${rec.memo||''} ${rec.note||''}` : ''
+      ].filter(Boolean).join(' ').toLowerCase();
+      return searchMatch_(hay, mineSearchQuery);
+    });
   }
   if(document.getElementById('mineHidePast').checked){
     myEntries = myEntries.filter(e=>{ const diff = daysUntil_(e.raceDate); return diff===null || diff>=0; });
@@ -1609,6 +1618,218 @@ function renderRaces(){
 
 document.getElementById('racesHidePast').addEventListener('change', renderRacesList);
 
+// ===== 한/영 전환 검색 (두벌식 자판 기준) =====
+// "dlwndgml" 처럼 영어 자판 상태로 친 한글, "이중희"를 한글 상태로 친 영어("sio" → "ㄴㅑㅐ")도 찾아줌
+const IME_CHO_ = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+const IME_JUNG_ = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
+const IME_JONG_ = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const IME_KEY2JAMO_ = {
+  r:'ㄱ',R:'ㄲ',s:'ㄴ',e:'ㄷ',E:'ㄸ',f:'ㄹ',a:'ㅁ',q:'ㅂ',Q:'ㅃ',t:'ㅅ',T:'ㅆ',d:'ㅇ',w:'ㅈ',W:'ㅉ',c:'ㅊ',z:'ㅋ',x:'ㅌ',v:'ㅍ',g:'ㅎ',
+  k:'ㅏ',o:'ㅐ',i:'ㅑ',O:'ㅒ',j:'ㅓ',p:'ㅔ',u:'ㅕ',P:'ㅖ',h:'ㅗ',y:'ㅛ',n:'ㅜ',b:'ㅠ',m:'ㅡ',l:'ㅣ'
+};
+const IME_VOWEL_COMBO_ = {'ㅗㅏ':'ㅘ','ㅗㅐ':'ㅙ','ㅗㅣ':'ㅚ','ㅜㅓ':'ㅝ','ㅜㅔ':'ㅞ','ㅜㅣ':'ㅟ','ㅡㅣ':'ㅢ'};
+const IME_JONG_COMBO_ = {'ㄱㅅ':'ㄳ','ㄴㅈ':'ㄵ','ㄴㅎ':'ㄶ','ㄹㄱ':'ㄺ','ㄹㅁ':'ㄻ','ㄹㅂ':'ㄼ','ㄹㅅ':'ㄽ','ㄹㅌ':'ㄾ','ㄹㅍ':'ㄿ','ㄹㅎ':'ㅀ','ㅂㅅ':'ㅄ'};
+const IME_JAMO2KEY_ = {};
+Object.keys(IME_KEY2JAMO_).forEach(k=>{ IME_JAMO2KEY_[IME_KEY2JAMO_[k]] = k; });
+Object.keys(IME_VOWEL_COMBO_).forEach(k=>{ IME_JAMO2KEY_[IME_VOWEL_COMBO_[k]] = IME_JAMO2KEY_[k[0]] + IME_JAMO2KEY_[k[1]]; });
+Object.keys(IME_JONG_COMBO_).forEach(k=>{ IME_JAMO2KEY_[IME_JONG_COMBO_[k]] = IME_JAMO2KEY_[k[0]] + IME_JAMO2KEY_[k[1]]; });
+const IME_JONG_SPLIT_ = {};
+Object.keys(IME_JONG_COMBO_).forEach(k=>{ IME_JONG_SPLIT_[IME_JONG_COMBO_[k]] = [k[0], k[1]]; });
+
+function imeEngToKor_(str){
+  let out = '', cho = -1, jung = -1, jong = 0;
+  const flush = ()=>{
+    if(cho>=0 && jung>=0) out += String.fromCharCode(0xAC00 + (cho*21 + jung)*28 + jong);
+    else if(cho>=0) out += IME_CHO_[cho];
+    else if(jung>=0) out += IME_JUNG_[jung];
+    cho = -1; jung = -1; jong = 0;
+  };
+  for(const ch of String(str||'')){
+    const j = IME_KEY2JAMO_[ch];
+    if(!j){ flush(); out += ch; continue; }
+    const isVowel = IME_JUNG_.includes(j);
+    if(!isVowel){
+      const ci = IME_CHO_.indexOf(j);
+      if(cho<0 && jung<0){ cho = ci; }
+      else if(cho>=0 && jung<0){ flush(); cho = ci; }
+      else if(cho>=0 && jung>=0 && jong===0){
+        const ji = IME_JONG_.indexOf(j);
+        if(ji>0) jong = ji; else { flush(); cho = ci; }
+      } else if(cho>=0 && jung>=0 && jong>0){
+        const combo = IME_JONG_COMBO_[IME_JONG_[jong]+j];
+        if(combo) jong = IME_JONG_.indexOf(combo);
+        else { flush(); cho = ci; }
+      } else { flush(); cho = ci; }
+    } else {
+      const vi = IME_JUNG_.indexOf(j);
+      if(cho<0 && jung<0){ jung = vi; flush(); }
+      else if(cho>=0 && jung<0){ jung = vi; }
+      else if(cho>=0 && jung>=0 && jong===0){
+        const combo = IME_VOWEL_COMBO_[IME_JUNG_[jung]+j];
+        if(combo) jung = IME_JUNG_.indexOf(combo);
+        else { flush(); jung = vi; flush(); }
+      } else if(cho>=0 && jung>=0 && jong>0){
+        const jc = IME_JONG_[jong];
+        let carry;
+        if(IME_JONG_SPLIT_[jc]){ carry = IME_JONG_SPLIT_[jc][1]; jong = IME_JONG_.indexOf(IME_JONG_SPLIT_[jc][0]); }
+        else { carry = jc; jong = 0; }
+        flush();
+        cho = IME_CHO_.indexOf(carry); jung = vi;
+      } else { flush(); jung = vi; flush(); }
+    }
+  }
+  flush();
+  return out;
+}
+
+function imeKorToEng_(str){
+  let out = '';
+  for(const ch of String(str||'')){
+    const code = ch.charCodeAt(0);
+    if(code>=0xAC00 && code<=0xD7A3){
+      const n = code - 0xAC00;
+      const cho = Math.floor(n/588), jung = Math.floor((n%588)/28), jong = n%28;
+      out += IME_JAMO2KEY_[IME_CHO_[cho]] + IME_JAMO2KEY_[IME_JUNG_[jung]] + (jong ? IME_JAMO2KEY_[IME_JONG_[jong]] : '');
+    } else if(IME_JAMO2KEY_[ch]){
+      out += IME_JAMO2KEY_[ch];
+    } else out += ch;
+  }
+  return out;
+}
+
+// ===== 한글 ↔ 로마자 검색 (서울 ↔ seoul) =====
+// 국어의 로마자 표기법(RR) 기준. 소리 변화(연음·비음화 등)를 적용한 표기와 적용 안 한 표기를 모두 만들어 비교함
+const ROM_CHO_ = ['g','kk','n','d','tt','r','m','b','pp','s','ss','','j','jj','ch','k','t','p','h'];
+const ROM_JUNG_ = ['a','ae','ya','yae','eo','e','yeo','ye','o','wa','wae','oe','yo','u','wo','we','wi','yu','eu','ui','i'];
+// 받침 → 대표음(소리 변화 계산용)
+const ROM_JONG_REP_ = {'ㄱ':'ㄱ','ㄲ':'ㄱ','ㄳ':'ㄱ','ㄴ':'ㄴ','ㄵ':'ㄴ','ㄶ':'ㄴ','ㄷ':'ㄷ','ㄹ':'ㄹ','ㄺ':'ㄱ','ㄻ':'ㅁ','ㄼ':'ㄹ','ㄽ':'ㄹ','ㄾ':'ㄹ','ㄿ':'ㅂ','ㅀ':'ㄹ','ㅁ':'ㅁ','ㅂ':'ㅂ','ㅄ':'ㅂ','ㅅ':'ㄷ','ㅆ':'ㄷ','ㅇ':'ㅇ','ㅈ':'ㄷ','ㅊ':'ㄷ','ㅋ':'ㄱ','ㅌ':'ㄷ','ㅍ':'ㅂ','ㅎ':'ㄷ'};
+// 받침을 영문으로 쓸 때: [RR 표기, 소리 나는 대로 글자 표기]
+const ROM_JONG_STR_ = {'ㄱ':['k','g'],'ㄴ':['n','n'],'ㄷ':['t','d'],'ㄹ':['l','l'],'ㅁ':['m','m'],'ㅂ':['p','b'],'ㅇ':['ng','ng']};
+// 자주 쓰는 단어는 영어 표기로도 찾기
+const ROM_DICT_ = [['마라톤','marathon'],['하프','half'],['트레일','trail'],['울트라','ultra'],['러닝','running'],['크루','crew'],['풀코스','full'],['런','run']];
+const ROM_DICT_RE_ = new RegExp('('+ROM_DICT_.map(d=>d[0]).join('|')+')','g');
+const ROM_DICT_MAP_ = {}; ROM_DICT_.forEach(d=>{ ROM_DICT_MAP_[d[0]] = d[1]; });
+
+function romSyllables_(text){
+  // 연속된 한글 음절 묶음 단위로 {c,v,f} 배열을 만들고, 한글이 아닌 글자는 그대로 둠
+  const items = [];
+  for(const ch of String(text||'')){
+    const code = ch.charCodeAt(0);
+    if(code>=0xAC00 && code<=0xD7A3){
+      const n = code-0xAC00;
+      items.push({h:true, c:IME_CHO_[Math.floor(n/588)], v:Math.floor((n%588)/28), f:IME_JONG_[n%28]});
+    } else items.push({h:false, ch});
+  }
+  return items;
+}
+function romRender_(items, rules, letterFinal){
+  const it = items.map(x=>Object.assign({}, x));
+  if(rules){
+    for(let i=0;i<it.length-1;i++){
+      const a = it[i], b = it[i+1];
+      if(!a.h || !b.h || !a.f) continue;
+      if(b.c==='ㅇ' && a.f!=='ㅇ'){
+        // 연음: 받침이 다음 음절 첫소리로 넘어감
+        if(a.f==='ㅎ'){ a.f=''; continue; }
+        const sp = IME_JONG_SPLIT_[a.f];
+        if(sp){ a.f = sp[0]; b.c = sp[1]; } else { b.c = a.f; a.f = ''; }
+        continue;
+      }
+      let rep = ROM_JONG_REP_[a.f];
+      if((rep==='ㄱ'||rep==='ㄷ'||rep==='ㅂ') && b.c==='ㄹ'){ b.c='ㄴ'; }
+      if((rep==='ㄱ'||rep==='ㄷ'||rep==='ㅂ') && (b.c==='ㄴ'||b.c==='ㅁ')){ rep = rep==='ㄱ'?'ㅇ':rep==='ㄷ'?'ㄴ':'ㅁ'; }
+      else if((rep==='ㅁ'||rep==='ㅇ') && b.c==='ㄹ'){ b.c='ㄴ'; }
+      else if(rep==='ㄴ' && b.c==='ㄹ'){ rep='ㄹ'; }
+      else if(rep==='ㄹ' && b.c==='ㄴ'){ b.c='ㄹ'; }
+      a.f = rep;
+    }
+  }
+  let out = '';
+  for(const x of it){
+    if(!x.h){ out += x.ch.toLowerCase(); continue; }
+    out += ROM_CHO_[IME_CHO_.indexOf(x.c)] + ROM_JUNG_[x.v];
+    if(x.f){
+      const rep = ROM_JONG_REP_[x.f];
+      out += ROM_JONG_STR_[rep][letterFinal?1:0];
+    }
+  }
+  return out;
+}
+// 한글이 들어 있는 글을 로마자 후보 여러 개로 바꿈 (소리 변화 유무 × 받침 표기 × 영어 단어 사전)
+function romVariants_(text){
+  const outs = new Set();
+  const segs = [String(text||'')];
+  const useDict = ROM_DICT_RE_.test(segs[0]); ROM_DICT_RE_.lastIndex = 0;
+  const build = (dict, rules, lf)=>{
+    if(!dict) return romRender_(romSyllables_(text), rules, lf);
+    return String(text).split(ROM_DICT_RE_).map(p=> ROM_DICT_MAP_[p] ? ROM_DICT_MAP_[p] : romRender_(romSyllables_(p), rules, lf)).join('');
+  };
+  [false,true].forEach(rules=>[false,true].forEach(lf=>{
+    outs.add(build(false, rules, lf));
+    if(useDict) outs.add(build(true, rules, lf));
+  }));
+  return [...outs];
+}
+const romNorm_ = s=>String(s||'').toLowerCase().replace(/r/g,'l');
+const romHayCache_ = new Map();
+function romHay_(h){
+  let v = romHayCache_.get(h);
+  if(v===undefined){
+    if(romHayCache_.size>3000) romHayCache_.clear();
+    const hasKo = /[가-힣]/.test(h);
+    const list = hasKo ? romVariants_(h).map(romNorm_) : [romNorm_(h)];
+    v = list.join('\n') + '\n' + list.map(x=>x.replace(/\s+/g,'')).join('\n');
+    romHayCache_.set(h, v);
+  }
+  return v;
+}
+function romTermMatch_(h, term){
+  const hasKo = /[가-힣]/.test(term), hasEn = /[a-zA-Z]/.test(term);
+  if(!hasKo && !hasEn) return false;
+  // 영어/한글 어느 쪽이든 로마자 기준으로 맞춰 비교
+  const hr = romHay_(h);
+  const cands = hasKo ? romVariants_(term).map(romNorm_) : [romNorm_(term)];
+  return cands.some(c=> c && hr.includes(c.replace(/\s+/g,'')));
+}
+
+// 검색어 한 단어가 텍스트에 들어 있는지: 입력 그대로 / 한→영 / 영→한 변환 중 하나라도 맞으면 통과
+function imeTermMatch_(hay, term){
+  if(hay.includes(term.toLowerCase())) return true;
+  if(/[a-zA-Z]/.test(term)){
+    const k = imeEngToKor_(term);
+    if(k && hay.includes(k.toLowerCase())) return true;
+  }
+  if(/[ㄱ-ㆎ가-힣]/.test(term)){
+    const e = imeKorToEng_(term).toLowerCase();
+    if(e && hay.includes(e)) return true;
+  }
+  return romTermMatch_(hay, term);
+}
+// 띄어쓰기로 나눈 모든 단어가 (한/영 전환 포함) 들어 있어야 통과
+function searchMatch_(hay, query){
+  const terms = String(query||'').split(/\s+/).filter(Boolean);
+  if(!terms.length) return true;
+  const h = String(hay||'').toLowerCase();
+  return terms.every(t=>imeTermMatch_(h, t));
+}
+
+// 대회 전체 검색: 대회명뿐 아니라 장소, 기타 대회 정보(메모), 신청 방식, 종목, 날짜, 참가자 이름까지 함께 찾음
+// 검색어를 띄어쓰기로 나누면 모든 단어가 (어디에서든) 들어 있는 대회만 보여줌 (예: "춘천 홍길동")
+function raceSearchText_(r){
+  const raceEntries = state.entries.filter(e=>e.raceId===r.id);
+  const events = getEventOptionsForRace_(r).map(ev=>eventLabel_(ev));
+  const parts = [
+    r.raceName, r.place, r.memo, r.applyType, r.time,
+    fmtDate(r.raceDate), String(r.raceDate||''),
+    ...events,
+    ...raceEntries.map(e=>`${e.name} ${e.note||''} ${eventLabel_(e.event)}`)
+  ];
+  return parts.filter(Boolean).join(' ').toLowerCase();
+}
+function matchesRaceSearch_(r, query){
+  return searchMatch_(raceSearchText_(r), query);
+}
+
 function renderRacesList(){
   let races = state.races.slice();
 
@@ -1616,8 +1837,7 @@ function renderRacesList(){
     races = races.filter(r=>{ const d = new Date(r.raceDate); return !isNaN(d) && String(d.getFullYear())===racesYearFilter; });
   }
   if(racesSearchQuery){
-    const q = racesSearchQuery.toLowerCase();
-    races = races.filter(r=> (r.raceName||'').toLowerCase().includes(q));
+    races = races.filter(r=>matchesRaceSearch_(r, racesSearchQuery));
   }
   if(document.getElementById('racesHidePast').checked){
     races = races.filter(r=>{ const diff = daysUntil_(r.raceDate); return diff===null || diff>=0; });
