@@ -113,11 +113,12 @@
   .as-note{width:100%; box-sizing:border-box; padding:7px 9px; border-radius:7px; border:1.5px solid var(--mist); font-size:12.5px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
   .apply-status-actions{display:flex; gap:8px; margin-top:10px;}
   .apply-status-actions button{flex:1; padding:10px; font-size:13px; border-radius:9px;}
-  .participant-edit-row{display:flex; align-items:center; gap:9px; padding:8px 0; border-bottom:1px solid var(--mist);}
+  .participant-edit-row{display:flex; flex-wrap:wrap; align-items:center; gap:7px 9px; padding:8px 0; border-bottom:1px solid var(--mist);}
+  .participant-edit-row .pe-note, .participant-new-row .pn-note{flex:1 1 100%; min-width:0; padding:7px 10px; border-radius:8px; border:1.5px solid var(--mist); font-size:12.5px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
   .participant-edit-row:last-child{border-bottom:none;}
   .participant-edit-row .pe-name{flex:1; min-width:0; font-size:14px; font-weight:600; word-break:break-word;}
   .participant-edit-row .pe-event{flex-shrink:0; width:100px; padding:6px 5px; border-radius:7px; border:1.5px solid var(--mist); font-size:12.5px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
-  .participant-new-row{display:flex; align-items:center; gap:7px; padding:7px 0;}
+  .participant-new-row{display:flex; flex-wrap:wrap; align-items:center; gap:7px; padding:7px 0;}
   .participant-new-row .pn-name{flex:1; min-width:0; padding:8px 10px; border-radius:8px; border:1.5px solid var(--mist); font-size:13.5px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
   .participant-new-row .pn-event{flex-shrink:0; width:100px; padding:8px 5px; border-radius:8px; border:1.5px solid var(--mist); font-size:12.5px; font-family:'Pretendard',sans-serif; background:#fff; color:var(--ink);}
   .participant-new-row .pn-remove{flex-shrink:0; width:32px; height:32px; border-radius:8px; border:1.5px solid var(--mist); background:#fff; color:#8a8680; font-size:14px; cursor:pointer;}
@@ -445,8 +446,8 @@
       <select id="entryEvent"><option value="">먼저 대회를 선택하세요</option></select>
     </div>
     <div class="field">
-      <label>동반 참가 인원 (선택)</label>
-      <textarea id="entryNote" placeholder="예: 배우자, 자녀 2명과 함께 참가"></textarea>
+      <label>동반 참가 인원 및 대리 참가 정보 입력</label>
+      <textarea id="entryNote" placeholder="예: 배우자, 자녀 2명과 함께 참가 / 홍길동 대리 참가"></textarea>
     </div>
     <div class="actions">
       <button class="btn-ghost" data-close="entryOverlay">취소</button>
@@ -516,7 +517,7 @@
   <div id="photoViewHint">좌우로 밀어서 넘기기 · 두 번 탭하거나 벌려서 확대</div>
 </div>
 
-<!-- 참가 수정 모달 (종목 / 동반 참가 인원) -->
+<!-- 참가 수정 모달 (종목 / 동반 참가 인원 및 대리 참가 정보) -->
 <div class="overlay" id="entryEditOverlay">
   <div class="modal modal-wrap">
     <button class="modal-close" data-close="entryEditOverlay">✕</button>
@@ -527,8 +528,8 @@
       <select id="entryEditEvent"></select>
     </div>
     <div class="field">
-      <label>동반 참가 인원 (선택)</label>
-      <textarea id="entryEditNote" placeholder="예: 배우자, 자녀 2명과 함께 참가"></textarea>
+      <label>동반 참가 인원 및 대리 참가 정보 입력</label>
+      <textarea id="entryEditNote" placeholder="예: 배우자, 자녀 2명과 함께 참가 / 홍길동 대리 참가"></textarea>
     </div>
     <div class="actions">
       <button class="btn-ghost" data-close="entryEditOverlay">취소</button>
@@ -3299,7 +3300,7 @@ function renderParticipants(raceId, filterElId, listElId, deleteBtnId){
   updateRaceDeleteButton(parts.length, deleteBtnId);
 }
 
-// 관리자용: 참가자 일괄 편집 (추가/삭제/종목변경)
+// 관리자용: 참가자 일괄 편집 (추가/삭제/종목변경/동반·대참 메모 수정)
 
 function addParticipantRow_(eventOptions){
   const container = document.getElementById('participantEditNew');
@@ -3309,6 +3310,7 @@ function addParticipantRow_(eventOptions){
     <input type="text" class="pn-name" list="crewMemberList" placeholder="이름">
     <select class="pn-event"><option value="">종목 선택</option>${eventOptions.map(ev=>`<option value="${escapeHtml(ev)}">${escapeHtml(eventLabel_(ev))}</option>`).join('')}</select>
     <button class="pn-remove" type="button">✕</button>
+    <input type="text" class="pn-note" placeholder="동반 참가 인원 및 대리 참가 정보 (선택)">
   `;
   row.querySelector('.pn-remove').addEventListener('click', ()=>row.remove());
   const nameInput = row.querySelector('.pn-name');
@@ -3334,10 +3336,11 @@ function renderParticipantEditPanel_(raceId){
   const existingEl = document.getElementById('participantEditExisting');
   existingEl.innerHTML = parts.length ? parts.map(p=>{
     const options = eventOptions.includes(p.event) ? eventOptions : [p.event, ...eventOptions].filter(Boolean);
-    return `<div class="participant-edit-row" data-entry-id="${p.id}" data-original-event="${escapeHtml(p.event||'')}">
+    return `<div class="participant-edit-row" data-entry-id="${p.id}" data-original-event="${escapeHtml(p.event||'')}" data-original-note="${escapeHtml(p.note||'')}">
       <span class="pe-name">${escapeHtml(p.name)}</span>
       <select class="pe-event">${options.map(ev=>`<option value="${escapeHtml(ev)}" ${ev===p.event?'selected':''}>${escapeHtml(eventLabel_(ev))}</option>`).join('')}</select>
       <button class="pn-remove pe-remove" type="button">✕</button>
+      <input type="text" class="pe-note" value="${escapeHtml(p.note||'')}" placeholder="동반 참가 인원 및 대리 참가 정보 (선택)">
     </div>`;
   }).join('') : `<div class="apply-status-note">참가자가 없어요</div>`;
 
@@ -3389,8 +3392,10 @@ document.getElementById('saveParticipantsEditBtn').addEventListener('click', asy
   rows.forEach(row=>{
     const newEvent = row.querySelector('.pe-event').value;
     const originalEvent = row.dataset.originalEvent || '';
-    if(newEvent !== originalEvent){
-      updates.push({entryId: row.dataset.entryId, event: newEvent});
+    const newNote = row.querySelector('.pe-note').value.trim();
+    const originalNote = (row.dataset.originalNote || '').trim();
+    if(newEvent !== originalEvent || newNote !== originalNote){
+      updates.push({entryId: row.dataset.entryId, event: newEvent, note: newNote});
     }
   });
 
@@ -3398,7 +3403,8 @@ document.getElementById('saveParticipantsEditBtn').addEventListener('click', asy
   document.querySelectorAll('#participantEditNew .participant-new-row').forEach(row=>{
     const name = row.querySelector('.pn-name').value.trim();
     const event = row.querySelector('.pn-event').value;
-    if(name && event) additions.push({name, event});
+    const note = row.querySelector('.pn-note').value.trim();
+    if(name && event) additions.push({name, event, note});
   });
 
   if(!deletions.length && !updates.length && !additions.length){
