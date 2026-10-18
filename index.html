@@ -207,6 +207,9 @@
   #photoViewPrev{left:10px;} #photoViewNext{right:10px;}
   @media (hover:hover) and (pointer:fine){ #photoViewOverlay.has-multi .photo-nav{display:flex;} }
   #photoViewHint{position:absolute; left:0; right:0; bottom:calc(18px + env(safe-area-inset-bottom)); text-align:center; color:rgba(255,255,255,0.6); font-size:12px; pointer-events:none; transition:opacity .4s;}
+  #photoViewDownload{position:absolute; top:calc(14px + env(safe-area-inset-top)); right:64px; width:40px; height:40px; display:flex; align-items:center; justify-content:center; background:none; border:none; color:#fff; cursor:pointer; border-radius:50%;}
+  #photoViewDownload:disabled{opacity:.45; cursor:default;}
+  #photoViewDownload svg{width:24px; height:24px;}
   #photoViewClose{position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; background:none; border:none; color:#fff; font-size:28px; cursor:pointer;}
   .time-input-row{display:flex; align-items:center; gap:6px;}
   .pace-display{margin-left:auto; flex-shrink:0; font-size:12px; font-weight:700; color:var(--clay); white-space:nowrap; font-family:'Roboto Mono',monospace;}
@@ -510,6 +513,7 @@
 <!-- 사진 크게 보기 -->
 <div class="overlay" id="photoViewOverlay">
   <button id="photoViewClose" type="button" aria-label="닫기">✕</button>
+  <button id="photoViewDownload" type="button" aria-label="사진 저장"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>
   <div id="photoViewCounter"></div>
   <button id="photoViewPrev" class="photo-nav" type="button" aria-label="이전 사진">‹</button>
   <button id="photoViewNext" class="photo-nav" type="button" aria-label="다음 사진">›</button>
@@ -2592,6 +2596,65 @@ async function showViewerPhoto_(photoId){
     img.src = fullPhotoUrls_.get(photoId);
   }
 }
+
+// 사진 저장: 폰에서는 공유 시트(→ "이미지 저장"으로 앨범에 저장), PC에서는 파일로 바로 다운로드
+async function getFullPhotoBlob_(photoId){
+  if(fullPhotoUrls_.has(photoId)){
+    try{ return await (await fetch(fullPhotoUrls_.get(photoId))).blob(); }catch(e){}
+  }
+  let blob = await PhotoCache.getFull(photoId);
+  if(!blob){
+    const res = await apiPostBig_('getPhoto', {photoId, name: state.user, size:'full'});
+    if(!res.ok) throw new Error(res.error || '사진을 불러오지 못했어요');
+    blob = b64ToBlob_(res.data, 'image/jpeg');
+    PhotoCache.putFull(photoId, blob);
+  }
+  if(!fullPhotoUrls_.has(photoId)) fullPhotoUrls_.set(photoId, URL.createObjectURL(blob));
+  return blob;
+}
+function photoFileName_(blob){
+  let base = 'SIO';
+  const raceOpen = document.getElementById('raceOverlay') && document.getElementById('raceOverlay').classList.contains('show');
+  const ctx = (raceOpen ? state.activeRace : null) || state.activeEntry || state.activeRace;
+  if(ctx){
+    const name = String(ctx.raceName || '').replace(/[\\\/:*?"<>|\r\n]+/g, ' ').trim().replace(/\s+/g, '_');
+    const d = new Date(ctx.raceDate);
+    const ymd = isNaN(d) ? '' : `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    base = [ymd, name].filter(Boolean).join('_') || 'SIO';
+  }
+  const type = (blob && blob.type) || 'image/jpeg';
+  const ext = type.includes('png') ? 'png' : type.includes('webp') ? 'webp' : 'jpg';
+  const n = photoViewer.ids.length > 1 ? `_${photoViewer.i + 1}` : '';
+  return `${base}${n}.${ext}`;
+}
+let photoDownloading_ = false;
+async function downloadViewerPhoto_(){
+  if(photoDownloading_) return;
+  const photoId = photoViewer.ids[photoViewer.i];
+  if(!photoId) return;
+  const btn = document.getElementById('photoViewDownload');
+  photoDownloading_ = true; btn.disabled = true;
+  try{
+    const blob = await getFullPhotoBlob_(photoId);
+    const file = new File([blob], photoFileName_(blob), {type: blob.type || 'image/jpeg'});
+    const isTouch = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+    if(isTouch && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file]}); return; }
+      catch(e){ if(e && e.name === 'AbortError') return; /* 공유 실패하면 아래 일반 다운로드로 */ }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    toast('사진을 저장했어요');
+  }catch(e){
+    toast((e && e.message) || '사진을 저장하지 못했어요');
+  }finally{
+    photoDownloading_ = false; btn.disabled = false;
+  }
+}
+document.getElementById('photoViewDownload').addEventListener('click', (e)=>{ e.stopPropagation(); downloadViewerPhoto_(); });
 
 async function openPhotoViewer_(photoId, list){
   photoViewer.ids = (list && list.length) ? list.slice() : [photoId];
