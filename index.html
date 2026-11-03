@@ -3803,8 +3803,10 @@ function participantRowHtml_(p){
   if(isOwner) line2.push(`<button class="p-btn p-btn-danger" type="button" data-act="cancel" data-id="${p.id}">참가 취소</button>`);
   if(canClaim_(p)) line2.push(`<button class="p-btn p-btn-primary" type="button" data-act="claim" data-id="${p.id}">양도 받기</button>`);
   if(p.proxy && p.proxy===me && !isOwner) line2.push(`<button class="p-btn p-btn-info" type="button" data-act="release" data-id="${p.id}">대참 취소</button>`);
-  const memoRow = (canSolo && p.solo)
-    ? `<div class="solo-memo"><input type="text" maxlength="60" data-act="solo-note" data-id="${p.id}" value="${escapeHtml(p.note||'').replace(/"/g,'&quot;')}" placeholder="누구와 가나요? (선택) 예: 친구 2명"><button class="p-btn" type="button" data-act="solo-note-save" data-id="${p.id}">저장</button></div>` : '';
+  // 메모칸: 본인은 개별 체크와 상관없이 항상 입력 가능(개별·가족 동반 등), 관리자는 개별 체크된 줄에서 바로 수정 (그 외는 ✏️ 편집)
+  const memoPh = p.solo ? '누구와 가나요? (선택) 예: 친구 2명' : '메모 (선택) 예: 가족과 함께, 배우자 동반';
+  const memoRow = (isOwner || (canSolo && p.solo))
+    ? `<div class="solo-memo"><input type="text" maxlength="60" data-act="solo-note" data-id="${p.id}" value="${escapeHtml(p.note||'').replace(/"/g,'&quot;')}" placeholder="${memoPh}"><button class="p-btn" type="button" data-act="solo-note-save" data-id="${p.id}">저장</button></div>` : '';
   return `<div class="participant-row"><span class="pn">${escapeHtml(p.name)}${soloTag}${tagsNoSolo}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(eventLabel_(p.event))}</span>${line2.length?`<div class="p-line2">${line2.join('')}</div>`:''}${memoRow}</div>`;
 }
 (function(){
