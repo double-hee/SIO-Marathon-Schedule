@@ -52,13 +52,18 @@
   /* ---------- Shell ---------- */
   #shell{display:none; flex-direction:column; min-height:100vh;}
   header.top{background:var(--navy); color:#fff; padding:16px 18px 14px; display:flex; align-items:center; gap:12px;}
-  header.top .who{flex:1; min-width:0;}
-  header.top .who .crew{font-size:11px; opacity:0.6; letter-spacing:0.08em; text-transform:uppercase;}
-  header.top .who .name{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px;}
+  header.top .who{flex:1 1 70px; min-width:70px;}
+  header.top .who .crew{font-size:11px; opacity:0.6; letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  header.top .who .name{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   header.top button.logout{background:none; border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;}
   header.top{flex-wrap:wrap; row-gap:8px;}
   .admin-add-btn{background:var(--lane); color:var(--navy); border:none; border-radius:9px; padding:9px 13px; font-size:13px; font-weight:800; cursor:pointer; white-space:nowrap; box-shadow:0 3px 10px rgba(242,183,5,0.4); animation:admin-btn-pulse 2.2s ease-in-out infinite;}
   @keyframes admin-btn-pulse{0%,100%{box-shadow:0 3px 10px rgba(242,183,5,0.4);} 50%{box-shadow:0 3px 16px rgba(242,183,5,0.7);}}
+  @media (max-width:430px){ /* 관리자는 버튼이 3개라 좁은 화면에서 이름이 세로로 꺾이지 않게 줄임 */
+    header.top{padding:14px 14px 12px; gap:7px;}
+    header.top .admin-add-btn, header.top .master-btn{padding:8px 9px; font-size:12px;}
+    header.top button.logout{padding:6px 8px;}
+  }
   .master-btn{background:rgba(255,255,255,0.14); color:#fff; border:1px solid rgba(255,255,255,0.35); border-radius:9px; padding:9px 12px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap;}
 
   main{flex:1; padding:16px 16px 90px; overflow-y:auto;}
@@ -176,6 +181,39 @@
   .event-slot-dropdown button{display:block; width:100%; box-sizing:border-box; text-align:left; padding:10px 14px; border:none; border-top:1px solid var(--mist); background:#fff; font-size:14.5px; color:var(--ink); cursor:pointer;}
   .event-slot-dropdown button:first-child{border-top:none;}
   .event-slot-dropdown button:active{background:var(--paper);}
+
+  /* 회원 관리 */
+  .mm-add{display:flex; gap:8px; margin-bottom:10px;}
+  .mm-add input{flex:1; min-width:0; padding:11px 12px; border-radius:9px; border:1.5px solid var(--mist); font-size:15px; font-family:'Pretendard',sans-serif; background:#fff;}
+  .mm-add input:focus, .mm-search:focus{outline:none; border-color:var(--clay);}
+  .mm-add button{flex:0 0 auto; padding:0 16px; border:none; border-radius:9px; background:var(--clay); color:#fff; font-size:14px; font-weight:700; cursor:pointer;}
+  .mm-add button:disabled{opacity:.5;}
+  .mm-search{width:100%; padding:10px 12px; border-radius:9px; border:1.5px solid var(--mist); font-size:14.5px; font-family:'Pretendard',sans-serif; background:#fff; margin-bottom:8px;}
+  .mm-filters{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+  .mm-filters button{border:1.5px solid var(--mist); background:#fff; color:#6b6660; border-radius:999px; padding:5px 11px; font-size:12.5px; font-weight:600; cursor:pointer;}
+  .mm-filters button.on{background:var(--navy); border-color:var(--navy); color:#fff;}
+  .mm-row{border-bottom:1px solid var(--mist);}
+  .mm-head{display:flex; align-items:center; gap:8px;}
+  .mm-main{flex:1; min-width:0; padding:11px 0; cursor:pointer; display:flex; flex-direction:column; gap:2px;}
+  .mm-name{font-size:15px; font-weight:700; color:var(--ink); word-break:break-all;}
+  .mm-meta{font-size:11.5px; color:#8a8680;}
+  .mm-badge{display:inline-block; font-size:10.5px; font-weight:700; line-height:1.55; padding:0 7px; border-radius:999px; margin-left:5px; vertical-align:1px; white-space:nowrap;}
+  .mm-badge.master{background:#FFF1DA; color:#B86A00;}
+  .mm-badge.admin{background:#FBE5E1; color:var(--clay);}
+  .mm-badge.off{background:#E4E2DC; color:#6b6660;}
+  .mm-badge.ghost{background:#EEE8F7; color:#5B3F99;}
+  .mm-admin{display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:#6b6660; flex-shrink:0; cursor:pointer;}
+  .mm-admin input{width:18px; height:18px; accent-color:var(--clay); margin:0;}
+  .mm-caret{font-size:12px; color:#a39d94; flex-shrink:0; width:18px; text-align:center;}
+  .mm-actions{display:flex; flex-wrap:wrap; gap:6px; padding:0 0 12px;}
+  .mm-actions button{border:1.5px solid var(--mist); background:#fff; color:var(--ink); border-radius:8px; padding:7px 11px; font-size:12.5px; font-weight:600; cursor:pointer;}
+  .mm-actions button.danger{border-color:var(--clay); color:var(--clay);}
+  .mm-actions button:disabled{opacity:.4; cursor:not-allowed;}
+  .mm-hint{width:100%; font-size:11.5px; color:#8a8680; line-height:1.5;}
+  .mm-note{font-size:11.5px; color:#8a8680; line-height:1.6; margin-top:12px;}
+  .ma-warn{background:#FFF6E5; border:1.5px solid #F2D9A4; color:#7A5300; border-radius:9px; padding:10px 12px; font-size:12.5px; line-height:1.6; margin-bottom:12px;}
+  .ma-danger{background:#FBE5E1; border:1.5px solid #EFB9B0; color:#8E2A1B;}
+  .btn-solid-danger{background:#A2331F !important; color:#fff !important;}
   .admin-picker-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--mist); font-size:14.5px;}
   .admin-picker-row input{width:17px; height:17px; accent-color:var(--clay); flex-shrink:0;}
   .modal .sub{font-size:12.5px; color:#8a8680; margin-bottom:16px;}
@@ -286,6 +324,10 @@
   .tag-solo{background:#E8EEFB; color:#2F4FA8;}
   .tag-open{background:#FFF1DA; color:#B86A00;}
   .tag-proxy{background:#E3F4EA; color:#1F7A45;}
+  .solo-memo{flex-basis:100%; display:flex; gap:6px; margin-top:6px;}
+  .solo-memo input{flex:1; min-width:0; padding:8px 10px; border-radius:8px; border:1.5px solid #C9D4F0; background:#F6F8FE; font-size:13.5px; font-family:'Pretendard',sans-serif; color:var(--ink);}
+  .solo-memo input:focus{outline:none; border-color:#2F4FA8;}
+  .solo-memo .p-btn{border:1.5px solid var(--mist); color:var(--ink); background:#fff;}
   .solo-check{display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; color:#2F4FA8; cursor:pointer; user-select:none;}
   .solo-check input{width:17px; height:17px; accent-color:#2F4FA8; margin:0;}
   .p-btn{border-radius:8px; cursor:pointer; white-space:nowrap; font-family:'Pretendard',sans-serif; font-size:12px; font-weight:600; padding:6px 11px; background:#fff;}
@@ -300,7 +342,7 @@
   .field label.check-line input{width:19px; height:19px; accent-color:#2F4FA8; margin:0;}
   .field .field-hint{font-size:12px; color:#8a8680; margin-top:5px; line-height:1.5;}
   #entryEditCancelBtn{border:none; cursor:pointer; font-family:'Pretendard',sans-serif; background:none;}
-  #cancelChoiceOverlay, #transferOverlay{z-index:70;} /* 대회 상세·기록 창 위에서 열리므로 항상 맨 위에 */
+  #cancelChoiceOverlay, #transferOverlay, #memberActionOverlay{z-index:70;} /* 대회 상세·기록 창 위에서 열리므로 항상 맨 위에 */
   .choice-btn{display:block; width:100%; text-align:left; background:#fff; border:1.5px solid var(--mist); border-radius:12px; padding:14px 16px; margin-top:10px; cursor:pointer; font-family:'Pretendard',sans-serif; color:var(--ink);}
   .choice-btn b{display:block; font-size:15.5px; margin-bottom:3px;}
   .choice-btn span{display:block; font-size:12.5px; color:#6b6660; line-height:1.45;}
@@ -368,7 +410,7 @@
         <div class="name" id="whoName">-</div>
       </div>
       <button class="admin-add-btn" id="adminAddRaceBtn" type="button" style="display:none;">➕ 대회 추가</button>
-      <button class="master-btn" id="masterAssignBtn" type="button" style="display:none;">👑 관리자 지정</button>
+      <button class="master-btn" id="memberMgrBtn" type="button" style="display:none;">👥 회원 관리</button>
       <button class="logout" id="logoutBtn">로그아웃</button>
     </header>
 
@@ -482,7 +524,7 @@
       <label class="check-line"><input type="checkbox" id="entrySolo"> 개별 참가 <span style="font-weight:400; color:#8a8680; font-size:12.5px;">(크루와 따로 지인·가족과 참가)</span></label>
     </div>
     <div class="field">
-      <label>동반 참가 인원 및 대리 참가 정보 입력</label>
+      <label id="entryNoteLabel">동반 참가 인원 및 대리 참가 정보 입력</label>
       <textarea id="entryNote" placeholder="예: 배우자, 자녀 2명과 함께 참가 / 홍길동 대리 참가"></textarea>
     </div>
     <div class="actions">
@@ -572,7 +614,7 @@
       <label class="check-line"><input type="checkbox" id="entryEditSolo"> 개별 참가 <span style="font-weight:400; color:#8a8680; font-size:12.5px;">(크루와 따로 지인·가족과 참가)</span></label>
     </div>
     <div class="field">
-      <label>동반 참가 인원 및 대리 참가 정보 입력</label>
+      <label id="entryEditNoteLabel">동반 참가 인원 및 대리 참가 정보 입력</label>
       <textarea id="entryEditNote" placeholder="예: 배우자, 자녀 2명과 함께 참가 / 홍길동 대리 참가"></textarea>
     </div>
     <div class="field">
@@ -806,16 +848,33 @@
   </div>
 </div>
 
-<!-- 마스터: 관리자 지정 모달 -->
-<div class="overlay" id="adminPickerOverlay">
+<!-- 회원 관리 모달 (관리자·마스터) -->
+<div class="overlay" id="memberMgrOverlay">
   <div class="modal modal-wrap">
-    <button class="modal-close" data-close="adminPickerOverlay">✕</button>
-    <h2>관리자 지정</h2>
-    <div class="sub">대회를 추가·수정·삭제할 수 있는 관리자를 선택하세요</div>
-    <div id="adminPickerList"></div>
+    <button class="modal-close" data-close="memberMgrOverlay">✕</button>
+    <h2>회원 관리</h2>
+    <div class="sub" id="mmSub"></div>
+    <div class="mm-add">
+      <input id="mmAddInput" type="text" maxlength="20" placeholder="새 회원 이름 입력" autocomplete="off">
+      <button id="mmAddBtn" type="button">추가</button>
+    </div>
+    <input class="mm-search" id="mmSearch" type="text" placeholder="이름 검색" autocomplete="off">
+    <div class="mm-filters" id="mmFilters"></div>
+    <div id="mmList"></div>
+    <div class="mm-note" id="mmNote"></div>
+  </div>
+</div>
+
+<!-- 회원 관리: 이름 수정 / 합치기 / 삭제 확인창 -->
+<div class="overlay" id="memberActionOverlay">
+  <div class="modal modal-wrap">
+    <button class="modal-close" data-close="memberActionOverlay">✕</button>
+    <h2 id="maTitle"></h2>
+    <div class="sub" id="maSub"></div>
+    <div id="maBody"></div>
     <div class="actions">
-      <button class="btn-ghost" data-close="adminPickerOverlay">취소</button>
-      <button class="btn-primary" id="adminPickerSubmit">저장</button>
+      <button class="btn-ghost" data-close="memberActionOverlay">취소</button>
+      <button class="btn-primary" id="maSubmit" type="button">확인</button>
     </div>
   </div>
 </div>
@@ -869,7 +928,7 @@ const MASTER_NAME = '이중희';
 
 let state = {
   user: null,
-  races: [], entries: [], records: [], members: [], admins: [],
+  races: [], entries: [], records: [], members: [], inactiveMembers: [], admins: [],
   tab: 'mine',
   activeRace: null,
   activeEntry: null
@@ -1143,6 +1202,7 @@ function loadCachedData(){
     state.entries = cached.entries || [];
     state.records = cached.records || [];
     state.members = cached.members || [];
+    state.inactiveMembers = cached.inactiveMembers || [];
     state.admins = cached.admins || [];
     return true;
   }catch(e){ return false; }
@@ -1150,7 +1210,7 @@ function loadCachedData(){
 function saveCachedData(){
   try{
     localStorage.setItem(DATA_CACHE_KEY, JSON.stringify({
-      races: state.races, entries: state.entries, records: state.records, members: state.members, admins: state.admins
+      races: state.races, entries: state.entries, records: state.records, members: state.members, inactiveMembers: state.inactiveMembers, admins: state.admins
     }));
   }catch(e){}
 }
@@ -1163,6 +1223,7 @@ async function loadAll(background){
     state.entries = data.entries || [];
     state.records = data.records || [];
     state.members = data.members || [];
+    state.inactiveMembers = data.inactiveMembers || [];
     state.admins = data.admins || [];
     saveCachedData();
     if(state.user){
@@ -1170,7 +1231,7 @@ async function loadAll(background){
       renderMine(); renderRaces();
       // 대회 상세(참가자 목록)가 열려 있으면 양도·대참 상태가 바뀐 것도 바로 보이게 함
       const ro = document.getElementById('raceOverlay');
-      if(state.activeRace && ro && ro.classList.contains('show') && document.getElementById('participantEditPanel').style.display==='none'){
+      if(state.activeRace && ro && ro.classList.contains('show') && document.getElementById('participantEditPanel').style.display==='none' && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('.solo-memo'))){
         renderParticipants(state.activeRace.id);
       }
     }else{
@@ -1237,7 +1298,7 @@ function enterApp(){
 
 function updateAdminUI(){
   document.getElementById('adminAddRaceBtn').style.display = isAdmin_() ? 'block' : 'none';
-  document.getElementById('masterAssignBtn').style.display = isMaster_() ? 'block' : 'none';
+  document.getElementById('memberMgrBtn').style.display = isAdmin_() ? 'block' : 'none';
 }
 
 /* ================= 탭 전환 ================= */
@@ -2033,6 +2094,7 @@ document.getElementById('ctaJoinBtn').addEventListener('click', ()=>{
   document.getElementById('entryEvent').innerHTML = '<option value="">먼저 대회를 선택하세요</option>';
   document.getElementById('entryNote').value = '';
   document.getElementById('entrySolo').checked = false;
+  syncSoloNoteUi_('entrySolo','entryNoteLabel','entryNote');
   autoResizeTextarea(document.getElementById('entryNote'));
   open_('entryOverlay');
 });
@@ -2473,27 +2535,227 @@ document.getElementById('raceFormSubmit').addEventListener('click', async ()=>{
   }
 });
 
-/* ================= 마스터: 관리자 지정 ================= */
-document.getElementById('masterAssignBtn').addEventListener('click', ()=>{
-  const list = document.getElementById('adminPickerList');
-  const names = state.members.slice().sort();
-  list.innerHTML = names.length
-    ? names.map(n=>`<label class="admin-picker-row"><input type="checkbox" value="${escapeHtml(n)}" ${state.admins.includes(n)?'checked':''}><span>${escapeHtml(n)}</span></label>`).join('')
-    : `<div class="empty" style="padding:20px;">등록된 크루원이 없어요</div>`;
-  open_('adminPickerOverlay');
+/* ================= 회원 관리 (관리자·마스터) =================
+   - 관리자: 추가 / 이름 수정 / 합치기 / 비활성화(복구) / 삭제  (관리자 계정은 대상에서 제외)
+   - 마스터: 위 전부 + 관리자 지정·해제
+   서버(Code.gs)에서도 같은 규칙으로 한 번 더 막기 때문에 화면을 우회해도 권한이 열리지 않음 */
+let mmFilter_ = 'all', mmOpenName_ = null, mmAction_ = null;
+const mmAttr_ = s => escapeHtml(s).replace(/"/g,'&quot;');
+
+function mmAllNames_(){
+  const map = new Map();
+  state.members.forEach(n=>map.set(n,{member:true, inactive:false}));
+  (state.inactiveMembers||[]).forEach(n=>map.set(n,{member:true, inactive:true}));
+  state.entries.forEach(e=>{ [e.name, e.proxy].forEach(n=>{ if(n && !map.has(n)) map.set(n,{member:false, inactive:false}); }); });
+  return Array.from(map, ([name,v])=>({name, ...v})).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+}
+function mmCounts_(name){
+  return {
+    own: state.entries.filter(e=>e.name===name).length,
+    proxy: state.entries.filter(e=>e.proxy===name).length
+  };
+}
+// 이 회원에게 어떤 작업을 할 수 있는지 (서버 규칙과 동일)
+function mmPerm_(m){
+  const isMasterRow = m.name === MASTER_NAME;
+  const isSelf = m.name === state.user;
+  const isAdminRow = state.admins.includes(m.name);
+  let removeBlock = '';
+  if(isMasterRow) removeBlock = '마스터 계정은 이름 수정 외에는 처리할 수 없어요';
+  else if(isSelf) removeBlock = '본인 계정은 직접 처리할 수 없어요';
+  else if(isAdminRow && !isMaster_()) removeBlock = '관리자 계정의 삭제·비활성화·합치기는 마스터만 할 수 있어요 (마스터가 관리자 지정을 먼저 해제해야 해요)';
+  return { isMasterRow, isSelf, isAdminRow, rename: !isMasterRow, removeBlock };
+}
+
+function renderMemberMgr_(){
+  const all = mmAllNames_();
+  const activeN = all.filter(m=>m.member && !m.inactive).length;
+  const offN = all.filter(m=>m.inactive).length;
+  const adminN = state.admins.length;
+  const ghostN = all.filter(m=>!m.member).length;
+  document.getElementById('mmSub').textContent = `전체 ${activeN}명 · 관리자 ${adminN}명` + (offN ? ` · 비활성 ${offN}명` : '');
+  const filters = [['all','전체',all.length],['admin','관리자',adminN],['inactive','비활성',offN]];
+  if(ghostN) filters.push(['ghost','명단 외',ghostN]);
+  if(!filters.some(f=>f[0]===mmFilter_)) mmFilter_ = 'all';
+  document.getElementById('mmFilters').innerHTML = filters.map(([k,l,n])=>`<button type="button" data-f="${k}" class="${mmFilter_===k?'on':''}">${l} ${n}</button>`).join('');
+  const q = document.getElementById('mmSearch').value.trim().toLowerCase();
+  const rows = all.filter(m=>{
+    if(mmFilter_==='admin' && !state.admins.includes(m.name)) return false;
+    if(mmFilter_==='inactive' && !m.inactive) return false;
+    if(mmFilter_==='ghost' && m.member) return false;
+    return !q || m.name.toLowerCase().includes(q);
+  });
+  const list = document.getElementById('mmList');
+  if(!rows.length){ list.innerHTML = '<div class="empty" style="padding:22px;">조건에 맞는 회원이 없어요</div>'; }
+  else list.innerHTML = rows.map(m=>{
+    const perm = mmPerm_(m), c = mmCounts_(m.name);
+    const open = mmOpenName_ === m.name;
+    let badges = '';
+    if(perm.isMasterRow) badges += '<span class="mm-badge master">👑 마스터</span>';
+    else if(perm.isAdminRow) badges += '<span class="mm-badge admin">관리자</span>';
+    if(m.inactive) badges += '<span class="mm-badge off">비활성</span>';
+    if(!m.member) badges += '<span class="mm-badge ghost">명단 외</span>';
+    const meta = `참가 ${c.own}건` + (c.proxy ? ` · 대참 ${c.proxy}건` : '');
+    const adminSwitch = (isMaster_() && m.member && !m.inactive && !perm.isMasterRow)
+      ? `<label class="mm-admin"><input type="checkbox" data-act="admin" ${perm.isAdminRow?'checked':''}><span>관리자</span></label>` : '';
+    const blocked = !!perm.removeBlock;
+    const btnRename = perm.rename ? '<button type="button" data-act="rename">✏️ 이름 수정</button>' : '';
+    const btnMerge = `<button type="button" data-act="merge" ${blocked?'disabled':''}>🔀 합치기</button>`;
+    const btnActive = m.member
+      ? (m.inactive ? '<button type="button" data-act="restore">↩️ 복구</button>' : `<button type="button" data-act="deactivate" ${blocked?'disabled':''}>🙈 비활성화</button>`)
+      : '';
+    const btnDel = `<button type="button" class="danger" data-act="delete" ${blocked?'disabled':''}>🗑 삭제</button>`;
+    return `<div class="mm-row" data-name="${mmAttr_(m.name)}">
+      <div class="mm-head">
+        <div class="mm-main" data-act="toggle"><div class="mm-name">${escapeHtml(m.name)}${badges}</div><div class="mm-meta">${meta}</div></div>
+        ${adminSwitch}
+        <span class="mm-caret" data-act="toggle">${open?'▴':'▾'}</span>
+      </div>
+      ${open ? `<div class="mm-actions">${btnRename}${btnMerge}${btnActive}${btnDel}${blocked?`<div class="mm-hint">${escapeHtml(perm.removeBlock)}</div>`:''}</div>` : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('mmNote').innerHTML = isMaster_()
+    ? '관리자 지정·해제는 마스터만 할 수 있어요. <b>합치기</b>는 같은 사람이 두 이름으로 등록됐을 때, <b>비활성화</b>는 기록은 남기고 목록에서만 빼고 싶을 때 쓰세요.'
+    : '관리자 지정과 관리자 계정 처리는 마스터만 할 수 있어요. <b>합치기</b>는 같은 사람이 두 이름으로 등록됐을 때, <b>비활성화</b>는 기록은 남기고 목록에서만 빼고 싶을 때 쓰세요.';
+}
+
+function applyMemberSnapshot_(res){
+  if(Array.isArray(res.members)) state.members = res.members;
+  if(Array.isArray(res.inactiveMembers)) state.inactiveMembers = res.inactiveMembers;
+  if(Array.isArray(res.admins)) state.admins = res.admins;
+  saveCachedData();
+}
+// 이름·기록이 바뀐 뒤에는 참가/기록 데이터도 서버 기준으로 다시 불러옴
+async function refreshAfterMemberChange_(){
+  await loadAll(true);
+  updateAdminUI();
+  renderMemberMgr_();
+}
+
+document.getElementById('memberMgrBtn').addEventListener('click', ()=>{
+  mmOpenName_ = null; mmFilter_ = 'all';
+  document.getElementById('mmSearch').value = '';
+  document.getElementById('mmAddInput').value = '';
+  renderMemberMgr_();
+  open_('memberMgrOverlay');
+  loadAll(true).then(()=>{ if(document.getElementById('memberMgrOverlay').classList.contains('show')) renderMemberMgr_(); });
+});
+document.getElementById('mmSearch').addEventListener('input', renderMemberMgr_);
+document.getElementById('mmFilters').addEventListener('click', ev=>{
+  const b = ev.target.closest('button[data-f]'); if(!b) return;
+  mmFilter_ = b.dataset.f; renderMemberMgr_();
 });
 
-document.getElementById('adminPickerSubmit').addEventListener('click', async ()=>{
-  const checked = Array.from(document.querySelectorAll('#adminPickerList input:checked')).map(i=>i.value);
-  const btn = document.getElementById('adminPickerSubmit');
-  btn.disabled = true; btn.textContent = '저장 중…';
-  const res = await apiPost('setAdmins', { user: state.user, admins: checked });
-  btn.disabled = false; btn.textContent = '저장';
-  if(!res.ok){ toast(res.error||'저장 실패'); return; }
-  state.admins = res.admins || checked;
-  close_('adminPickerOverlay');
-  toast('관리자 목록이 저장되었습니다');
-  updateAdminUI();
+async function mmAddMember_(){
+  const inp = document.getElementById('mmAddInput'), btn = document.getElementById('mmAddBtn');
+  const name = inp.value.trim();
+  if(!name){ toast('이름을 입력해주세요'); return; }
+  btn.disabled = true;
+  const res = await apiPost('memberAdd', { user: state.user, name });
+  btn.disabled = false;
+  if(!res.ok){ toast(res.error || '추가하지 못했어요'); return; }
+  applyMemberSnapshot_(res);
+  inp.value = ''; mmOpenName_ = name; mmFilter_ = 'all';
+  renderMemberMgr_();
+  toast(`${name}님을 추가했어요`);
+}
+document.getElementById('mmAddBtn').addEventListener('click', mmAddMember_);
+document.getElementById('mmAddInput').addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); mmAddMember_(); } });
+
+document.getElementById('mmList').addEventListener('click', async ev=>{
+  const el = ev.target.closest('[data-act]'); if(!el) return;
+  const act = el.dataset.act;
+  if(act === 'admin') return; // change 이벤트에서 처리
+  const row = el.closest('.mm-row'); if(!row) return;
+  const name = row.dataset.name;
+  if(act === 'toggle'){ mmOpenName_ = (mmOpenName_ === name) ? null : name; renderMemberMgr_(); return; }
+  if(el.disabled) return;
+  if(act === 'rename' || act === 'merge' || act === 'delete'){ openMemberAction_(act, name); return; }
+  if(act === 'deactivate' || act === 'restore'){
+    const active = act === 'restore';
+    el.disabled = true;
+    const res = await apiPost('memberSetActive', { user: state.user, name, active });
+    if(!res.ok){ toast(res.error || '처리하지 못했어요'); el.disabled = false; return; }
+    applyMemberSnapshot_(res);
+    renderMemberMgr_();
+    toast(active ? `${name}님을 복구했어요` : `${name}님을 비활성화했어요 (기록은 그대로 남아요)`);
+  }
+});
+document.getElementById('mmList').addEventListener('change', async ev=>{
+  const chk = ev.target.closest('input[data-act="admin"]'); if(!chk) return;
+  const name = chk.closest('.mm-row').dataset.name, on = chk.checked;
+  chk.disabled = true;
+  const res = await apiPost('memberSetAdmin', { user: state.user, name, admin: on });
+  if(!res.ok){ toast(res.error || '저장하지 못했어요'); chk.checked = !on; chk.disabled = false; return; }
+  applyMemberSnapshot_(res);
+  updateAdminUI(); renderMemberMgr_();
+  toast(on ? `${name}님을 관리자로 지정했어요` : `${name}님의 관리자 지정을 해제했어요`);
+});
+
+function openMemberAction_(kind, name){
+  mmAction_ = { kind, name };
+  const c = mmCounts_(name);
+  const title = document.getElementById('maTitle'), sub = document.getElementById('maSub'), body = document.getElementById('maBody'), btn = document.getElementById('maSubmit');
+  btn.classList.remove('btn-solid-danger');
+  sub.textContent = name;
+  if(kind === 'rename'){
+    title.textContent = '이름 수정';
+    body.innerHTML = `<div class="field"><label>새 이름</label><input id="maInput" type="text" maxlength="20" value="${mmAttr_(name)}" autocomplete="off"></div>
+      <div class="field-hint">참가 신청·기록·사진·대참 정보·관리자 명단에 적힌 이름이 모두 함께 바뀌어요.${name===state.user?'<br>본인 이름을 바꾸면 앞으로 새 이름으로 로그인해야 해요.':''}</div>`;
+    btn.textContent = '이름 바꾸기';
+    setTimeout(()=>{ const i = document.getElementById('maInput'); if(i){ i.focus(); i.select(); } }, 60);
+  }else if(kind === 'merge'){
+    title.textContent = '이름 합치기';
+    const others = mmAllNames_().filter(m=>m.name !== name);
+    body.innerHTML = `<div class="ma-warn">「${escapeHtml(name)}」의 참가 신청·기록·사진·대참 정보를 아래 회원으로 모두 옮기고, 「${escapeHtml(name)}」은 명단에서 사라져요.<br>
+      같은 대회·같은 종목에 이미 아래 회원이 신청해 둔 경우, 「${escapeHtml(name)}」의 그 신청(기록·사진 포함)은 삭제돼요.</div>
+      <div class="field"><label>합칠 대상 (남길 이름)</label><select id="maSelect"><option value="">선택하세요</option>${others.map(m=>`<option value="${mmAttr_(m.name)}">${escapeHtml(m.name)}${m.inactive?' (비활성)':''}${!m.member?' (명단 외)':''}</option>`).join('')}</select></div>`;
+    btn.textContent = '합치기';
+  }else{ // delete
+    title.textContent = '회원 삭제';
+    body.innerHTML = `<div class="ma-warn ma-danger">「${escapeHtml(name)}」을 삭제하면 아래 내용이 <b>되돌릴 수 없이</b> 사라져요.<br>
+      · 참가 신청 ${c.own}건과 그 기록·사진 전체<br>
+      ${c.proxy?`· 대참자로 뛰던 ${c.proxy}건은 "양도중"으로 돌아가고, 입력한 기록·사진이 삭제돼요<br>`:''}
+      · 회원 명단${state.admins.includes(name)?'·관리자 명단':''}</div>
+      <div class="field-hint">기록은 남기고 목록에서만 빼고 싶다면 <b>비활성화</b>를 사용하세요.</div>`;
+    btn.textContent = '삭제';
+    btn.classList.add('btn-solid-danger');
+  }
+  open_('memberActionOverlay');
+}
+
+document.getElementById('maSubmit').addEventListener('click', async ()=>{
+  const a = mmAction_; if(!a) return;
+  const btn = document.getElementById('maSubmit');
+  let action, payload;
+  if(a.kind === 'rename'){
+    const to = document.getElementById('maInput').value.trim();
+    if(!to){ toast('새 이름을 입력해주세요'); return; }
+    if(to === a.name){ toast('기존 이름과 같아요'); return; }
+    action = 'memberRename'; payload = { from: a.name, to };
+  }else if(a.kind === 'merge'){
+    const to = document.getElementById('maSelect').value;
+    if(!to){ toast('합칠 대상을 선택해주세요'); return; }
+    action = 'memberMerge'; payload = { from: a.name, to };
+  }else{
+    action = 'memberDelete'; payload = { name: a.name };
+  }
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = '처리 중…';
+  const res = await apiPost(action, { user: state.user, ...payload });
+  btn.disabled = false; btn.textContent = label;
+  if(!res.ok){ toast(res.error || '처리하지 못했어요'); return; }
+  if(a.kind === 'rename' && a.name === state.user){
+    state.user = res.to; saveLastName(res.to);
+    document.getElementById('whoName').textContent = res.to;
+  }
+  applyMemberSnapshot_(res);
+  mmOpenName_ = a.kind === 'delete' ? null : (res.to || null);
+  close_('memberActionOverlay');
+  await refreshAfterMemberChange_();
+  if(a.kind === 'rename') toast(`「${a.name}」→「${res.to}」이름을 바꿨어요`);
+  else if(a.kind === 'merge') toast(`「${a.name}」을 「${res.to}」로 합쳤어요` + (res.dropped ? ` (중복 신청 ${res.dropped}건 정리)` : ''));
+  else toast(`「${a.name}」을 삭제했어요`);
 });
 
 /* ================= 목표/기록 모달 ================= */
@@ -3198,6 +3460,7 @@ document.getElementById('editEntryBtn').addEventListener('click', ()=>{
   sel.innerHTML = options.map(ev=>`<option value="${escapeHtml(ev)}" ${ev===entry.event?'selected':''}>${escapeHtml(eventLabel_(ev))}</option>`).join('');
   document.getElementById('entryEditNote').value = entry.note || '';
   document.getElementById('entryEditSolo').checked = !!entry.solo;
+  syncSoloNoteUi_('entryEditSolo','entryEditNoteLabel','entryEditNote');
   fillEditProxySelect_(entry);
 
   close_('recordOverlay');
@@ -3480,6 +3743,36 @@ async function releaseProxy_(entry){
   toast('대참을 취소했어요');
   refreshEntryViews_();
 }
+// 개별 참가를 체크하면 메모 칸이 "누구와 함께 가나요? (선택)"으로 바뀜 (같은 메모 칸을 씀)
+function syncSoloNoteUi_(checkId, labelId, noteId){
+  const on = document.getElementById(checkId).checked;
+  document.getElementById(labelId).textContent = on ? '누구와 함께 가나요? (선택)' : '동반 참가 인원 및 대리 참가 정보 입력';
+  document.getElementById(noteId).placeholder = on ? '예: 친구 2명, 가족과 함께 / 직장 동료 3명' : '예: 배우자, 자녀 2명과 함께 참가 / 홍길동 대리 참가';
+}
+document.getElementById('entrySolo').addEventListener('change', ()=>syncSoloNoteUi_('entrySolo','entryNoteLabel','entryNote'));
+document.getElementById('entryEditSolo').addEventListener('change', ()=>syncSoloNoteUi_('entryEditSolo','entryEditNoteLabel','entryEditNote'));
+
+// 참가자 목록의 개별 메모 저장 (본인·관리자). 값이 그대로면 요청하지 않음
+async function saveSoloNote_(entryId, value){
+  const e = state.entries.find(x=>x.id===entryId);
+  if(!e) return;
+  const note = String(value||'').trim();
+  if(note === String(e.note||'')) return;
+  if(isTmpEntry_(e)){ toast('저장 중이에요. 잠시 후 다시 시도해주세요'); refreshEntryViews_(); return; }
+  const old = e.note;
+  e.note = note;
+  refreshEntryViews_();
+  const res = await apiPost('setEntrySolo', { entryId, name: state.user, note });
+  if(!res.ok){
+    e.note = old;
+    toast(res.error || '저장 실패 - 되돌렸습니다');
+    refreshEntryViews_();
+    return;
+  }
+  mergeEntry_(res.entry);
+  saveCachedData();
+  toast('메모를 저장했어요');
+}
 async function toggleSolo_(entryId, checked){
   const e = state.entries.find(x=>x.id===entryId);
   if(!e) return;
@@ -3510,19 +3803,32 @@ function participantRowHtml_(p){
   if(isOwner) line2.push(`<button class="p-btn p-btn-danger" type="button" data-act="cancel" data-id="${p.id}">참가 취소</button>`);
   if(canClaim_(p)) line2.push(`<button class="p-btn p-btn-primary" type="button" data-act="claim" data-id="${p.id}">양도 받기</button>`);
   if(p.proxy && p.proxy===me && !isOwner) line2.push(`<button class="p-btn p-btn-info" type="button" data-act="release" data-id="${p.id}">대참 취소</button>`);
-  return `<div class="participant-row"><span class="pn">${escapeHtml(p.name)}${soloTag}${tagsNoSolo}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(eventLabel_(p.event))}</span>${line2.length?`<div class="p-line2">${line2.join('')}</div>`:''}</div>`;
+  const memoRow = (canSolo && p.solo)
+    ? `<div class="solo-memo"><input type="text" maxlength="60" data-act="solo-note" data-id="${p.id}" value="${escapeHtml(p.note||'').replace(/"/g,'&quot;')}" placeholder="누구와 가나요? (선택) 예: 친구 2명"><button class="p-btn" type="button" data-act="solo-note-save" data-id="${p.id}">저장</button></div>` : '';
+  return `<div class="participant-row"><span class="pn">${escapeHtml(p.name)}${soloTag}${tagsNoSolo}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(eventLabel_(p.event))}</span>${line2.length?`<div class="p-line2">${line2.join('')}</div>`:''}${memoRow}</div>`;
 }
 (function(){
   const list = document.getElementById('raceParticipantList');
   list.addEventListener('change', (ev)=>{
     const cb = ev.target.closest('input[data-act="solo"]');
     if(cb) toggleSolo_(cb.dataset.id, cb.checked);
+    const ni = ev.target.closest('input[data-act="solo-note"]');
+    if(ni) saveSoloNote_(ni.dataset.id, ni.value);
+  });
+  list.addEventListener('keydown', (ev)=>{
+    const ni = ev.target.closest('input[data-act="solo-note"]');
+    if(ni && ev.key==='Enter'){ ev.preventDefault(); ni.blur(); }
   });
   list.addEventListener('click', (ev)=>{
     const b = ev.target.closest('button[data-act]');
     if(!b) return;
     const entry = state.entries.find(x=>x.id===b.dataset.id);
     if(!entry) return;
+    if(b.dataset.act==='solo-note-save'){
+      const ni = b.parentElement.querySelector('input[data-act="solo-note"]');
+      if(ni) saveSoloNote_(entry.id, ni.value);
+      return;
+    }
     if(b.dataset.act==='cancel') openCancelChoice_(entry);
     else if(b.dataset.act==='claim') claimEntry_(entry);
     else if(b.dataset.act==='release') releaseProxy_(entry);
