@@ -267,6 +267,7 @@
   .chart-filter-label{flex-shrink:0; font-size:12.5px; font-weight:600; color:#6b6660;}
   .chart-card{background:var(--white); border:1px solid var(--mist); border-radius:14px; padding:14px 12px 4px; margin-bottom:16px;}
   .chart-canvas-wrap{position:relative; height:200px; width:100%;}
+  .chart-info-pick{font-weight:800; color:var(--navy,#1B2A41); text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:3px;}
   #mineChart{touch-action:none;}
   .chart-date-label{position:absolute; background:var(--navy); color:#fff; font-size:11px; font-weight:600; padding:3px 7px; border-radius:6px; pointer-events:none; white-space:nowrap; z-index:5; transform:translateY(2px);}
   .chart-info-panel{margin-top:8px; padding:10px 4px 2px; border-top:1px dashed var(--mist);}
@@ -573,7 +574,7 @@
           </div>
           <div class="chart-empty" id="mineChartEmpty" style="display:none;">10K/HALF/FULL 목표·기록이 아직 없어요</div>
           <div id="mineChartInfoPanel" class="chart-info-panel">
-            <div class="chart-info-placeholder">그래프를 눌러 날짜별 기록을 확인하세요</div>
+            <div class="chart-info-placeholder">그래프를 누르거나 드래그해 보세요. 가장 가까운 점의 기록이 나와요</div>
           </div>
         </div>
       </div>
@@ -1563,6 +1564,8 @@ let mineChartInstance = null;
 let mineChartAllPoints = []; // 현재 표시 중인 모든 {x} 후보 (가장 가까운 지점 탐색용)
 let mineChartSelectedX = null; // 현재 크로스헤어가 위치한 x값(타임스탬프)
 let mineChartDragging = false;
+let mineChartPts = [];        // 그려진 모든 점 {x,y,kind:'goal'|'result',ev} — 손가락에서 가장 가까운 점 찾기용
+let mineChartSelPt = null;    // 지금 선택된 점
 
 const mineCrosshairPlugin = {
   id: 'mineCrosshair',
@@ -1579,6 +1582,11 @@ const mineCrosshairPlugin = {
     ctx.strokeStyle = 'rgba(27,42,65,0.55)';
     ctx.setLineDash([4,4]);
     ctx.stroke();
+    if(mineChartSelPt && mineChartSelPt.x===mineChartSelectedX){                 // 선택한 점: 가로 보조선
+      const yPixel = scales.y.getPixelForValue(mineChartSelPt.y);
+      ctx.beginPath(); ctx.moveTo(chartArea.left, yPixel); ctx.lineTo(chartArea.right, yPixel);
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(27,42,65,0.3)'; ctx.stroke();
+    }
     ctx.restore();
   }
 };
@@ -1635,7 +1643,7 @@ function renderMineChart(){
 
   const datasets = [];
   let hasAnyData = false;
-  mineChartAllPoints = [];
+  mineChartAllPoints = []; mineChartPts = [];
 
   CHART_EVENTS.forEach(ev=>{
     if(!mineChartEvents.has(ev)) return;
@@ -1648,8 +1656,8 @@ function renderMineChart(){
       if(!rec) return;
       const goalSec = timeStrToSeconds_(rec.goal);
       const resultSec = timeStrToSeconds_(rec.result);
-      if(goalSec!=null){ goalPoints.push({x:d.getTime(), y:goalSec}); mineChartAllPoints.push({x:d.getTime()}); }
-      if(resultSec!=null){ resultPoints.push({x:d.getTime(), y:resultSec}); mineChartAllPoints.push({x:d.getTime()}); }
+      if(goalSec!=null){ goalPoints.push({x:d.getTime(), y:goalSec}); mineChartAllPoints.push({x:d.getTime()}); mineChartPts.push({x:d.getTime(), y:goalSec, kind:'goal', ev}); }
+      if(resultSec!=null){ resultPoints.push({x:d.getTime(), y:resultSec}); mineChartAllPoints.push({x:d.getTime()}); mineChartPts.push({x:d.getTime(), y:resultSec, kind:'result', ev}); }
     });
     goalPoints.sort((a,b)=>a.x-b.x);
     resultPoints.sort((a,b)=>a.x-b.x);
@@ -1716,7 +1724,8 @@ function renderMineChart(){
 
   // 데이터가 갱신돼도 기존에 보고있던 크로스헤어 위치가 있으면 유지해서 다시 표시
   if(mineChartSelectedX != null && mineChartAllPoints.some(p=>p.x===mineChartSelectedX)){
-    updateMineChartCrosshair(mineChartSelectedX);
+    const kp = mineChartSelPt && mineChartPts.find(p=>p.x===mineChartSelPt.x && p.kind===mineChartSelPt.kind) || null;
+    updateMineChartCrosshair(mineChartSelectedX, kp);
   }
 }
 
@@ -1731,13 +1740,14 @@ function findNearestChartX_(targetX){
   return nearest;
 }
 
-function updateMineChartCrosshair(xValue){
-  mineChartSelectedX = xValue;
+function updateMineChartCrosshair(xValue, pt){
+  mineChartSelectedX = xValue; mineChartSelPt = xValue==null ? null : (pt || null);
   const dateLabel = document.getElementById('mineChartDateLabel');
   const wrap = document.querySelector('#mineChartView .chart-canvas-wrap');
 
   if(xValue == null || !mineChartInstance){
     dateLabel.style.display = 'none';
+    mineChartSelPt = null;
     renderMineChartInfoPanel(null);
     if(mineChartInstance) mineChartInstance.draw();
     return;
@@ -1756,13 +1766,13 @@ function updateMineChartCrosshair(xValue){
   left = Math.max(2, Math.min(left, wrapWidth - labelWidth - 2));
   dateLabel.style.left = left + 'px';
 
-  renderMineChartInfoPanel(xValue);
+  renderMineChartInfoPanel(xValue, pt);
 }
 
-function renderMineChartInfoPanel(xValue){
+function renderMineChartInfoPanel(xValue, pt){
   const panel = document.getElementById('mineChartInfoPanel');
   if(xValue == null){
-    panel.innerHTML = `<div class="chart-info-placeholder">그래프를 눌러 날짜별 기록을 확인하세요</div>`;
+    panel.innerHTML = `<div class="chart-info-placeholder">그래프를 누르거나 드래그해 보세요. 가장 가까운 점의 기록이 나와요</div>`;
     return;
   }
   // 하루에 대회가 하나만 열리는 걸 전제로, 이 날짜에 해당하는 내 참가 건 하나만 찾음
@@ -1780,29 +1790,36 @@ function renderMineChartInfoPanel(xValue){
       <div class="chart-info-date">${fmtDate(xValue)} <span class="chart-info-racename">${escapeHtml(entry.raceName)}</span></div>
       <button class="small-action-inline btn-info-text chart-info-edit-btn" type="button">✏️ 수정</button>
     </div>
-    <div class="chart-info-row">${dot}<span class="chart-info-ev">${escapeHtml(eventLabel_(entry.event))}</span><span class="chart-info-vals">목표 ${goalStr} · 기록 ${resultStr}</span></div>
+    <div class="chart-info-row">${dot}<span class="chart-info-ev">${escapeHtml(eventLabel_(entry.event))}</span><span class="chart-info-vals"><span class="${pt&&pt.kind==='goal'?'chart-info-pick':''}">목표 ${goalStr}</span> · <span class="${pt&&pt.kind==='result'?'chart-info-pick':''}">기록 ${resultStr}</span></span></div>
   `;
   panel.querySelector('.chart-info-edit-btn').addEventListener('click', ()=>openRecordModal(entry.id));
 }
 
-function handleMineChartPointer_(clientX){
-  if(!mineChartInstance) return;
-  const canvas = document.getElementById('mineChart');
-  const rect = canvas.getBoundingClientRect();
-  const pixelX = clientX - rect.left;
-  const dataX = mineChartInstance.scales.x.getValueForPixel(pixelX);
-  const nearestX = findNearestChartX_(dataX);
-  if(nearestX != null) updateMineChartCrosshair(nearestX);
+// 손가락(마우스)에서 화면상 가장 가까운 점(목표·기록)을 고른다 — 가로·세로 거리를 함께 본다
+function handleMineChartPointer_(clientX, clientY){
+  if(!mineChartInstance || !mineChartPts.length) return;
+  const rect = document.getElementById('mineChart').getBoundingClientRect();
+  const px = clientX - rect.left, py = (clientY==null ? null : clientY - rect.top);
+  const sx = mineChartInstance.scales.x, sy = mineChartInstance.scales.y;
+  let best = null, bd = Infinity;
+  mineChartPts.forEach(p=>{
+    const dx = sx.getPixelForValue(p.x) - px, dy = py==null ? 0 : sy.getPixelForValue(p.y) - py, d = dx*dx + dy*dy;
+    if(d < bd){ bd = d; best = p; }
+  });
+  const cur = mineChartSelPt;
+  if(best && !(cur && cur.x===best.x && cur.y===best.y && cur.kind===best.kind && mineChartSelectedX===best.x)) updateMineChartCrosshair(best.x, best);
 }
-
-document.getElementById('mineChart').addEventListener('pointerdown', (e)=>{
-  mineChartDragging = true;
-  handleMineChartPointer_(e.clientX);
-});
-document.getElementById('mineChart').addEventListener('pointermove', (e)=>{
-  if(!mineChartDragging) return;
-  handleMineChartPointer_(e.clientX);
-});
+(function(){   // 터치: 그래프를 누르는 순간 가장 가까운 점 선택, 누른 채 드래그하면 바로 따라감 (그래프 안에서는 화면이 스크롤되지 않음). 마우스: 누르고 끌기
+  const cv = document.getElementById('mineChart'); let active = false;
+  cv.style.touchAction = 'none'; cv.style.webkitUserSelect = 'none'; cv.style.userSelect = 'none'; cv.style.webkitTouchCallout = 'none';
+  cv.addEventListener('touchstart', e=>{ const t = e.touches[0]; active = true; handleMineChartPointer_(t.clientX, t.clientY); }, {passive:true});
+  cv.addEventListener('touchmove', e=>{ if(!active) return; e.preventDefault(); const t = e.touches[0]; handleMineChartPointer_(t.clientX, t.clientY); }, {passive:false});
+  const endT = ()=>{ active = false; };
+  cv.addEventListener('touchend', endT); cv.addEventListener('touchcancel', endT);
+  cv.addEventListener('contextmenu', e=>e.preventDefault());
+  cv.addEventListener('pointerdown', e=>{ if(e.pointerType==='touch') return; mineChartDragging = true; handleMineChartPointer_(e.clientX, e.clientY); });
+  cv.addEventListener('pointermove', e=>{ if(e.pointerType==='touch' || !mineChartDragging) return; handleMineChartPointer_(e.clientX, e.clientY); });
+})();
 window.addEventListener('pointerup', ()=>{ mineChartDragging = false; });
 window.addEventListener('pointercancel', ()=>{ mineChartDragging = false; });
 
