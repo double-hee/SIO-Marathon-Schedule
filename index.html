@@ -146,6 +146,8 @@
   @keyframes cta-glow{0%,100%{box-shadow:0 6px 18px rgba(198,64,44,0.45);} 50%{box-shadow:0 6px 26px rgba(198,64,44,0.75), 0 0 22px rgba(198,64,44,0.4);}}
   .hide-past-toggle{display:flex; align-items:center; gap:7px; font-size:12.5px; color:#6b6660; margin:-4px 0 12px; user-select:none; cursor:pointer;}
   .hide-past-toggle input{width:15px; height:15px; accent-color:var(--clay); cursor:pointer;}
+  .toggle-row{display:flex; align-items:center; flex-wrap:wrap; gap:4px 18px; margin:-4px 0 12px;}
+  .toggle-row .hide-past-toggle{margin:0;}
   .fab:active{background:var(--clay-dark);}
 
   /* Modal */
@@ -430,6 +432,12 @@
   .t-row{display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid var(--t-grid); min-width:0;}
   .t-row:last-child{border-bottom:0;}
   .t-row.fin{background:color-mix(in srgb,var(--rc) 8%,#fff);}
+  .record-site-note{font-size:13px; margin-top:8px; color:var(--muted,#7a746b);}
+  .record-site-note.same{color:#1F7A45; font-weight:600;}
+  .record-site-note.diff{color:#B4452B; font-weight:600;}
+  .t-rwho{display:flex; align-items:baseline; gap:6px; min-width:0; flex-wrap:wrap;}
+  .t-rsub{font-family:'Roboto Mono',monospace; font-size:11px; font-weight:500; color:var(--t-muted); white-space:nowrap;}
+  .t-rreg{font-weight:500; font-size:12px; color:var(--t-muted);}
   .t-rname{font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
   .t-rval{margin-left:auto; font-family:'Roboto Mono',monospace; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; font-size:13.5px;}
   .t-row.fin .t-rval{color:var(--rc);}
@@ -576,7 +584,10 @@
         <select id="racesYearFilter"></select>
         <input id="racesSearchInput" type="text" placeholder="대회명, 장소, 참가자 등 검색">
       </div>
-      <label class="hide-past-toggle"><input type="checkbox" id="racesHidePast" checked> 지난 대회 숨기기</label>
+      <div class="toggle-row">
+        <label class="hide-past-toggle"><input type="checkbox" id="racesHidePast" checked> 지난 대회 숨기기</label>
+        <label class="hide-past-toggle"><input type="checkbox" id="racesMineOnly"> 내 대회 보기</label>
+      </div>
       <div id="racesListContainer"></div>
     </main>
 
@@ -685,6 +696,8 @@
         <input id="recordResultS" type="number" inputmode="numeric" min="0" max="59" placeholder="00"><span class="time-sep">초</span>
         <span class="pace-display" id="recordResultPace"></span>
       </div>
+      <div class="record-site-note" id="recordSiteNote" hidden></div>
+      <button type="button" class="small-action-inline btn-info-text" id="recordSiteBtn" hidden style="margin-top:6px;"></button>
     </div>
     <div class="field">
       <label>사진 <span id="recordPhotoCount" style="font-weight:500; color:#a39d94;"></span></label>
@@ -995,6 +1008,7 @@
       <button class="small-action-inline btn-info-text" id="trkSettingsBtn" type="button">⚙️ 기록 사이트 설정</button>
     </div>
     <div class="t-msg" id="trkMsg"></div>
+    <div class="t-smsg" id="trkAutoNote" hidden style="margin:4px 0 8px;"></div>
     <div class="t-pick" id="trkPick" hidden></div>
     <div class="t-empty" id="trkEmpty" hidden></div>
     <div class="t-loading" id="trkLoading" hidden>기록 조회중…</div>
@@ -1065,7 +1079,7 @@
           <label>기록 링크로 채우기<input id="trkEvLink" type="url" placeholder="기록 조회 페이지 주소를 붙여넣으세요"></label>
           <div class="t-smsg" id="trkEvDetect"></div>
           <label>기록 업체
-            <select id="trkEvProv"><option value="myresult">MyResult (마이리절트)</option><option value="spct">SPCT</option><option value="smartchip">스마트칩</option></select></label>
+            <select id="trkEvProv"><option value="myresult">MyResult (마이리절트)</option><option value="spct">SPCT</option><option value="smartchip">스마트칩</option><option value="sportstats">SportStats (링크만 연결)</option></select></label>
           <label>대회 번호<input id="trkEvId" inputmode="numeric" placeholder="예: 177, 2025092102"></label>
           <div class="t-smsg" id="trkEvHint"></div>
           <label>대회 현지 시간대 <span style="font-weight:400;font-size:11.5px;color:var(--t-muted);">해외에서 열린 대회만 바꿔요 (이 기기에만 저장)</span>
@@ -1973,6 +1987,9 @@ function renderRaces(){
 }
 
 document.getElementById('racesHidePast').addEventListener('change', renderRacesList);
+(function(){ const cb=document.getElementById('racesMineOnly');
+  try{ cb.checked = localStorage.getItem('sio-races-mine-only')==='1'; }catch(e){}
+  cb.addEventListener('change', ()=>{ try{ localStorage.setItem('sio-races-mine-only', cb.checked?'1':'0'); }catch(e){} renderRacesList(); }); })();
 
 // ===== 한/영 전환 검색 (두벌식 자판 기준) =====
 // "dlwndgml" 처럼 영어 자판 상태로 친 한글, "이중희"를 한글 상태로 친 영어("sio" → "ㄴㅑㅐ")도 찾아줌
@@ -2198,13 +2215,18 @@ function renderRacesList(){
   if(document.getElementById('racesHidePast').checked){
     races = races.filter(r=>{ const diff = daysUntil_(r.raceDate); return diff===null || diff>=0; });
   }
+  const mineOnly = document.getElementById('racesMineOnly').checked;
+  if(mineOnly){   // 내가 참가(대참·양도 포함)하는 대회만
+    const mineRaceIds = new Set(state.entries.filter(isMineEntry_).map(e=>e.raceId));
+    races = races.filter(r=>mineRaceIds.has(r.id));
+  }
   races.sort((a,b)=> new Date(a.raceDate||'2999-01-01') - new Date(b.raceDate||'2999-01-01'));
 
   document.getElementById('racesCount').textContent = `${races.length}개`;
   const container = document.getElementById('racesListContainer');
 
   if(races.length===0){
-    const reason = state.races.length===0 ? '참가 신청을 하면 자동으로 대회가 등록돼요' : '연도나 검색어를 확인해보세요';
+    const reason = state.races.length===0 ? '참가 신청을 하면 자동으로 대회가 등록돼요' : mineOnly ? '내가 참가하는 대회가 없어요. "내 대회 보기"를 끄면 전체 대회가 보여요' : '연도나 검색어를 확인해보세요';
     container.innerHTML = `<div class="empty"><b>표시할 대회가 없어요</b>${reason}</div>`;
     return;
   }
@@ -2312,7 +2334,7 @@ document.getElementById('entrySubmit').addEventListener('click', async ()=>{
   const solo = document.getElementById('entrySolo').checked;
   const bib = cleanBib_(document.getElementById('entryBib').value);
 
-  if(state.entries.some(e=>e.name===state.user && e.raceName===raceName)){
+  if(state.entries.some(e=>e.name===state.user && (e.raceId ? e.raceId===race.id : e.raceName===raceName))){
     toast('이미 신청한 대회입니다');
     return;
   }
@@ -2324,7 +2346,7 @@ document.getElementById('entrySubmit').addEventListener('click', async ()=>{
   toast('참가 신청 완료!');
   renderMine(); renderRaces();
 
-  const res = await apiPost('addEntry', { name: state.user, raceName, raceDate, event, note, solo, bib });
+  const res = await apiPost('addEntry', { name: state.user, raceId: race.id, raceName, raceDate, event, note, solo, bib });
   if(!res.ok){
     state.entries = state.entries.filter(e=>e.id!==tempEntry.id);
     toast(res.error || '신청 실패 - 되돌렸습니다');
@@ -3038,8 +3060,19 @@ function updateRecordPaceDisplay_(){
     paceEl.textContent = `평균 ${pm}'${String(ps).padStart(2,'0')}"/km`;
   });
 }
+// 달성 기록을 입력하는 즉시 기록 조회 사이트의 완주 기록과 비교해 보여준다 (저장 전에도)
+function updateSiteDiff_(){
+  const note=document.getElementById('recordSiteNote'), btn=document.getElementById('recordSiteBtn'); if(!note||!btn) return;
+  const sv=btn.dataset.val||''; if(!sv){ note.hidden=true; btn.hidden=true; return; }
+  const siteSec=timeStrToSeconds_(sv), mySec=timeStrToSeconds_(readTimeInputs_('recordResult'));
+  const dur=s=>{ s=Math.abs(Math.round(s)); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+'시간 ':'')+(m?m+'분 ':'')+(x||(!h&&!m)?x+'초':'').trim(); };
+  note.hidden=false;
+  if(!mySec){ note.className='record-site-note'; note.textContent=`기록 조회 사이트 기록: ${sv}`; btn.hidden=false; }
+  else if(mySec===siteSec){ note.className='record-site-note same'; note.textContent=`✓ 기록 조회 사이트 기록(${sv})과 같아요`; btn.hidden=true; }
+  else { note.className='record-site-note diff'; note.textContent=`⚠ 기록 조회 사이트 기록(${sv})과 달라요 · 입력한 기록이 ${dur(mySec-siteSec)} ${mySec>siteSec?'느려요':'빨라요'}`; btn.hidden=false; }
+}
 document.querySelectorAll('.time-input-row input').forEach(inp=>{
-  inp.addEventListener('input', ()=>{ inp.value = inp.value.replace(/[^0-9]/g,''); }); // 숫자만 입력되도록 강제
+  inp.addEventListener('input', ()=>{ inp.value = inp.value.replace(/[^0-9]/g,''); updateSiteDiff_(); }); // 숫자만 입력되도록 강제
 });
 document.querySelectorAll('#recordGoalH,#recordGoalM,#recordGoalS,#recordResultH,#recordResultM,#recordResultS').forEach(inp=>{
   inp.addEventListener('input', updateRecordPaceDisplay_);
@@ -3676,6 +3709,8 @@ function openRecordModal(entryId){
   document.getElementById('recordSubLine2').textContent = (race&&race.place) || '장소 미정';
   fillTimeInputs_('recordGoal', rec?.goal || '');
   fillTimeInputs_('recordResult', rec?.result || '');
+  { const sb=document.getElementById('recordSiteBtn'); let sv=rec?.siteResult||''; if(!sv){ try{ sv=JSON.parse(localStorage.getItem('sio-site-res-'+entry.id)||'""')||''; }catch(e){} }
+    sb.dataset.val = sv; sb.textContent = `🔄 대회 사이트 기록으로 채우기 (${sv})`; updateSiteDiff_(); }
   document.getElementById('recordMemo').value = rec?.memo || '';
   updateRecordPaceDisplay_();
   recordGallery.render();
@@ -3779,6 +3814,12 @@ document.getElementById('recordSubmit').addEventListener('click', async ()=>{
   const newRec = res.record || optimisticRec;
   if(idx3>-1) state.records[idx3] = newRec; else state.records.push(newRec);
   renderMine();
+});
+
+// 기록 보기에서 가져온 사이트 완주 기록으로 달성 기록 칸 채우기 (저장 버튼을 눌러야 반영)
+document.getElementById('recordSiteBtn').addEventListener('click',()=>{
+  const b=document.getElementById('recordSiteBtn'), v=b.dataset.val; if(!v) return;
+  fillTimeInputs_('recordResult', v); updateRecordPaceDisplay_(); updateSiteDiff_(); toast('사이트 기록을 채웠어요. 저장을 눌러야 반영돼요');
 });
 
 /* ================= 개별 참가 · 양도(대참) ================= */
@@ -4388,7 +4429,7 @@ function renderParticipantEditPanel_(raceId){
   existingEl.innerHTML = parts.length ? parts.map(p=>{
     const options = eventOptions.includes(p.event) ? eventOptions : [p.event, ...eventOptions].filter(Boolean);
     return `<div class="participant-edit-row" data-entry-id="${p.id}" data-original-event="${escapeHtml(p.event||'')}" data-original-note="${escapeHtml(p.note||'')}" data-original-solo="${p.solo?1:0}" data-original-bib="${escapeHtml(p.bib||'')}" data-original-proxy="${escapeHtml(entryProxySel_(p))}">
-      <span class="pe-name">${escapeHtml(p.name)}</span>
+      <span class="pe-name">${p.proxy&&p.proxy!==p.name?`${escapeHtml(p.proxy)} <small style="font-weight:500;color:var(--muted,#888)">(${escapeHtml(p.name)})</small>`:escapeHtml(p.name)}</span>
       <select class="pe-event">${options.map(ev=>`<option value="${escapeHtml(ev)}" ${ev===p.event?'selected':''}>${escapeHtml(eventLabel_(ev))}</option>`).join('')}</select>
       <button class="pn-remove pe-remove" type="button">✕</button>
       <div class="pe-opts">
@@ -4651,7 +4692,7 @@ if('serviceWorker' in navigator){
   const preLabel = a => a.started ? '출발' : PROV().hasStart ? '출발 전' : '기록 대기';
 
   // ----- 화면: 카드 / 코스 / 그래프 / 표 -----
-  const nameHTML = a => `<span class="t-name"><i class="t-dot" style="background:var(${a.color})"></i>${esc(a.name)} <small>#${esc(a.bib)}${!isFull(a.dist)?' · '+courseName(a.dist):''}</small></span>`;
+  const nameHTML = a => `<span class="t-name"><i class="t-dot" style="background:var(${a.color})"></i>${esc(a.name)}${a.byProxy&&a.lookup?` <small>(${esc(a.lookup)})</small>`:''} <small>#${esc(a.bib)}${!isFull(a.dist)?' · '+courseName(a.dist):''}</small></span>`;
   function rowOf(a,t){
     let val, badge, cls='racing';
     if(a.pre){ val='–:––:––'; badge=raceOver()?'대회 종료':a.started?'🏃 출발':preLabel(a); cls=a.started&&!raceOver()?'racing':'ended'; }
@@ -4659,7 +4700,7 @@ if('serviceWorker' in navigator){
     else if(raceOver()){ val=hms(a.last.net); badge=a.last.k+' · 대회 종료'; cls='ended'; }
     else { val=hms(a.predNet); badge='🏃 '+remainOf(a,t); }
     const lbl = a.pre?'':a.done?'완주':raceOver()?'통과':'예상';
-    return `<div class="t-row${a.done?' fin':''}" style="--rc:var(${a.color})"><i class="t-dot" style="background:var(${a.color})"></i><span class="t-rname">${esc(a.name)}</span>
+    return `<div class="t-row${a.done?' fin':''}" style="--rc:var(${a.color})"><i class="t-dot" style="background:var(${a.color})"></i><span class="t-rwho"><span class="t-rname">${esc(a.name)}${a.byProxy&&a.lookup?` <span class="t-rreg">(${esc(a.lookup)})</span>`:''}</span>${a.dist?`<small class="t-rsub">${courseName(a.dist)}</small>`:''}</span>
       <span class="t-rval"><small>${lbl}</small> ${val}</span><span class="t-badge ${cls}">${badge}</span></div>`;
   }
   function renderCards(t){
@@ -4759,7 +4800,7 @@ if('serviceWorker' in navigator){
     const tb=$('trkTbl'); tb.innerHTML=h+'</tbody>'; tb.classList.toggle('wide',DATA.length>=3);
   }
   const stateText = m => m.state==='searching'||m.state==='pending' ? '이름으로 찾는 중…' : m.state==='choose' ? `후보 ${m.cands.length}명 · 선택 필요` : m.state==='none' ? '배번 없음 · 이름 검색 결과 없음' : m.state==='error' ? '배번 없음 · 이름 검색 실패' : '배번 없음';
-  const who_ = r => esc(r.name)+(r.byProxy?'(대참)':'');   // 맨 위 명단에서만 (대참) 표시
+  const who_ = r => esc(r.name)+(r.byProxy&&r.lookup?' ('+esc(r.lookup)+')':'');   // 맨 위 명단에서만 (대참) 표시
   function renderWho(){
     const pk=MISSING.filter(m=>m.state==='choose');
     const lost=MISSING.filter(m=>m.state==='none'||m.state==='error');
@@ -4771,7 +4812,25 @@ if('serviceWorker' in navigator){
         ? `<a href="https://smartchip.co.kr/" target="_blank" rel="noopener">스마트칩 사이트 열기</a> <span class="t-sub">(대회를 고른 뒤 이름·배번으로 조회 · ${[...RUNNERS].sort(byName).map(r=>esc(r.name)+' #'+esc(r.bib)).join(', ')})</span>`
         : [...RUNNERS].sort(byName).map(r=>`<a href="${urlOf(r.bib,r.ref)}" target="_blank" rel="noopener">${esc(r.name)}</a>`).join(' · ');
   }
+  // SportStats: 기록을 앱이 읽지 않고, 대회 추적·검색 페이지로 가는 링크와 내 배번만 보여준다
+  function linkOnlyView(){
+    const base='https://sportstats.one/event/'+encodeURIComponent(EV.id);
+    $('trkLoading').hidden=true; $('trkBoard').hidden=true; $('trkPick').hidden=true; $('trkUpdated').textContent='–';
+    ['trkRefreshBtn','trkEditBtn'].forEach(id=>{ $(id).style.display='none'; });
+    const empty=$('trkEmpty'); empty.hidden=false;
+    const who=[...RUNNERS].sort(byName).map(r=>r.name+(r.bib?' #'+r.bib:'')).concat(MISSING.filter(m=>m.state!=='found').map(m=>m.lookup)).filter(Boolean);
+    empty.innerHTML=`<b>이 대회는 SportStats로 기록을 확인해요.</b><br>SportStats는 자동 조회를 허용하지 않아서, 앱에서 구간 기록·예상 도착을 계산하지 못하고 링크로 연결해요.<div class="t-alts" style="margin-top:10px;">`+
+      `<a class="small-action-inline btn-info-text" href="${base}/tracker" target="_blank" rel="noopener">📍 실시간 추적 열기</a>`+
+      `<a class="small-action-inline btn-info-text" href="${base}/tracker?tab=search" target="_blank" rel="noopener">🔎 이름·배번 검색</a>`+
+      `<a class="small-action-inline btn-info-text" href="${base}" target="_blank" rel="noopener">🏁 대회 기록 페이지</a></div>`+
+      (EV.auto&&EV.auto.confidence&&EV.auto.confidence!=='high'?`<div class="t-sub" style="margin-top:8px;">자동으로 찾은 대회예요(${esc(CONF[EV.auto.confidence]||'')}). ${esc(EV.auto.reason||'')} 맞지 않으면 ⚙️ 기록 사이트 설정에서 바꿔 주세요.</div>`:'')+
+      (who.length?`<div class="t-sub" style="margin-top:8px;">조회할 때 쓸 이름·배번: ${who.map(esc).join(', ')}</div>`:'');
+    $('trkLinks').innerHTML=`<a href="${base}" target="_blank" rel="noopener">SportStats ${esc(EV.name||EV.id)}</a>`;
+    $('trkMsg').textContent=''; $('trkRaw').textContent='SportStats는 링크로만 연결돼요.'; setSub();
+  }
   function updateView(){
+    if(EV && EV.provider==='sportstats') return linkOnlyView();
+    ['trkRefreshBtn','trkEditBtn'].forEach(id=>{ $(id).style.display=''; });
     const none=!RUNNERS.length, loaded=RUNNERS.some(r=>r.loaded);
     const empty=$('trkEmpty');
     if(none){
@@ -4945,6 +5004,7 @@ if('serviceWorker' in navigator){
       async record(r){ const {m,via}=await mrRecord(r.bib); return {start:m.start, dist:m.dist, name:m.name, marks:m.marks, rows:m.rows, via}; } },
     spct:{ label:'SPCT', poll:60, hasStart:true,
       async record(r,fresh){ const j=await gas({action:'record',provider:'spct',event:String(EV.id),bib:r.bib,ref:r.ref||'',...(fresh?{fresh:'1'}:{})}); return {...j.record, via:'Apps Script'}; } },
+    sportstats:{ label:'SportStats', poll:0, linkOnly:true, async record(){ throw new Error('SportStats는 링크로만 연결돼요'); } },   // SportStats는 자동 접근을 허용하지 않아 앱이 기록을 읽지 않고 링크만 열어줘요
     smartchip:{ label:'스마트칩', poll:120, hasStart:false, preNote:'스마트칩은 기록이 올라오면 나와요',
       async record(r,fresh){ const j=await gas({action:'record',provider:'smartchip',event:String(EV.id),bib:r.bib,...(fresh?{fresh:'1'}:{})}); return {...j.record, via:'Apps Script'}; } }
   };
@@ -4964,10 +5024,10 @@ if('serviceWorker' in navigator){
     const m=Math.max(0,Math.round((Date.now()-Math.min(...ts))/60000)); return `저장해 둔 ${m<1?'방금 전':m+'분 전'} 기록이에요.`; };
   // ----- 기록 새로고침: 업체별 주기. 완주했거나 대회가 끝난 사람은 다시 묻지 않음 -----
   async function refresh(){
-    if(!EV) return;
+    if(!EV || EV.provider==='sportstats') return;
     if(BUSY){ AGAIN=true; return; }
     const targets=RUNNERS.filter(r=>!r.loaded || r.cached || (!finished(r) && !raceOver()));
-    if(!targets.length) return;
+    if(!targets.length){ autoSaveResult_().catch(()=>{}); return; }   // 이미 완주 기록을 갖고 있어도 달성 기록 저장은 확인
     const my=SESSION; BUSY=true; $('trkBusy').hidden=false;
     const fresh=FORCE; FORCE=false;                      // 새로고침 버튼: Apps Script가 저장해 둔 값 말고 사이트에서 바로 읽기
     const errs=[], dbg=[]; let ok=0;
@@ -4984,20 +5044,63 @@ if('serviceWorker' in navigator){
     if(ok) UPDATED=clock(nowSec());
     $('trkMsg').textContent = errs.length ? (ok?'일부 실패: ':`기록을 가져오지 못했어요. ${PROV().poll}초 뒤 다시 시도해요. `)+errs.join(' / ')+(cachedNote()?' · '+cachedNote():'') : (EV.auto&&EV.auto.confidence&&EV.auto.confidence!=='high'?'대회를 자동으로 찾았는데 확실하지 않아요. 기록이 이상하면 ⚙️ 기록 사이트 설정에서 확인해 주세요.':'');
     updateView();
+    autoSaveResult_().catch(()=>{});
     BUSY=false; $('trkBusy').hidden=true;
     if(AGAIN){ AGAIN=false; refresh(); }
+  }
+
+  // ----- 완주 기록을 내 대회 "달성 기록"에 자동 저장 -----
+  // 내가 뛴 참가(본인 또는 대참자)의 완주 기록이 사이트에서 들어오면 채운다. 직접 입력해 둔 값은 덮어쓰지 않는다.
+  // 사이트 기록(siteResult)은 시트에 따로 저장해서, 기기를 바꿔도 "사이트 기록으로 채우기"를 쓸 수 있다
+  const AUTOSAVING=new Set(), AUTONOTE={};
+  const sameT = (x,y) => !!x && !!y && timeStrToSeconds_(String(x))===timeStrToSeconds_(String(y));
+  function showAutoNote(){ const el=$('trkAutoNote'), t=Object.values(AUTONOTE).filter(Boolean); el.hidden=!t.length; el.textContent=t.join(' · '); }
+  async function autoSaveResult_(){
+    if(!RACE||!state.user||!EV||EV.provider==='sportstats') return;
+    for(const r of RUNNERS){
+      if(r.name!==state.user || !r.entryId) continue;
+      const entry=state.entries.find(e=>e.id===r.entryId); if(!entry || isTmpEntry_(entry) || !ranByMe_(entry)) continue;
+      if(!r.loaded || r.cached) continue;
+      const a=analyse(r); if(!a.done || !a.last) continue;                              // 완주 기록이 아직 없음
+      if(!(a.last.net>=300)){ AUTONOTE[entry.id]='완주 기록이 너무 짧아(5분 미만) 달성 기록에 넣지 않았어요'; continue; }
+      if(AUTOSAVING.has(entry.id)) continue;
+      const val=secondsToTimeStr_(Math.ceil(a.last.net-1e-6)), rec=findRecord_(entry,state.user), cur=rec&&rec.result?String(rec.result):'', site=rec&&rec.siteResult?String(rec.siteResult):'';
+      const key='sio-auto-res-'+entry.id, prev=lsGet(key,'');
+      lsSet('sio-site-res-'+entry.id,val);                                              // (예전 기록 호환용) 이 기기에도 기억
+      const mine = cur && !sameT(cur,val) && !(sameT(cur,site) || cur===prev);          // 사이트 값이 아닌, 직접 입력한 값
+      const payload={entryId:entry.id, name:state.user, raceName:entry.raceName};       // 목표·메모는 보내지 않는다 (다른 기기에서 바꾼 값 보호)
+      if(!cur || (!mine && !sameT(cur,val))) payload.result=val;
+      if(!sameT(site,val)) payload.siteResult=val;
+      if(payload.result===undefined && payload.siteResult===undefined){
+        AUTONOTE[entry.id]=sameT(cur,val)?`달성 기록 ${cur} (사이트 기록과 같아요)`:`달성 기록은 직접 입력한 ${cur}을 유지해요 (사이트 기록 ${val})`; continue; }
+      AUTOSAVING.add(entry.id);
+      try{
+        const res=await apiPost('saveRecord',payload);
+        if(res&&res.ok){
+          lsSet(key,val);
+          const i=recIndex_(entry), nr=res.record||{id:'tmp_'+Date.now(),entryId:entry.id,name:state.user,raceName:entry.raceName,goal:'',result:payload.result||cur,siteResult:val,memo:''};
+          if(i>-1) state.records[i]=nr; else state.records.push(nr);
+          renderMine();
+          if(payload.result!==undefined){ AUTONOTE[entry.id]=`달성 기록 ${val}을 자동으로 저장했어요`; toast(`달성 기록 ${val}을 자동으로 저장했어요`); }
+          else{ AUTONOTE[entry.id]=`달성 기록은 직접 입력한 ${cur}을 유지해요 (사이트 기록 ${val})`;
+            if(lsGet('sio-site-res-told-'+entry.id,'')!==val){ lsSet('sio-site-res-told-'+entry.id,val); toast(`사이트 기록(${val})이 입력한 달성 기록(${cur})과 달라요. 기록 입력 화면에서 바꿀 수 있어요`); } }
+        } else AUTONOTE[entry.id]='달성 기록 자동 저장에 실패했어요 ('+((res&&res.error)||'알 수 없는 오류')+') · 곧 다시 시도해요';
+      }catch(e){ AUTONOTE[entry.id]='달성 기록 자동 저장에 실패했어요 · 곧 다시 시도해요'; } finally{ AUTOSAVING.delete(entry.id); }
+    }
+    showAutoNote();
   }
 
   // ----- 대회 찾기 (Apps Script resolve) / 설정 -----
   const CONF={high:'확실',medium:'확인 필요',low:'불확실'};
   let PICK=null, PICK_FOR='', RESOLVING=null;
   function evHint(){ const p=$('trkEvProv').value;
-    $('trkEvHint').textContent = p==='smartchip' ? '스마트칩은 구간·완주 기록이 올라오면 나와요. 2분마다 확인해요.' : p==='spct' ? 'SPCT는 1분마다 확인해요. 대회 번호는 YYYYMMDD+두 자리예요 (예: 2025092102).' : 'MyResult는 30초마다 실시간으로 확인해요.'; }
+    $('trkEvId').inputMode = p==='sportstats' ? 'text' : 'numeric';
+    $('trkEvHint').textContent = p==='sportstats' ? 'SportStats는 자동 접근을 허용하지 않아서, 기록을 앱에서 읽지 않고 대회 링크만 열어줘요. 대회 번호 칸에는 주소의 event/ 뒤 이름을 넣어요 (예: honolulu-marathon).' : p==='smartchip' ? '스마트칩은 구간·완주 기록이 올라오면 나와요. 2분마다 확인해요.' : p==='spct' ? 'SPCT는 1분마다 확인해요. 대회 번호는 YYYYMMDD+두 자리예요 (예: 2025092102).' : 'MyResult는 30초마다 실시간으로 확인해요.'; }
   function applyPick(m){ PICK=m; $('trkEvProv').value=m.provider; $('trkEvId').value=m.id; evHint(); }
   function showResolve(j){
     const box=$('trkEvRes'), m=j.match, alts=(j.candidates||[]).filter(c=>!(c.provider===m.provider&&c.id===m.id)).slice(0,4);
     box.innerHTML=`<div class="t-evpick ${m.confidence}"><span class="tt">${esc(m.name)}<span class="t-conf ${m.confidence}">${CONF[m.confidence]||''}</span></span>
-      <span class="mm">${PROVIDERS[m.provider].label} ${esc(m.id)}번 · ${esc(m.date||'날짜 미상')}</span>
+      <span class="mm">${PROVIDERS[m.provider].label} ${esc(m.id)}${m.provider==='sportstats'?'':'번'} · ${esc(m.date||'날짜 미상')}${m.provider==='sportstats'?' · 링크로 연결':''}</span>
       <span class="ww">${m.via==='AI'?'AI가 골랐어요':'이름이 가장 비슷한 대회예요'}${m.reason?' · '+esc(m.reason):''}</span></div>`+
       (alts.length?`<div class="t-smsg">다른 대회라면 고르세요</div><div class="t-alts">${alts.map((c,i)=>`<button type="button" data-alt="${i}">${PROVIDERS[c.provider].label} ${esc(c.id)} · ${esc(c.date||'')} · ${esc(c.name)}</button>`).join('')}</div>`:'');
     box.querySelectorAll('button[data-alt]').forEach(b=>b.addEventListener('click',()=>{ const c=alts[+b.dataset.alt]; showResolve({match:{...c,confidence:'high',via:'직접 선택'},candidates:j.candidates}); }));
@@ -5020,13 +5123,14 @@ if('serviceWorker' in navigator){
   }
   function detectLink(u){ u=String(u||''); let m=u.match(/myresult\.co\.kr\/(\d+)/); if(m) return {provider:'myresult',id:m[1]};
     m=u.match(/spct\.(?:co\.)?kr\/.*EVENT_NO=(\d+)/i); if(m) return {provider:'spct',id:m[1]};
-    m=u.match(/smartchip\.co\.kr\/.*usedata=(\d+)/i); if(m) return {provider:'smartchip',id:m[1]}; return null; }
+    m=u.match(/smartchip\.co\.kr\/.*usedata=(\d+)/i); if(m) return {provider:'smartchip',id:m[1]};
+    m=u.match(/sportstats\.one\/event\/([a-z0-9][a-z0-9-]*)/i); if(m) return {provider:'sportstats',id:m[1].toLowerCase()}; return null; }
   $('trkEvProv').addEventListener('change',()=>{ PICK=null; evHint(); });
   $('trkEvId').addEventListener('input',()=>{ PICK=null; });
   $('trkEvFind').addEventListener('click',()=>{ PICK=null; PICK_FOR=''; runResolve(); });
   $('trkEvLink').addEventListener('input',e=>{ const d=detectLink(e.target.value), out=$('trkEvDetect');
-    if(!d){ out.textContent = e.target.value ? 'MyResult, SPCT, 스마트칩 기록 주소만 알아볼 수 있어요.' : ''; return; }
-    $('trkEvProv').value=d.provider; $('trkEvId').value=d.id; PICK=null; out.textContent=`${PROVIDERS[d.provider].label} ${d.id}번 대회로 채웠어요.`; evHint(); });
+    if(!d){ out.textContent = e.target.value ? 'MyResult, SPCT, 스마트칩, SportStats 기록 주소만 알아볼 수 있어요.' : ''; return; }
+    $('trkEvProv').value=d.provider; $('trkEvId').value=d.id; PICK=null; out.textContent=d.provider==='sportstats'?`SportStats 대회(${d.id})로 채웠어요. 기록은 링크로 연결돼요.`:`${PROVIDERS[d.provider].label} ${d.id}번 대회로 채웠어요.`; evHint(); });
   $('trkEvForm').addEventListener('submit',async e=>{
     e.preventDefault();
     const name=$('trkEvName').value.trim(), btn=$('trkEvSave');
@@ -5056,9 +5160,9 @@ if('serviceWorker' in navigator){
       const bib=String(e.bib||'').trim();
       const known=entryDist(e.event);
       const byProxy=!!e.proxy;                           // 기록 사이트에는 원래 신청자 이름으로 올라 있어요 → 조회는 e.name, 화면에는 대참자 이름
-      if(!bib){ if(!missing.some(m=>m.name===who)) missing.push({name:who, lookup:e.name, byProxy, evDist:known, state:'pending', cands:[]}); return; }
+      if(!bib){ if(!missing.some(m=>m.name===who)) missing.push({name:who, lookup:e.name, byProxy, entryId:e.id, evDist:known, state:'pending', cands:[]}); return; }
       if(seen.has(bib)) return; seen.add(bib);
-      list.push({name:who, lookup:e.name, byProxy, bib, dist:known||FULL, start:null, marks:[], loaded:false, ref:''});
+      list.push({name:who, lookup:e.name, byProxy, entryId:e.id, bib, dist:known||FULL, start:null, marks:[], loaded:false, ref:''});
     });
     list.sort(byName).forEach((r,i)=>{ r.color=colorOf(i); });
     return {list, missing};
@@ -5068,7 +5172,7 @@ if('serviceWorker' in navigator){
   const sameDist = (a,b) => a!=null && b!=null && Math.abs(a-b)<0.6;
   function adopt(m,c){
     m.state='found';
-    RUNNERS.push({name:m.name, lookup:m.lookup, byProxy:m.byProxy, bib:String(c.bib), dist:c.dist||m.evDist||FULL, start:null, marks:[], loaded:false, ref:c.ref||'', byName:true, color:colorOf(RUNNERS.length)}); restoreRec(RUNNERS[RUNNERS.length-1]);
+    RUNNERS.push({name:m.name, lookup:m.lookup, byProxy:m.byProxy, entryId:m.entryId, bib:String(c.bib), dist:c.dist||m.evDist||FULL, start:null, marks:[], loaded:false, ref:c.ref||'', byName:true, color:colorOf(RUNNERS.length)}); restoreRec(RUNNERS[RUNNERS.length-1]);
   }
   async function probeDist(c){                          // MyResult 검색은 종목을 안 알려줘서 기록 연결로 코스를 확인
     try{ const p=await socketPlayer(c.bib,6000); const d=courseDistOf(p); return {...c, dist:d||null, name:c.name||String(p.name||'').trim()}; }
@@ -5107,7 +5211,7 @@ if('serviceWorker' in navigator){
     updateView(); refresh();
   }
   function stopTimers(){ clearInterval(tickTimer); clearInterval(refreshTimer); tickTimer=refreshTimer=null; }
-  const evFromMatch = (m,q) => ({provider:m.provider,id:String(m.id),name:m.name,query:q,date:m.date||'',auto:{confidence:m.confidence,via:m.via}});
+  const evFromMatch = (m,q) => ({provider:m.provider,id:String(m.id),name:m.name,query:q,date:m.date||'',auto:{confidence:m.confidence,via:m.via,reason:m.reason||''}});
   async function resolveFor(race){
     const j=await gas({action:'resolve',name:race.raceName,date:toDateInputValue_(race.raceDate)||''},65000);
     return j;
@@ -5132,7 +5236,7 @@ if('serviceWorker' in navigator){
     $('trkTitle').textContent=race.raceName;
     const dOk=/^\d{4}-\d{2}-\d{2}$/.test(RACE_DAY)&&RACE_DAY<'9999';
     SUBBASE=`${dOk?`${+RACE_DAY.slice(5,7)}월 ${+RACE_DAY.slice(8,10)}일(${'일월화수목금토'[new Date(RACE_DAY+'T12:00:00Z').getUTCDay()]})`:'날짜 미정'}`+(TZ!=='Asia/Seoul'?' · 현지 시간 '+(TZ.split('/')[1]||TZ).replace(/_/g,' '):''); setSub();
-    $('trkMsg').textContent=''; $('trkRaw').textContent='아직 가져오지 않았어요.';
+    $('trkMsg').textContent=''; Object.keys(AUTONOTE).forEach(k=>delete AUTONOTE[k]); $('trkAutoNote').hidden=true; $('trkRaw').textContent='아직 가져오지 않았어요.';
     $('trkLiveLink').href='https://www.youtube.com/results?search_query='+encodeURIComponent((race.raceName||'마라톤')+' 생중계');
     if(!keepOpen) open_('trackOverlay');
     renderSrcNote();
@@ -5160,10 +5264,11 @@ if('serviceWorker' in navigator){
         return;
       }
     }
+    if(EV.provider==='sportstats'){ renderSrcNote(); updateView(); return; }   // 링크로만 연결: 조회·타이머 없음
     RUNNERS.forEach(restoreRec);
     const cn=cachedNote(); if(cn){ const ts=RUNNERS.filter(r=>r.cached).map(r=>r.cached); UPDATED=clock(tzNow_(TZ).sec-Math.round((Date.now()-Math.max(...ts))/1000)+86400); $('trkMsg').textContent=cn+' 새로 가져오는 중…'; }
     renderSrcNote(); updateView();
-    tickTimer=setInterval(()=>{ if(!$('trackOverlay').classList.contains('show')){ stopTimers(); return; } tick(); },15000);
+    tickTimer=setInterval(()=>{ if(!$('trackOverlay').classList.contains('show')){ stopTimers(); return; } tick(); autoSaveResult_().catch(()=>{}); },15000);
     refreshTimer=setInterval(()=>{ if(!$('trackOverlay').classList.contains('show')){ stopTimers(); return; }
       const retry=MISSING.filter(m=>(m.state==='none'||m.state==='error') && Date.now()-(m.lastTry||0)>180000);   // 이름 검색 실패는 3분마다 다시
       if(retry.length) Promise.all(retry.map(m=>searchOne(m,SESSION))).then(()=>{ updateView(); refresh(); });
@@ -5172,6 +5277,7 @@ if('serviceWorker' in navigator){
     findByName(my);
   }
   function renderSrcNote(){
+    if(EV && EV.provider==='sportstats'){ $('trkSrcNote').textContent=`기록 대회: ${EV.name||EV.query||''} · SportStats — 링크로 연결돼요 (기록은 SportStats 사이트에서 확인).`; return; }
     $('trkSrcNote').textContent = EV ? `기록 대회: ${EV.name||EV.query||''} · ${PROV().label} ${EV.id}번 — ${PROV().poll}초마다 가져와요${EV.provider!=='myresult'?' (Apps Script 경유)':''}.` : '';
   }
 
