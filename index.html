@@ -371,6 +371,111 @@
   .runner-dot{fill:var(--clay); stroke:#fff; stroke-width:10; filter:drop-shadow(0 0 10px var(--clay)) drop-shadow(0 0 24px var(--clay)) drop-shadow(0 0 40px rgba(198,64,44,0.6)); opacity:0; animation:dot-appear 0.6s ease-out 1s forwards;}
   .splash-runner-dot{fill:var(--clay); stroke:#fff; stroke-width:3; filter:drop-shadow(0 0 10px var(--clay)) drop-shadow(0 0 24px var(--clay)) drop-shadow(0 0 40px rgba(198,64,44,0.6)); opacity:0; animation:dot-appear 0.6s ease-out 1s forwards;}
   @keyframes dot-appear{to{opacity:1;}}
+  /* ===== 📊 기록 보기 (마라톤 트래커) ===== */
+  #trackOverlay, #trkEventOverlay, #trkAddOverlay, #trkEditOverlay{
+    --t-surface:#fff; --t-fg:var(--ink); --t-muted:#6b6660; --t-line:var(--mist); --t-grid:#eeece6; --t-blue:#1f6fb8;
+    --r1:#d2502a; --r2:#1f6fb8; --r3:#2b9a5c; --r4:#8a4fbf; --r5:#b8860b; --r6:#c2185b; --r7:#00838f; --r8:#5d6b2f; --r9:#3949ab; --r10:#8d5524;
+  }
+  #trackOverlay{z-index:70;}
+  #trkEditOverlay{z-index:72;}
+  #trkEventOverlay, #trkAddOverlay{z-index:75;}
+  #trkEditOverlay .t-erow{display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid var(--t-line);}
+  #trkEditOverlay .t-einfo{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; font-size:14px;}
+  #trkEditOverlay .t-einfo small{font-size:11.5px; color:var(--t-muted);}
+  #trkEditOverlay .t-ebtn{flex:0 0 auto; min-height:34px; padding:0 10px; border:1.5px solid var(--mist); border-radius:8px; background:#fff; font:inherit; font-size:12.5px; font-weight:600; color:var(--navy); cursor:pointer;}
+  #trkEditOverlay .t-ebtn.del{color:#b3382a; border-color:#e8c4bf;}
+  #trkEditOverlay h3{font-size:12.5px; color:var(--t-muted); margin:16px 0 4px; letter-spacing:.04em;}
+  #trackOverlay [hidden]{display:none !important;}
+  #trackOverlay .t-cx{border:0; background:none; font:inherit; font-size:11.5px; color:var(--navy); padding:2px 3px; cursor:pointer; text-decoration:underline;}
+  #trackOverlay .t-pick{margin:8px 0;}
+  #trackOverlay .t-pickrow{border:1.5px solid var(--clay); border-radius:10px; padding:10px 12px; margin-bottom:8px; background:#fffaf6;}
+  #trackOverlay .modal{height:94vh; max-height:94vh; padding-top:18px;}
+  #trackOverlay h2.t-h{font-size:12.5px; letter-spacing:.06em; color:var(--t-muted); margin:18px 0 8px; font-weight:700; font-family:'Pretendard',sans-serif;}
+  .t-clock{font-size:12.5px; color:var(--t-muted); margin-top:4px;}
+  .t-clock b{font-family:'Roboto Mono',monospace; color:var(--t-fg); font-weight:600;}
+  .t-busy{color:var(--t-blue); font-weight:700; margin-left:6px;}
+  .t-msg{font-size:12.5px; color:var(--t-muted); margin:8px 0 0; line-height:1.5;}
+  .t-msg:empty{display:none;}
+  .t-who{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 2px;}
+  .t-who:empty{display:none;}
+  .t-chip{display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border:1px solid var(--t-line); border-radius:99px; background:#fff; font-size:12.5px;}
+  .t-chip small{font-family:'Roboto Mono',monospace; color:var(--t-muted);}
+  .t-chip.miss{border-style:dashed; color:var(--t-muted);}
+  .t-dot{width:10px; height:10px; border-radius:50%; display:inline-block; flex:none;}
+  .t-loading{padding:40px 16px; text-align:center; font-weight:600; color:var(--t-muted); background:#fff; border:1px solid var(--t-line); border-radius:12px; margin-top:12px;}
+  .t-empty{padding:26px 16px; text-align:center; color:var(--t-muted); background:#fff; border:1.5px dashed var(--t-line); border-radius:12px; margin-top:12px; font-size:13.5px; line-height:1.6;}
+  .t-seg{display:inline-flex; gap:2px; padding:2px; border:1px solid var(--t-line); border-radius:9px; background:#fff; max-width:100%; overflow-x:auto;}
+  .t-seg button{border:0; background:none; height:32px; padding:0 11px; border-radius:7px; font:inherit; font-size:12.5px; font-weight:600; color:var(--t-muted); cursor:pointer; white-space:nowrap;}
+  .t-seg button[aria-pressed="true"]{background:var(--t-grid); color:var(--t-fg);}
+  .t-seg small{font-family:'Roboto Mono',monospace; font-weight:500;}
+  .t-sechead{display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:16px 0 8px;}
+  .t-sechead h2.t-h{margin:0;}
+  .t-cards{display:flex; flex-direction:column; gap:10px;}
+  .t-cards.rows{gap:0; background:#fff; border:1px solid var(--t-line); border-radius:12px; overflow:hidden;}
+  .t-card{background:#fff; border:1px solid var(--t-line); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:8px; min-width:0;}
+  .t-card.fin{border:2px solid var(--rc); background:color-mix(in srgb,var(--rc) 9%,#fff);}
+  .t-card.fin .t-big{color:var(--rc);}
+  .t-top{display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  .t-name{font-weight:700; font-size:16px; display:flex; align-items:center; gap:7px; min-width:0;}
+  .t-name small{font-family:'Roboto Mono',monospace; font-size:11.5px; font-weight:500; color:var(--t-muted);}
+  .t-big{font-family:'Roboto Mono',monospace; font-size:28px; font-weight:600; line-height:1.1; font-variant-numeric:tabular-nums;}
+  .t-sub{color:var(--t-muted); font-size:12.5px;}
+  .t-sub b{color:var(--t-fg);}
+  .t-kv{display:grid; grid-template-columns:auto 1fr; gap:3px 12px; font-size:13.5px; margin:0;}
+  .t-kv dt{color:var(--t-muted);} .t-kv dd{margin:0; text-align:right; font-family:'Roboto Mono',monospace; font-variant-numeric:tabular-nums;}
+  .t-pill{font-size:11.5px; padding:1px 8px; border-radius:99px; border:1px solid var(--t-line); color:var(--t-muted); white-space:nowrap;}
+  .t-badge{background:var(--rc); color:#fff; font-weight:700; font-size:12.5px; padding:3px 10px; border-radius:99px; white-space:nowrap; flex:none; display:inline-flex; align-items:center; gap:4px;}
+  .t-badge.ended{background:var(--t-grid); color:var(--t-muted); border:1.5px solid var(--t-line);}
+  .t-badge.racing{background:color-mix(in srgb,var(--rc) 12%,#fff); color:var(--rc); border:1.5px solid var(--rc);}
+  .t-row{display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid var(--t-grid); min-width:0;}
+  .t-row:last-child{border-bottom:0;}
+  .t-row.fin{background:color-mix(in srgb,var(--rc) 8%,#fff);}
+  .t-rname{font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+  .t-rval{margin-left:auto; font-family:'Roboto Mono',monospace; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; font-size:13.5px;}
+  .t-row.fin .t-rval{color:var(--rc);}
+  .t-rval small{font-family:'Pretendard',sans-serif; font-weight:400; font-size:11px; color:var(--t-muted);}
+  .t-row .t-badge{font-size:11px; padding:2px 7px;}
+  .t-fold{display:block; width:100%; margin-top:8px; height:38px; font:inherit; font-size:12.5px; color:var(--t-muted); background:#fff; border:1px solid var(--t-line); border-radius:8px; cursor:pointer;}
+  .t-panel{background:#fff; border:1px solid var(--t-line); border-radius:12px; padding:12px 10px 8px;}
+  .t-scroll{overflow-x:auto;}
+  #trackOverlay svg text{font-family:'Roboto Mono',monospace; fill:var(--t-muted); font-size:16px;}
+  #trkChart{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none;}
+  .t-readout{min-height:28px; display:flex; align-items:center; gap:6px; padding:3px 8px; margin-bottom:4px; border-radius:6px; border:1px solid transparent; font-size:12.5px;}
+  .t-readout.on{border-color:var(--rc); background:color-mix(in srgb,var(--rc) 10%,#fff);}
+  .t-readout .rn{font-weight:600;} .t-readout .rc{font-family:'Roboto Mono',monospace; color:var(--t-fg); margin-left:auto;} .t-readout .rp{font-family:'Roboto Mono',monospace; font-weight:600; color:var(--rc);}
+  .t-hint{font-size:12px; color:var(--t-muted);}
+  .t-legend{display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:12px; color:var(--t-muted); padding:6px 2px 0;}
+  .t-lg{display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 11px; border-radius:99px; font:inherit; font-size:12px; color:var(--t-muted); background:#fff; border:1px solid var(--t-line); cursor:pointer;}
+  .t-lg[aria-pressed="true"]{background:var(--t-fg); color:#fff; border-color:var(--t-fg); font-weight:600;}
+  .t-dash{width:18px; border-top:2px dashed var(--t-muted); display:inline-block; margin:0 4px 2px 6px;}
+  #trkTbl{border-collapse:collapse; font-size:12px; width:auto;} #trkTbl.wide{width:100%;}
+  #trkTbl th, #trkTbl td{padding:6px 7px; border-bottom:1px solid var(--t-grid); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  #trkTbl th{color:var(--t-muted); font-weight:500; font-size:11px;}
+  #trkTbl td:first-child, #trkTbl th:first-child{text-align:left;}
+  #trkTbl td{font-family:'Roboto Mono',monospace;} #trkTbl td.na{color:var(--t-muted);} #trkTbl td.fin-cell{font-weight:700;}
+  #trkTbl th.grp, #trkTbl td.grp{border-left:1px solid var(--t-line); padding-left:10px;}
+  #trkTbl th.who{text-align:center; font-size:12.5px; font-weight:700;}
+  .t-note{font-size:12px; color:var(--t-muted); margin:12px 0 0; line-height:1.55;}
+  .t-note summary{cursor:pointer;}
+  .t-note a{color:var(--t-blue);}
+  .t-live{display:inline-block; margin-top:12px; font-size:12.5px; font-weight:600; text-decoration:none; color:var(--t-fg); padding:7px 12px; border:1px solid var(--t-line); border-radius:8px; background:#fff;}
+  .t-evform{display:flex; flex-direction:column; gap:12px; margin-top:12px;}
+  .t-evform label{display:flex; flex-direction:column; gap:4px; font-size:12.5px; color:var(--t-muted); font-weight:600;}
+  .t-evform input, .t-evform select{font:inherit; font-size:14px; height:42px; padding:0 12px; border:1.5px solid var(--mist); border-radius:8px; background:#fff; color:var(--ink);}
+  .t-evform .t-find{display:flex; gap:8px;} .t-evform .t-find input{flex:1; min-width:0;}
+  .t-evform .t-find button{height:42px; padding:0 14px; border-radius:8px; border:none; background:var(--navy); color:#fff; font-weight:700; cursor:pointer;}
+  .t-evres{display:flex; flex-direction:column; gap:8px;} .t-evres:empty{display:none;}
+  .t-evpick{background:#fff; border:1.5px solid var(--t-line); border-radius:10px; padding:11px; display:flex; flex-direction:column; gap:3px;}
+  .t-evpick.high{border-color:#2b9a5c;} .t-evpick.medium{border-color:#b8860b;} .t-evpick.low{border-color:#c0392b;}
+  .t-evpick .tt{font-weight:700; font-size:14px;} .t-evpick .mm{font-family:'Roboto Mono',monospace; font-size:12.5px;} .t-evpick .ww{font-size:12px; color:var(--t-muted);}
+  .t-conf{display:inline-block; font-size:11px; font-weight:700; padding:1px 8px; border-radius:99px; margin-left:6px; color:#fff; vertical-align:1px;}
+  .t-conf.high{background:#2b9a5c;} .t-conf.medium{background:#b8860b;} .t-conf.low{background:#c0392b;}
+  .t-alts{display:flex; flex-direction:column; gap:4px;}
+  .t-alts button{min-height:36px; padding:6px 10px; text-align:left; font:inherit; font-size:12.5px; background:#fff; border:1px solid var(--t-line); border-radius:8px; cursor:pointer;}
+  .t-smsg{font-size:12.5px; color:var(--t-muted); line-height:1.5;}
+  .btn-record{background:var(--navy) !important; border:1.5px solid var(--navy) !important; color:#fff !important; font-size:12px !important; font-weight:600 !important; padding:6px 11px !important; line-height:normal;}   /* 대회 편집·삭제 버튼과 같은 크기 */
+  .btn-record.is-off{background:#fff !important; border-color:var(--mist) !important; color:#a39d94 !important;}
+
 </style>
 </head>
 <body>
@@ -666,9 +771,10 @@
     <div class="sub" id="raceSub"></div>
     <div class="event-filter" id="raceAllEventsRow"></div>
 
-    <div class="record-action-row" id="raceAdminActions" style="display:none;">
+    <div class="record-action-row" id="raceAdminActions">
       <button class="small-action-inline btn-info-text" id="raceEditOpenBtn" type="button">✏️ 대회 편집</button>
       <button class="small-action-inline btn-danger-text" id="raceDeleteBtn" type="button">🗑 대회 삭제</button>
+      <button class="small-action-inline btn-record is-off" id="raceRecordBtn" type="button">📊 기록 보기</button>
     </div>
 
     <div class="field">
@@ -810,6 +916,7 @@
       <label>장소</label>
       <input id="rfPlace" placeholder="예: 서울 잠실종합운동장">
     </div>
+
     <div class="field">
       <label>종목 개수</label>
       <input id="rfEventCount" type="number" inputmode="numeric" min="0" max="10" placeholder="예: 3">
@@ -874,6 +981,106 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 📊 기록 보기 (대회 당일부터) -->
+<div class="overlay" id="trackOverlay">
+  <div class="modal modal-wrap">
+    <button class="modal-close" data-close="trackOverlay">✕</button>
+    <h2 id="trkTitle">기록 보기</h2>
+    <div class="sub" id="trkSub"></div>
+    <div class="t-clock">현재 <b id="trkNow">--:--:--</b> · 기록 <b id="trkUpdated">--:--:--</b><span class="t-busy" id="trkBusy" hidden>새로고침 중…</span></div>
+    <div class="record-action-row" style="margin:10px 0 0;">
+      <button class="small-action-inline btn-info-text" id="trkRefreshBtn" type="button">🔄 새로고침</button>
+      <button class="small-action-inline btn-info-text" id="trkEditBtn" type="button">👥 인원 편집</button>
+      <button class="small-action-inline btn-info-text" id="trkSettingsBtn" type="button">⚙️ 기록 사이트 설정</button>
+    </div>
+    <div class="t-msg" id="trkMsg"></div>
+    <div class="t-pick" id="trkPick" hidden></div>
+    <div class="t-empty" id="trkEmpty" hidden></div>
+    <div class="t-loading" id="trkLoading" hidden>기록 조회중…</div>
+    <div id="trkBoard" hidden>
+      <div class="t-seg" id="trkTabs" role="tablist" aria-label="종목" style="margin-top:14px;"></div>
+      <div class="t-sechead">
+        <h2 class="t-h">예상 도착</h2>
+        <div class="t-seg" role="group" aria-label="예측 기준">
+          <button type="button" data-mode="recent">최근 구간 페이스</button>
+          <button type="button" data-mode="avg">평균 페이스</button>
+        </div>
+      </div>
+      <div class="t-cards" id="trkCards"></div>
+      <button type="button" class="t-fold" id="trkFold"></button>
+      <h2 class="t-h">지금 어디쯤 (추정)</h2>
+      <div class="t-panel t-scroll"><svg id="trkTrack" width="100%" viewBox="0 0 600 190" role="img" aria-label="코스 위 추정 위치"></svg></div>
+      <h2 class="t-h">구간별 페이스</h2>
+      <div class="t-panel">
+        <div class="t-readout" id="trkReadout"><span class="t-hint">선 근처를 길게 누르면 그 사람의 구간 페이스가 여기 나와요.</span></div>
+        <div class="t-scroll"><svg id="trkChart" width="100%" viewBox="0 0 600 380" role="img" aria-label="구간별 페이스 그래프"></svg></div>
+        <div class="t-legend" id="trkLegend"></div>
+      </div>
+      <h2 class="t-h">구간 기록</h2>
+      <div class="t-panel t-scroll"><table id="trkTbl"></table></div>
+    </div>
+    <details class="t-note"><summary>사이트에서 읽어온 원본 행 보기</summary><pre id="trkRaw" style="white-space:pre-wrap; font-family:'Roboto Mono',monospace; font-size:11.5px;">아직 가져오지 않았어요.</pre></details>
+    <p class="t-note"><span id="trkSrcNote"></span> 예상 기록은 고른 기준(최근 구간 페이스 또는 지금까지의 평균 페이스)을 남은 거리에 그대로 적용해 계산해요. 원본 기록: <span id="trkLinks"></span></p>
+    <a class="t-live" id="trkLiveLink" href="#" target="_blank" rel="noopener">▶ 유튜브에서 중계 찾기</a>
+  </div>
+</div>
+
+<!-- 기록 사이트 설정 -->
+<div class="overlay" id="trkEditOverlay">
+  <div class="modal modal-wrap">
+    <button class="modal-close" data-close="trkEditOverlay">✕</button>
+    <h2>인원 편집</h2>
+    <div class="sub">기록 화면에 보이는 인원을 바꿔요. 이 기기에만 저장돼요.</div>
+    <div class="record-action-row" style="margin:10px 0;">
+      <button class="small-action-inline btn-info-text" id="trkEditAdd" type="button">➕ 인원 추가 (이름·배번 검색)</button>
+    </div>
+    <div id="trkEditList"></div>
+    <div id="trkEditHidden"></div>
+  </div>
+</div>
+<div class="overlay" id="trkAddOverlay">
+  <div class="modal modal-wrap">
+    <button class="modal-close" data-close="trkAddOverlay">✕</button>
+    <h2 id="trkAddTitle">참가자 추가</h2>
+    <div class="sub" id="trkAddSub"></div>
+    <form class="t-evform" id="trkAddForm" autocomplete="off">
+      <label>이름 또는 배번
+        <span class="t-find"><input id="trkAddQ" placeholder="예: 홍길동 / 1234"><button type="submit" id="trkAddFind">조회</button></span></label>
+    </form>
+    <div class="t-evres" id="trkAddRes"></div>
+  </div>
+</div>
+<div class="overlay" id="trkEventOverlay">
+  <div class="modal modal-wrap">
+    <button class="modal-close" data-close="trkEventOverlay">✕</button>
+    <h2>기록 사이트 설정</h2>
+    <div class="sub">이 대회가 어느 기록 업체(MyResult·SPCT·스마트칩)의 몇 번 대회인지 연결해요. 이 기기에 저장돼요.</div>
+    <form class="t-evform" id="trkEvForm" autocomplete="off">
+      <label>대회 이름
+        <span class="t-find"><input id="trkEvName" placeholder="예: 2026 과천마라톤"><button type="button" id="trkEvFind">찾기</button></span></label>
+      <div class="t-evres" id="trkEvRes"></div>
+      <details id="trkEvMore"><summary style="cursor:pointer; font-size:13px; color:var(--t-muted); padding:4px 0;">직접 수정</summary>
+        <div class="t-evform" style="margin-top:8px;">
+          <label>기록 링크로 채우기<input id="trkEvLink" type="url" placeholder="기록 조회 페이지 주소를 붙여넣으세요"></label>
+          <div class="t-smsg" id="trkEvDetect"></div>
+          <label>기록 업체
+            <select id="trkEvProv"><option value="myresult">MyResult (마이리절트)</option><option value="spct">SPCT</option><option value="smartchip">스마트칩</option></select></label>
+          <label>대회 번호<input id="trkEvId" inputmode="numeric" placeholder="예: 177, 2025092102"></label>
+          <div class="t-smsg" id="trkEvHint"></div>
+          <label>대회 현지 시간대 <span style="font-weight:400;font-size:11.5px;color:var(--t-muted);">해외에서 열린 대회만 바꿔요 (이 기기에만 저장)</span>
+            <select id="trkEvTz"></select></label>
+        </div>
+      </details>
+      <div class="actions">
+        <button type="button" class="btn-ghost" data-close="trkEventOverlay">취소</button>
+        <button type="submit" class="btn-primary" id="trkEvSave">저장하고 다시 보기</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
 
 <script>
 /* ================= 설정 ================= */
@@ -2460,6 +2667,41 @@ document.getElementById('rfAutoFillBtn').addEventListener('click', async ()=>{
 });
 
 document.getElementById('adminAddRaceBtn').addEventListener('click', openRaceFormForAdd);
+const TZ_OPTIONS_ = [
+  ['','한국·일본 (기본)'], ['Asia/Shanghai','중국·대만·홍콩·싱가포르 (UTC+8)'], ['Asia/Bangkok','태국·베트남 (UTC+7)'],
+  ['Asia/Kolkata','인도 (UTC+5:30)'], ['Asia/Dubai','두바이 (UTC+4)'], ['Europe/Istanbul','튀르키예 (UTC+3)'],
+  ['Europe/Athens','그리스 등 동유럽'], ['Europe/Paris','유럽 중부 (독일·프랑스·이탈리아·스페인)'], ['Europe/London','영국·포르투갈'],
+  ['America/New_York','미국 동부 (뉴욕·보스턴)'], ['America/Chicago','미국 중부 (시카고)'], ['America/Denver','미국 산악'],
+  ['America/Los_Angeles','미국 서부'], ['Pacific/Honolulu','하와이'], ['Australia/Sydney','호주 동부 (시드니·멜버른)'], ['Pacific/Auckland','뉴질랜드']
+];
+// 대회가 열리는 곳의 시간대. 기본은 한국이고, 해외에서 열린 대회는 기록 화면 ⚙️ 설정에서 이 기기에만 바꿀 수 있어요
+function raceTz_(race){
+  let t = '';
+  try{ t = JSON.parse(localStorage.getItem('sio-trk-tz-'+(race&&race.id)) || '""') || ''; }catch(e){}
+  if(!t) return 'Asia/Seoul';
+  try{ new Intl.DateTimeFormat('en-US',{timeZone:t}); return t; }catch(e){ return 'Asia/Seoul'; }
+}
+function tzNow_(tz){
+  const p = {};
+  new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})
+    .formatToParts(new Date()).forEach(x=>{ p[x.type]=x.value; });
+  return { date:`${p.year}-${p.month}-${p.day}`, sec:(+p.hour%24)*3600 + +p.minute*60 + +p.second };
+}
+function raceDayDiff_(race){   // 한국 날짜 기준: 오늘 - 대회일 (일). 대회 당일 0, 전날 -1
+  const d = toDateInputValue_(race && race.raceDate);
+  if(!d) return null;
+  return Math.round((Date.parse(tzNow_('Asia/Seoul').date) - Date.parse(d)) / 864e5);
+}
+function raceRecordOpen_(race){ const n = raceDayDiff_(race); return n !== null && n >= -1; }   // 대회 하루 전부터 (해외 시차 대비)
+document.getElementById('raceRecordBtn').addEventListener('click', ()=>{
+  const race = state.activeRace; if(!race) return;
+  if(!raceRecordOpen_(race)){
+    const d = fmtDate(race.raceDate);
+    toast(`기록 보기는 대회 하루 전부터 열려요 (대회일 ${d})`);
+    return;
+  }
+  window.openRecordView_(race.id);
+});
 document.getElementById('raceEditOpenBtn').addEventListener('click', ()=>{
   if(state.activeRace) openRaceFormForEdit(state.activeRace);
 });
@@ -3909,7 +4151,14 @@ async function openRaceModal(raceId){
     ? allEvents.map(ev=>`<span class="ef-pill" style="pointer-events:none;">${escapeHtml(eventLabel_(ev))}</span>`).join('')
     : '';
 
-  document.getElementById('raceAdminActions').style.display = isAdmin_() ? 'flex' : 'none';
+  const admin_ = isAdmin_();
+  document.getElementById('raceEditOpenBtn').style.display = admin_ ? '' : 'none';
+  document.getElementById('raceDeleteBtn').style.display = admin_ ? '' : 'none';
+  const recOn_ = raceRecordOpen_(race);
+  const recBtn_ = document.getElementById('raceRecordBtn');
+  recBtn_.classList.toggle('is-off', !recOn_);
+  recBtn_.title = recOn_ ? '' : '대회 하루 전부터 볼 수 있어요';
+  { const dd_ = raceDayDiff_(race); if(dd_ !== null && dd_ >= -1 && dd_ <= 2 && window.prefetchRecordEv_) window.prefetchRecordEv_(race); }   // 대회 전후엔 미리 기록 사이트를 찾아 둠
 
   document.getElementById('racePlaceText').textContent = race.place || '장소 미정';
   const linkVal = (race.link||'').trim();
@@ -4298,6 +4547,748 @@ if('serviceWorker' in navigator){
     document.getElementById('loadingScreen').style.display = 'none';
   }
 })();
+
+/* ================= 📊 기록 보기 (마라톤 트래커) =================
+ * 대회 당일부터 열리는 기록 화면. 참가자 중 배번이 입력된 사람(대참 자리는 대참자)의 기록을
+ * 기록 업체(MyResult · SPCT · 스마트칩)에서 가져와 예상 도착·구간 페이스·구간 기록으로 보여줘요.
+ * 업체/대회 번호는 Apps Script(action=resolve)가 대회 이름으로 찾아주고, 이 기기에 저장해요.
+ */
+(function(){
+  const GASURL = CONFIG.GAS_URL;
+  const FULL = 42.195;
+  const HALF = 21.0975;
+  const isFull = d => Math.abs(d-FULL) < 1, isHalf = d => Math.abs(d-HALF) < 1;
+  const kmTxt = d => String(Math.round(d*10)/10).replace(/\.0$/,'');
+  const normDist = d => isFull(d) ? FULL : isHalf(d) ? HALF : Math.round(d*100)/100;   // 32K 같은 코스를 하프로 뭉개지 않아요
+  // 기록 사이트의 구간 이름(5K, 17K, Half …)에서 거리(km)를 읽는다. 이름에 없으면 사이트가 준 거리값 사용
+  function markDist(name,pd){
+    const u=String(name||'').toUpperCase().replace(/\s/g,'');
+    if(/^(HALF|하프)/.test(u)) return HALF;
+    const m=u.match(/^(\d+(?:\.\d+)?)(?:KM|K|킬로)/); if(m) return Number(m[1]);
+    let d=Number(pd); if(d>=1000) d/=1000; return d>0 && d<200 ? d : null;
+  }
+  const isFinName = n => /도착|FINISH|골인|GOAL|^FIN$/i.test(String(n||'').replace(/\s/g,''));
+  const LEGACY_KM = {'5K':5,'10K':10,'15K':15,'20K':20,'Half':HALF,'25K':25,'30K':30,'35K':35,'40K':40};
+  // 업체가 준 기록(marks 또는 예전 pass)을 [{k,d,t(초)}]로 통일
+  function normMarks(m,dist){
+    const tt = x => typeof x==='number' ? x : toS(x);
+    if(Array.isArray(m.marks)) return m.marks.map(x=>({k:x.k, d:x.k==='도착'?null:Number(x.d), t:tt(x.t)})).filter(x=>isFinite(x.t) && (x.k==='도착' || (x.d>0 && markDist(x.k)!=null)));   // 이름에 거리가 없는 지점(반환점 등)은 제외
+    return Object.keys(m.pass||{}).map(k=>({k, d:k==='도착'?null:LEGACY_KM[k], t:toS(m.pass[k])})).filter(x=>isFinite(x.t) && (x.k==='도착' || x.d>0));
+  }
+  const entryDist = ev => { const d=eventDistanceKm_(normalizeEventKey_(ev)); return d>0 && d<200 ? (Math.abs(d-42.2)<0.4?FULL:Math.abs(d-21.1)<0.4?HALF:d) : null; };
+  const COLORS = ['--r1','--r2','--r3','--r4','--r5','--r6','--r7','--r8','--r9','--r10'];
+  const BASE = 'https://www.myresult.co.kr', SPCT = 'https://time.spct.kr';
+  const $ = id => document.getElementById(id);
+  $('trkEvTz').innerHTML = TZ_OPTIONS_.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const lsGet = (k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } };
+  const lsSet = (k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} };
+
+  // ----- 시간 유틸 -----
+  const toS = t => { const [h,m,s]=String(t).split(':').map(Number); return h*3600+m*60+s; };
+  const hms = s => { s=Math.ceil(s-1e-6); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return `${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`; };
+  const clock = s => { s=Math.floor(s+1e-6)%86400; const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`; };
+  const pace = p => { const r=Math.round(p); return `${Math.floor(r/60)}:${String(r%60).padStart(2,'0')}`; };
+  const col = v => getComputedStyle($('trackOverlay')).getPropertyValue(v).trim();
+  let TZ = 'Asia/Seoul';                                  // 대회가 열리는 곳의 시간대 (기록 사이트 시각은 현지 시각)
+  const nowSec = () => tzNow_(TZ).sec;
+  const tabName = d => isFull(d) ? '풀코스' : isHalf(d) ? '하프' : kmTxt(d)+'km';
+  const courseName = d => isFull(d) ? '풀' : isHalf(d) ? '하프' : kmTxt(d)+'km';
+  const finished = r => r.marks.some(x=>x.k==='도착');
+
+  // ----- 상태 -----
+  let RACE=null, EV=null, RACE_DAY='9999-12-31', RUNNERS=[], MISSING=[], DATA=[];
+  let COURSE=FULL, CP=[], MODE=lsGet('sio-trk-mode','recent')==='avg'?'avg':'recent';
+  let FOLDED=true, SEL=new Set(), CH=null, XH=null;
+  let FORCE=false, tickTimer=null, refreshTimer=null, BUSY=false, AGAIN=false, UPDATED='--:--:--', SESSION=0, PICKS={}, NAMETRY=0;
+  const PREFETCH = {};
+  let SUBBASE='', HIDDEN=[], OV={};
+  const setSub = () => { $('trkSub').textContent = SUBBASE+' · 참가자 '+(RUNNERS.length+MISSING.filter(m=>m.state!=='found').length)+'명'; };
+  const evKey = id => 'sio-trk-ev-'+id;
+  const PROV = () => PROVIDERS[EV&&EV.provider] || PROVIDERS.myresult;
+  const raceOver = () => tzNow_(TZ).date > RACE_DAY;
+
+  // ----- 분석 -----
+  function analyse(r){
+    const dist=normDist(r.dist||FULL), st=r.start?toS(r.start):null, splits=[]; let prevD=0, prevT=0;
+    const marks=r.marks.map(x=>({k:x.k, d:x.k==='도착'?dist:x.d, t:x.t})).filter(x=>x.d<=dist+0.5).sort((p,q)=>p.d-q.d || p.t-q.t);
+    for(const c of marks){ const len=c.d-prevD, seg=c.t-prevT; if(len<=0.01 || seg<=0) continue;
+      splits.push({k:c.k,d:c.d,from:prevD,net:c.t,seg,pace:seg/len}); prevD=c.d; prevT=c.t; }
+    if(!splits.length) return {...r, dist, st, pre:true, started:!!r.start, splits};
+    const last=splits[splits.length-1], done=last.k==='도착', recent=last.pace, avg=last.net/last.d, proj=MODE==='avg'?avg:recent;
+    const predNet = done ? last.net : last.net+(dist-last.d)*proj;
+    return {...r, dist, st, splits, last, done, recent, avg, proj, predNet, predClock: st==null?null:st+predNet};
+  }
+  // 이 코스에서 지금까지 알려진 구간 목록(참가자들의 기록에 나온 구간의 합집합) + 도착
+  function cpsOf(list,dist){
+    const map=new Map();
+    list.forEach(a=>a.splits.forEach(sp=>{ if(sp.k==='도착') return; const key=Math.round(sp.d*100); if(!map.has(key)) map.set(key,{k:sp.k,d:sp.d}); }));
+    return [...map.values()].sort((x,y)=>x.d-y.d).concat([{k:'도착',d:dist}]);
+  }
+  const splitAt = (a,c) => a.splits.find(sp=>Math.abs(sp.d-c.d)<0.05);
+  const byName=(a,b)=>a.name.localeCompare(b.name,'ko') || Number(a.bib)-Number(b.bib);
+  const running = () => DATA.filter(a=>!a.pre);
+  const picked = () => { const all=running(), s=all.filter(a=>SEL.has(a.bib)); return s.length?s:all; };
+  const allMode = () => !running().some(a=>SEL.has(a.bib));
+  // 다음에 기록이 찍힐 지점: 알려진 구간 중 다음 것, 모르면 직전 구간 길이만큼 앞
+  const nextCP = a => {
+    const ls=a.splits[a.splits.length-1], step=Math.max(1,ls.d-ls.from), guess=a.last.d+step;
+    const nx=CP.find(c=>c.d>a.last.d+0.01);
+    if(nx && nx.d-a.last.d<=step*1.6) return nx;
+    return guess>=a.dist-0.01 ? {k:'도착',d:a.dist} : {k:'다음 구간',d:guess};
+  };
+  function estKm(a,t){
+    if(a.pre) return 0; if(a.done) return a.dist;
+    if(raceOver() || a.st==null) return a.last.d;
+    const el=t-a.st; if(el<=0) return 0;
+    if(el<=a.last.net){ for(const s of a.splits){ if(el<=s.net) return s.from+(el-(s.net-s.seg))/s.pace; } }
+    return Math.min(nextCP(a).d, a.last.d+(el-a.last.net)/a.proj);
+  }
+  const waiting = (a,t) => a.st!=null && !a.done && (t-a.st-a.last.net)/a.proj >= nextCP(a).d-a.last.d;
+  const clkOr = s => s==null ? '–' : clock(s);
+  const remainOf = (a,t) => { if(a.predClock==null) return '진행 중'; const left=a.predClock-t, lm=Math.max(0,Math.round(left/60));
+    return left<=0 ? '도착 임박' : `${Math.floor(lm/60)}:${String(lm%60).padStart(2,'0')} 남음`; };
+  const preLabel = a => a.started ? '출발' : PROV().hasStart ? '출발 전' : '기록 대기';
+
+  // ----- 화면: 카드 / 코스 / 그래프 / 표 -----
+  const nameHTML = a => `<span class="t-name"><i class="t-dot" style="background:var(${a.color})"></i>${esc(a.name)} <small>#${esc(a.bib)}${!isFull(a.dist)?' · '+courseName(a.dist):''}</small></span>`;
+  function rowOf(a,t){
+    let val, badge, cls='racing';
+    if(a.pre){ val='–:––:––'; badge=raceOver()?'대회 종료':a.started?'🏃 출발':preLabel(a); cls=a.started&&!raceOver()?'racing':'ended'; }
+    else if(a.done){ val=hms(a.last.net); badge='🏆 완주'; cls=''; }
+    else if(raceOver()){ val=hms(a.last.net); badge=a.last.k+' · 대회 종료'; cls='ended'; }
+    else { val=hms(a.predNet); badge='🏃 '+remainOf(a,t); }
+    const lbl = a.pre?'':a.done?'완주':raceOver()?'통과':'예상';
+    return `<div class="t-row${a.done?' fin':''}" style="--rc:var(${a.color})"><i class="t-dot" style="background:var(${a.color})"></i><span class="t-rname">${esc(a.name)}</span>
+      <span class="t-rval"><small>${lbl}</small> ${val}</span><span class="t-badge ${cls}">${badge}</span></div>`;
+  }
+  function renderCards(t){
+    const box=$('trkCards'), fold=$('trkFold');
+    box.classList.toggle('rows',FOLDED);
+    fold.textContent = FOLDED ? `▼ 자세히 펼치기 (${DATA.length}명)` : '▲ 간단히 접기';
+    if(FOLDED){ box.innerHTML=DATA.map(a=>rowOf(a,t)).join(''); return; }
+    box.innerHTML = DATA.map(a=>{
+      if(a.pre){
+        const over=raceOver();
+        const badge = over ? `<span class="t-badge ended">대회 종료</span>` : a.started ? `<span class="t-badge racing">🏃 출발</span>` : `<span class="t-badge ended">${preLabel(a)}</span>`;
+        const big = a.started && !over ? hms(Math.floor(Math.max(0,t-a.st))) : '–:––:––';
+        const sub = over ? '기록 없음' : a.started ? `출발 후 경과 시간 · 출발 <b>${esc(String(a.start).split('.')[0])}</b>` : PROV().hasStart ? '아직 출발 기록이 없어요' : PROV().preNote;
+        return `<div class="t-card" style="--rc:var(${a.color})"><div class="t-top">${nameHTML(a)}${badge}</div>
+          <div><div class="t-big">${big}</div><div class="t-sub">${sub}</div>${a.started&&!over?`<div class="t-sub">첫 기록은 첫 구간 통과 후 나와요</div>`:''}</div></div>`;
+      }
+      const km=estKm(a,t), half=isFull(a.dist)?a.splits.find(x=>Math.abs(x.d-HALF)<0.1):null;
+      if(a.done) return `<div class="t-card fin" style="--rc:var(${a.color})">
+        <div class="t-top">${nameHTML(a)}<span class="t-badge">🏆 완주</span></div>
+        <div><div class="t-big">${hms(a.last.net)}</div><div class="t-sub">완주 기록 (넷타임)${a.st!=null?` · 도착 <b>${clock(a.st+a.last.net)}</b>`:''}</div></div>
+        <dl class="t-kv"><dt>평균 페이스</dt><dd>${pace(a.avg)} 분/km</dd>
+        ${half?`<dt>전반 하프</dt><dd>${hms(half.net)}</dd><dt>후반 하프</dt><dd>${hms(a.last.net-half.net)}</dd>`:''}
+        <dt>마지막 구간 페이스</dt><dd>${pace(a.recent)} 분/km</dd></dl></div>`;
+      if(raceOver()) return `<div class="t-card" style="--rc:var(${a.color})">
+        <div class="t-top">${nameHTML(a)}<span class="t-badge ended">대회 종료</span></div>
+        <div><div class="t-big">${hms(a.last.net)}</div><div class="t-sub">${a.last.k} 통과 기록 (넷타임)${a.st!=null?` · 통과 <b>${clock(a.st+a.last.net)}</b>`:''}</div></div>
+        <dl class="t-kv">${half?`<dt>평균 페이스</dt><dd>${pace(a.avg)} 분/km</dd><dt>전반 하프</dt><dd>${hms(half.net)}</dd>`:''}
+        <dt>마지막 구간 페이스</dt><dd>${pace(a.recent)} 분/km</dd></dl></div>`;
+      return `<div class="t-card" style="--rc:var(${a.color})">
+        <div class="t-top">${nameHTML(a)}<span class="t-badge racing">🏃 ${remainOf(a,t)}</span></div>
+        <div><div class="t-big">${hms(a.predNet)}</div><div class="t-sub">예상 기록 (넷타임) · 도착 <b>${clkOr(a.predClock)}</b></div><div class="t-sub">앞으로 ${pace(a.proj)} 분/km 유지 기준</div></div>
+        <dl class="t-kv"><dt>평균 페이스</dt><dd>${pace(a.avg)} 분/km</dd>
+        ${half?`<dt>전반 하프</dt><dd>${hms(half.net)}</dd>`:''}
+        <dt>최근 구간 페이스</dt><dd>${pace(a.recent)} 분/km</dd>
+        <dt>마지막 통과</dt><dd>${a.last.k} · ${hms(a.last.net)}</dd>
+        ${a.st!=null?`<dt>현재 추정 위치</dt><dd>${km.toFixed(1)} km${waiting(a,t)?` <span class="t-pill">${nextCP(a).k} 기록 대기</span>`:''}</dd>`:''}</dl></div>`;
+    }).join('');
+  }
+  function renderTrack(t){
+    const L=30, R=570, sx=d=>L+(R-L)*d/COURSE, svg=$('trkTrack'), H=80+DATA.length*32;
+    svg.setAttribute('viewBox',`0 0 600 ${H}`);
+    let s=`<line x1="${L}" x2="${R}" y1="50" y2="50" stroke="${col('--t-line')}" stroke-width="6" stroke-linecap="round"/>`;
+    let lastLbl=-99;
+    for(const c of CP){ const x=sx(c.d), show=(x-lastLbl)>=46 && (c.k==='도착' || sx(COURSE)-x>=36); if(show) lastLbl=x;
+      s+=`<line x1="${x}" x2="${x}" y1="42" y2="58" stroke="${col('--t-muted')}" stroke-width="1"/>
+          ${show?`<text x="${x}" y="26" text-anchor="middle">${c.k==='도착'?'Fin':esc(c.k)}</text>`:''}`; }
+    s+=`<text x="${L}" y="26" text-anchor="middle">0</text>`;
+    DATA.forEach((a,i)=>{
+      const km=estKm(a,t), x=sx(km), y=96+i*32, c=col(a.color);
+      const label = a.pre ? preLabel(a) : a.done ? '완주 '+hms(a.last.net) : (raceOver()||a.st==null) ? a.last.k+'까지' : km.toFixed(1)+'km';
+      s+=`<line x1="${x}" x2="${x}" y1="54" y2="${y-14}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3"/>
+          <circle cx="${x}" cy="50" r="8" fill="${c}" stroke="#fff" stroke-width="2"/>
+          <text x="${Math.max(L,Math.min(x-20,R-150))}" y="${y+4}" style="fill:${c};font-family:'Pretendard',sans-serif;font-weight:700;font-size:18px">${esc(a.name)} ${label}</text>`;
+    });
+    svg.innerHTML=s;
+  }
+  function renderChart(){
+    const L=74,R=520,T=24,B=316, svg=$('trkChart'), RUN=picked();
+    if(!RUN.length){ CH=null; svg.innerHTML=`<text x="300" y="190" text-anchor="middle">5K 기록이 들어오면 그래프가 나와요</text><g id="trkXhair"></g>`; $('trkLegend').innerHTML=''; drawXhair(); return; }
+    const all=RUN.flatMap(a=>a.splits.map(s=>s.pace));
+    const lo=Math.floor((Math.min(...all)-15)/30)*30, hi=Math.ceil((Math.max(...all)+15)/30)*30;
+    const sx=d=>L+(R-L)*d/COURSE, sy=p=>T+(B-T)*(p-lo)/(hi-lo);
+    CH={L,R,T,B,sx,sy}; let s='';
+    for(let p=lo;p<=hi;p+=30){ const y=sy(p); s+=`<line x1="${L}" x2="${R}" y1="${y}" y2="${y}" stroke="${col('--t-grid')}"/><text x="${L-8}" y="${y+5}" text-anchor="end">${pace(p)}</text>`; }
+    { const step=COURSE>=30?10:COURSE>=15?5:COURSE>=8?2:1; for(let d=0; d<=COURSE+0.01; d+=step) s+=`<text x="${sx(d)}" y="${B+24}" text-anchor="middle">${d}</text>`; }
+    s+=`<text x="${(L+R)/2}" y="${B+52}" text-anchor="middle">거리 (km) · 페이스 분/km, 위가 빠름</text>`;
+    RUN.forEach(a=>{
+      const c=col(a.color); let d='';
+      a.splits.forEach((p,i)=>{ d+=`${i?'L':'M'}${sx(p.from)},${sy(p.pace)} L${sx(p.d)},${sy(p.pace)} `; });
+      s+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="3" stroke-linejoin="round"/>`;
+      const ya=sy(a.avg);
+      s+=`<line x1="${L}" x2="${sx(a.dist)}" y1="${ya}" y2="${ya}" stroke="${c}" stroke-width="1.5" stroke-dasharray="5 5" opacity=".8"/>`;
+      a.splits.forEach(p=>{ s+=`<circle cx="${sx(p.d)}" cy="${sy(p.pace)}" r="5" fill="${c}"/>`; });
+      if(!a.done){ const e=a.last; s+=`<text x="${sx(e.d)+8}" y="${sy(e.pace)-8}" style="fill:${c};font-weight:600;font-size:17px">${pace(e.pace)}</text>`; }
+    });
+    const tags=RUN.map(a=>({a,y:sy(a.avg)+5})).sort((p,q)=>p.y-q.y);
+    for(let i=1;i<tags.length;i++) if(tags[i].y-tags[i-1].y<18) tags[i].y=tags[i-1].y+18;
+    tags.forEach(t=>{ s+=`<text x="${R+6}" y="${t.y}" style="fill:${col(t.a.color)};font-weight:600;font-size:16px">${pace(t.a.avg)}</text>`; });
+    svg.innerHTML=s+`<g id="trkXhair"></g>`; drawXhair();
+    const am=allMode();
+    $('trkLegend').innerHTML = `<button type="button" class="t-lg" data-sel="*" aria-pressed="${am}">전체</button>`+
+      running().map(a=>`<button type="button" class="t-lg" data-sel="${esc(a.bib)}" aria-pressed="${!am&&SEL.has(a.bib)}"><i class="t-dot" style="background:var(${a.color})"></i>${esc(a.name)}</button>`).join('')+
+      `<span><i class="t-dash"></i>평균 페이스</span>`;
+  }
+  function renderTable(){
+    let h=`<thead><tr><th>구간</th>${DATA.map(a=>`<th colspan="2" class="grp who" style="color:var(${a.color})">${esc(a.name)} <small style="font-family:'Roboto Mono',monospace;font-weight:500;color:var(--t-muted)">#${esc(a.bib)}</small></th>`).join('')}</tr>
+      <tr><th></th>${DATA.map(()=>`<th class="grp">누적</th><th>페이스</th>`).join('')}</tr></thead><tbody>`;
+    for(const c of CP){
+      h+=`<tr><td>${esc(c.k)}</td>`;
+      for(const a of DATA){ const s=splitAt(a,c);
+        h+= s ? `<td class="grp">${hms(s.net)}</td><td>${pace(s.pace)}</td>` : `<td class="grp na">–</td><td class="na">–</td>`; }
+      h+='</tr>';
+    }
+    h+=`<tr><td><b>예상 도착</b></td>${DATA.map(a=> a.pre ? `<td class="grp na">–</td><td class="na">–</td>`
+      : a.done ? `<td class="grp fin-cell" style="color:var(${a.color})">${hms(a.last.net)}</td><td class="fin-cell" style="color:var(${a.color})">${pace(a.last.net/a.dist)}</td>`
+      : `<td class="grp">${hms(a.predNet)}</td><td>${pace(a.predNet/a.dist)}</td>`).join('')}</tr>`;
+    const tb=$('trkTbl'); tb.innerHTML=h+'</tbody>'; tb.classList.toggle('wide',DATA.length>=3);
+  }
+  const stateText = m => m.state==='searching'||m.state==='pending' ? '이름으로 찾는 중…' : m.state==='choose' ? `후보 ${m.cands.length}명 · 선택 필요` : m.state==='none' ? '배번 없음 · 이름 검색 결과 없음' : m.state==='error' ? '배번 없음 · 이름 검색 실패' : '배번 없음';
+  const who_ = r => esc(r.name)+(r.byProxy?'(대참)':'');   // 맨 위 명단에서만 (대참) 표시
+  function renderWho(){
+    const pk=MISSING.filter(m=>m.state==='choose');
+    const lost=MISSING.filter(m=>m.state==='none'||m.state==='error');
+    const pbox=$('trkPick'); pbox.hidden=!pk.length && !lost.length;
+    pbox.innerHTML=(lost.length&&RUNNERS.length?`<div class="t-smsg" style="margin-bottom:8px;">기록을 찾지 못한 참가자: ${lost.map(m=>esc(m.name)).join(', ')} — <b>👥 인원 편집</b>에서 이름·배번으로 찾을 수 있어요.</div>`:'')+pk.map(m=>`<div class="t-pickrow"><div class="t-smsg"><b>${who_(m)}</b>${m.byProxy?` — 기록 사이트에는 <b>${esc(m.lookup)}</b> 이름으로 올라 있어요.`:''} 이름이 같은 참가자가 여러 명이에요. 맞는 배번을 골라 주세요. (이 기기에 저장돼요)</div>
+      <div class="t-alts">${m.cands.map((c,i)=>`<button type="button" data-pn="${esc(m.lookup)}" data-i="${i}">#${esc(c.bib)}${c.dist?' · '+courseName(c.dist):''}</button>`).join('')}</div></div>`).join('');
+    $('trkLinks').innerHTML = !(RUNNERS.length && EV) ? '–'
+      : EV.provider==='smartchip'   // 스마트칩은 직접 링크가 막혀 있어요(사이트 안에서 들어가야 함) → 사이트 첫 화면 + 배번 안내
+        ? `<a href="https://smartchip.co.kr/" target="_blank" rel="noopener">스마트칩 사이트 열기</a> <span class="t-sub">(대회를 고른 뒤 이름·배번으로 조회 · ${[...RUNNERS].sort(byName).map(r=>esc(r.name)+' #'+esc(r.bib)).join(', ')})</span>`
+        : [...RUNNERS].sort(byName).map(r=>`<a href="${urlOf(r.bib,r.ref)}" target="_blank" rel="noopener">${esc(r.name)}</a>`).join(' · ');
+  }
+  function updateView(){
+    const none=!RUNNERS.length, loaded=RUNNERS.some(r=>r.loaded);
+    const empty=$('trkEmpty');
+    if(none){
+      empty.hidden=false;
+      const busyN=MISSING.some(m=>m.state==='pending'||m.state==='searching'), chooseN=MISSING.some(m=>m.state==='choose');
+      empty.innerHTML = !MISSING.length ? `이 대회에 참가자가 없어요.`
+        : busyN || (!EV && !chooseN) ? `배번이 없는 참가자는 <b>이름으로 기록을 찾아요</b>. 잠시만 기다려 주세요…`
+        : chooseN ? `같은 이름의 참가자가 여러 명이에요. 위에서 내 배번을 골라 주세요.`
+        : `배번이 입력된 참가자가 없고, 이름으로도 기록을 찾지 못했어요.<br>대회 상세의 참가자 목록에서 배번을 입력하거나, <b>👥 인원 편집</b>에서 이름·배번으로 직접 찾을 수 있어요.`;
+    } else empty.hidden=true;
+    $('trkLoading').hidden = none || loaded;
+    $('trkLoading').textContent = !EV ? '대회의 기록 사이트를 찾는 중… (처음 한 번, 최대 1분)' : '기록 조회중…';
+    $('trkBoard').hidden = none || !loaded;
+    $('trkUpdated').textContent = UPDATED;
+    setSub(); renderWho(); renderEdit();
+    document.querySelectorAll('#trackOverlay .t-seg button[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===MODE)));
+    const ALL=RUNNERS.filter(r=>r.loaded).map(analyse).sort(byName);
+    const courses=[...new Set(ALL.map(a=>a.dist))].sort((x,y)=>y-x);
+    const want=lsGet('sio-trk-tab-'+(RACE&&RACE.id),null);
+    COURSE = courses.includes(want) ? want : (courses[0]||FULL);
+    DATA=ALL.filter(a=>a.dist===COURSE); CP=cpsOf(DATA,COURSE);
+    const tabs=$('trkTabs'); tabs.hidden = courses.length<2;
+    tabs.innerHTML = courses.map(d=>`<button type="button" role="tab" data-tab="${d}" aria-pressed="${d===COURSE}">${tabName(d)} <small>${ALL.filter(a=>a.dist===d).length}명</small></button>`).join('');
+    if(loaded){ renderChart(); renderTable(); }
+    tick();
+  }
+  function tick(){ const t=nowSec(); $('trkNow').textContent=clock(t)+(TZ!=='Asia/Seoul'?' (현지)':''); if(!DATA.length) return; renderCards(t); renderTrack(t); }
+
+  // ----- 그래프 길게 누르기 -----
+  const HINT='<span class="t-hint">선 근처를 길게 누르면 그 사람의 구간 페이스가 여기 나와요.</span>';
+  function drawXhair(){
+    const g=$('trkXhair'), ro=$('trkReadout'); if(!g) return;
+    const a=XH&&picked().find(a=>a.bib===XH.bib), sp=a&&a.splits.find(s=>Math.abs(s.d-XH.d)<0.05);
+    if(!sp||!CH){ g.innerHTML=''; ro.className='t-readout'; ro.innerHTML=HINT; return; }
+    const x=CH.sx(sp.d), y=CH.sy(sp.pace), rc=col(a.color);
+    g.innerHTML=`<line x1="${x}" x2="${x}" y1="${CH.T-6}" y2="${CH.B}" stroke="${col('--t-fg')||'#1a1a1a'}" stroke-width="1.5"/><circle cx="${x}" cy="${y}" r="10" fill="none" stroke="${rc}" stroke-width="3"/>`;
+    ro.className='t-readout on'; ro.style.setProperty('--rc',`var(${a.color})`);
+    ro.innerHTML=`<i class="t-dot" style="background:var(${a.color})"></i><span class="rn">${esc(a.name)} · ${esc(sp.k)} 구간</span><span class="rp">${pace(sp.pace)} 분/km</span><span class="rc">누적 ${hms(sp.net)}</span>`;
+  }
+  function pickAt(cx,cy){
+    const svg=$('trkChart'), m=svg.getScreenCTM(); if(!m||!CH) return;
+    const pt=svg.createSVGPoint(); pt.x=cx; pt.y=cy; const v=pt.matrixTransform(m.inverse());
+    const cps=CP.filter(c=>picked().some(a=>splitAt(a,c))); if(!cps.length) return;
+    let best=cps[0]; for(const c of cps) if(Math.abs(CH.sx(c.d)-v.x)<Math.abs(CH.sx(best.d)-v.x)) best=c;
+    let who=null, dist=Infinity;
+    for(const a of picked()){ const sp=splitAt(a,best); if(!sp) continue; const dy=Math.abs(CH.sy(sp.pace)-v.y); if(dy<dist){ dist=dy; who=a.bib; } }
+    if(!XH||Math.abs(XH.d-best.d)>0.05||XH.bib!==who){ XH={d:best.d,bib:who}; drawXhair(); }
+  }
+  (function(){
+    const svg=$('trkChart'); let timer=null, active=false, sx0=0, sy0=0;
+    const end=()=>{ clearTimeout(timer); timer=null; if(active){ active=false; XH=null; drawXhair(); } };
+    svg.addEventListener('touchstart',e=>{ const t=e.touches[0]; sx0=t.clientX; sy0=t.clientY; timer=setTimeout(()=>{ active=true; navigator.vibrate&&navigator.vibrate(15); pickAt(sx0,sy0); },350); },{passive:true});
+    svg.addEventListener('touchmove',e=>{ const t=e.touches[0]; if(active){ e.preventDefault(); pickAt(t.clientX,t.clientY); } else if(Math.hypot(t.clientX-sx0,t.clientY-sy0)>10){ clearTimeout(timer); timer=null; } },{passive:false});
+    svg.addEventListener('touchend',end); svg.addEventListener('touchcancel',end);
+    svg.addEventListener('contextmenu',e=>e.preventDefault());
+    svg.addEventListener('mousedown',e=>{ sx0=e.clientX; sy0=e.clientY; timer=setTimeout(()=>{ active=true; pickAt(sx0,sy0); },350); });
+    svg.addEventListener('mousemove',e=>{ sx0=e.clientX; sy0=e.clientY; if(active) pickAt(e.clientX,e.clientY); });
+    window.addEventListener('mouseup',end);
+  })();
+
+  // ----- 기록 사이트 접속: MyResult는 브라우저에서 직접 (실시간 소켓), SPCT·스마트칩은 Apps Script 경유 -----
+  const SOURCES=[
+    ['직접', u=>u],
+    ['allorigins', u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)],
+    ['codetabs', u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)],
+    ['corsproxy', u=>'https://corsproxy.io/?url='+encodeURIComponent(u)],
+    ['jina', u=>'https://r.jina.ai/'+u]
+  ];
+  async function trySource([name,f],url,read,ms){
+    const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),ms);
+    try{ const r=await fetch(f(url+(url.includes('?')?'&':'?')+'_='+Date.now()),{cache:'no-store',signal:ctl.signal});
+      if(!r.ok) throw new Error(name+' '+r.status);
+      const v=read(await r.text()); if(v==null) throw new Error(name+' 내용없음'); return {v,via:name};
+    }catch(e){ throw new Error(e.name==='AbortError'?name+' 시간초과':(e.message.startsWith(name)?e.message:name+' 차단')); }
+    finally{ clearTimeout(to); }
+  }
+  async function fetchVia(url,read){
+    const pref=SOURCES.find(x=>x[0]===lsGet('sio-trk-src',null));
+    if(pref){ try{ return await trySource(pref,url,read,15000); }catch(e){} }
+    try{ const res=await Promise.any(SOURCES.filter(x=>x!==pref).map(x=>trySource(x,url,read,15000))); lsSet('sio-trk-src',res.via); return res; }
+    catch(agg){ throw new Error((agg.errors||[agg]).map(e=>e.message).join(', ')); }
+  }
+  async function gas(params,ms){
+    const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),ms||25000);
+    try{ const r=await fetch(GASURL+'?'+new URLSearchParams({...params,_:Date.now()}),{signal:ctl.signal});
+      const j=await r.json(); if(!j.ok) throw new Error(j.error||'Apps Script 오류'); return j; }
+    catch(e){ throw new Error(e.name==='AbortError'?'Apps Script 시간초과':e.message); }
+    finally{ clearTimeout(to); }
+  }
+  const urlOf = (bib,ref) => !EV ? '#' : EV.provider==='myresult' ? `${BASE}/${EV.id}/${bib}`
+    : EV.provider==='spct' ? (ref ? `${SPCT}/${ref}` : `${SPCT}/m1.php?TargetYear=${String(EV.id).slice(0,4)}&EVENT_NO=${EV.id}&currentPage=1&searchResultsName=${encodeURIComponent(bib)}`)
+    : `https://smartchip.co.kr/Search_Ballyno.html?usedata=${EV.id}`;
+
+  // MyResult 실시간 소켓 (기록 페이지가 구간 기록을 받아오는 연결)
+  const WS_URL='wss://myresult.co.kr/socket.io/?EIO=3&transport=websocket';
+  function socketPlayer(bib,ms){
+    ms=ms||7000;
+    return new Promise((resolve,reject)=>{
+      let ws, done=false, asked=false;
+      const fin=(err,v)=>{ if(done) return; done=true; clearTimeout(tm); try{ ws&&ws.close(); }catch(e){} err?reject(err):resolve(v); };
+      const tm=setTimeout(()=>fin(new Error('실시간 시간초과')),ms);
+      try{ ws=new WebSocket(WS_URL); }catch(e){ return fin(new Error('실시간 연결 불가')); }
+      ws.onerror=()=>fin(new Error('실시간 연결 차단')); ws.onclose=()=>fin(new Error('실시간 연결 끊김'));
+      ws.onmessage=ev=>{
+        const d=String(ev.data);
+        if(d==='2'){ try{ ws.send('3'); }catch(e){} return; }
+        if(d.startsWith('40')){ if(!asked){ asked=true; ws.send('42'+JSON.stringify(['CLIENT:INFO',{event_id:Number(EV.id),player_num:String(bib)}])); } return; }
+        if(d.startsWith('0')){ try{ ws.send('40'); }catch(e){ fin(e); } return; }
+        if(!d.startsWith('42')) return;
+        let body; try{ body=JSON.parse(d.slice(2))[1]; }catch(e){ return; }
+        if(!body||typeof body!=='object') return fin(new Error('실시간 응답 없음'));
+        if(String(body.num==null?'':body.num).trim()!==String(bib)) return;
+        fin(null,body);
+      };
+    });
+  }
+  const clkMs = t => { const m=String(t||'').match(/^(\d{1,2}):(\d{2}):(\d{2})(?:\.(\d+))?/); if(!m) return null; return ((+m[1]*60+ +m[2])*60+ +m[3])*1000 + (m[4]?Math.round(+('0.'+m[4])*1000):0); };
+  const durF = ms => { const f=Math.round(ms%1000); return dur(ms)+(f?'.'+String(f).padStart(3,'0'):''); };
+  const dur = ms => { const t=Math.floor(ms/1000), h=Math.floor(t/3600), m=Math.floor(t%3600/60), x=t%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`; };
+  // 코스 거리: 사이트가 준 실제 거리를 쓴다 (20km 넘으면 하프 같은 뭉뚱그림 금지)
+  function courseDistOf(p){
+    let d=Number(p&&p.course&&p.course.distance); if(d>=1000) d/=1000;
+    const cd=String((p&&p.course_cd)||(p&&p.course&&p.course.course_cd)||'');
+    if(d>0 && d<200) return normDist(d);
+    if(/^(Full|EF|W)$/i.test(cd)) return FULL;
+    if(/^(Half|EH)$/i.test(cd)) return HALF;
+    const m=cd.match(/(\d+(?:\.\d+)?)\s*K/i); return m ? Number(m[1]) : null;
+  }
+  function fromPlayer(p){
+    const out={rows:[], start:null, dist:courseDistOf(p), name:String(p.name||'').trim(), marks:[]};
+    const recs=(Array.isArray(p.records)?p.records:[]).map(r=>({name:String(r&&r.point&&r.point.name||'').trim(), raw:Number(r&&r.point&&r.point.distance), t:clkMs(r&&r.time_point), raw_t:String(r&&r.time_point||'')})).filter(x=>x.t!=null&&x.name);
+    const st=recs.find(x=>x.raw===0||/^(출발|START)$/i.test(x.name)); if(!st) return out;
+    out.start=durF(st.t);   // 소수점 이하까지 보존 (표시할 때만 반올림)
+    let finD=null;
+    recs.filter(x=>x!==st).sort((a,b)=>a.t-b.t).forEach(x=>{
+      const cum=(x.t-st.t)/1000; out.rows.push(`${x.name} ${x.raw_t} 누적 ${cum.toFixed(3)}초`);
+      if(isFinName(x.name)){ out.marks=out.marks.filter(m=>m.k!=='도착'); out.marks.push({k:'도착',d:null,t:cum}); const fd=markDist('',x.raw); if(fd>5) finD=fd; return; }
+      const d=markDist(x.name); if(d>0) out.marks.push({k:x.name,d,t:cum});   // 사이트의 구간을 그대로 (17K, 22K …). 이름에 거리가 없는 지점(반환점 등)은 페이스·그래프에서 뺌
+    });
+    const net=String(p.result_nettime||'').trim(), netMs=clkMs(net);
+    if(netMs!=null && netMs>0){ out.marks=out.marks.filter(m=>m.k!=='도착'); out.marks.push({k:'도착',d:null,t:netMs/1000}); out.rows.push(`넷타임 ${net}`); }
+    if(!out.dist && finD) out.dist=normDist(finD);
+    return out;
+  }
+  // 소켓이 막힐 때 쓰는 예전 방식: 기록 페이지 HTML 해석 (구간 이름은 페이지에 나온 그대로)
+  const TT='(\\d{2}:\\d{2}:\\d{2})';
+  function parseRecord(raw){
+    const txt=raw.replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/[|*`#]/g,' ');
+    const h=txt.lastIndexOf('누적기록'); if(h<0) return null;
+    const head=txt.slice(0,h), body=txt.slice(h), out={rows:[], start:null, dist:null, marks:[]};
+    const cm=head.match(/(?:^|\s)(Full|EF|W|Half|EH|\d+(?:\.\d+)?\s?K)(?=\s)/i);
+    if(cm) out.dist = /^(Full|EF|W)$/i.test(cm[1]) ? FULL : /^(Half|EH)$/i.test(cm[1]) ? HALF : Number(cm[1].replace(/[^\d.]/g,''));
+    const sm=body.match(new RegExp('(?:^|\\s)출발\\s+'+TT+'\\s+-')); if(!sm) return out;
+    out.start=sm[1]; const st=toS(sm[1]); let prevCum=0;
+    const re=new RegExp('(?:^|\\s)(\\d+(?:\\.\\d+)?\\s?K(?:M)?|반환점|Half|하프|도착)\\s+'+TT+'\\s+'+TT+'\\s+'+TT,'g');
+    for(const m of body.matchAll(re)){
+      const label=m[1].replace(/\s/g,''), clk=m[2], seg=m[3], cum=m[4];
+      if(Math.abs(toS(cum)-prevCum-toS(seg))>2 && Math.abs(toS(clk)-st-toS(cum))>120) continue;   // 표가 아닌 글자 걸러내기
+      prevCum=toS(cum); out.rows.push(`${label} ${clk} ${seg} ${cum}`);
+      if(isFinName(label)) out.marks.push({k:'도착',d:null,t:toS(cum)});
+      else { const d=markDist(label); if(d>0) out.marks.push({k:label,d,t:toS(cum)}); }
+    }
+    return out;
+  }
+  async function mrRecord(bib){
+    try{ const p=await socketPlayer(bib); return {m:fromPlayer(p), via:'실시간'}; }
+    catch(e){ const {v,via}=await fetchVia(urlOf(bib), parseRecord); return {m:v, via:via+' (실시간 실패: '+e.message+')'}; }
+  }
+  const PROVIDERS={
+    myresult:{ label:'MyResult', poll:30, hasStart:true,
+      async record(r){ const {m,via}=await mrRecord(r.bib); return {start:m.start, dist:m.dist, name:m.name, marks:m.marks, rows:m.rows, via}; } },
+    spct:{ label:'SPCT', poll:60, hasStart:true,
+      async record(r,fresh){ const j=await gas({action:'record',provider:'spct',event:String(EV.id),bib:r.bib,ref:r.ref||'',...(fresh?{fresh:'1'}:{})}); return {...j.record, via:'Apps Script'}; } },
+    smartchip:{ label:'스마트칩', poll:120, hasStart:false, preNote:'스마트칩은 기록이 올라오면 나와요',
+      async record(r,fresh){ const j=await gas({action:'record',provider:'smartchip',event:String(EV.id),bib:r.bib,...(fresh?{fresh:'1'}:{})}); return {...j.record, via:'Apps Script'}; } }
+  };
+
+  // ----- 지난 기록 저장: 기록 보기를 열면 마지막으로 받은 기록을 바로 보여주고, 뒤에서 새로 가져와요 -----
+  const recKey = () => 'sio-trk-rec-'+(RACE&&RACE.id);
+  const recId = r => EV.provider+':'+EV.id+':'+r.bib;
+  function saveRec(r){
+    if(!RACE||!EV||(!r.marks.length&&!r.start)) return;
+    const all=lsGet(recKey(),{})||{}; all[recId(r)]={t:Date.now(), start:r.start||null, dist:r.dist||null, marks:r.marks};
+    lsSet(recKey(),all); }
+  function restoreRec(r){
+    if(!RACE||!EV||r.loaded) return false;
+    const c=(lsGet(recKey(),{})||{})[recId(r)]; if(!c||!Array.isArray(c.marks)) return false;
+    r.start=c.start||null; if(c.dist) r.dist=c.dist; r.marks=normMarks({marks:c.marks},r.dist); r.loaded=true; r.cached=finished(r)?null:c.t; return true; }   // 완주 기록은 그대로 확정
+  const cachedNote = () => { const ts=RUNNERS.filter(r=>r.cached).map(r=>r.cached); if(!ts.length) return '';
+    const m=Math.max(0,Math.round((Date.now()-Math.min(...ts))/60000)); return `저장해 둔 ${m<1?'방금 전':m+'분 전'} 기록이에요.`; };
+  // ----- 기록 새로고침: 업체별 주기. 완주했거나 대회가 끝난 사람은 다시 묻지 않음 -----
+  async function refresh(){
+    if(!EV) return;
+    if(BUSY){ AGAIN=true; return; }
+    const targets=RUNNERS.filter(r=>!r.loaded || r.cached || (!finished(r) && !raceOver()));
+    if(!targets.length) return;
+    const my=SESSION; BUSY=true; $('trkBusy').hidden=false;
+    const fresh=FORCE; FORCE=false;                      // 새로고침 버튼: Apps Script가 저장해 둔 값 말고 사이트에서 바로 읽기
+    const errs=[], dbg=[]; let ok=0;
+    await Promise.all(targets.map(async r=>{
+      try{ const m=await PROV().record(r,fresh);
+        if(my!==SESSION) return;
+        r.start=m.start||null; if(m.dist) r.dist=m.dist;
+        r.marks=normMarks(m,r.dist); r.loaded=true; r.cached=null; ok++; saveRec(r);
+        dbg.push(`[${r.name} #${r.bib}] ${m.via} 경유 · ${courseName(normDist(r.dist||FULL))}\n출발 ${m.start||'기록 없음'}\n`+(m.rows||[]).join('\n')); }
+      catch(e){ errs.push(r.name+': '+e.message); dbg.push(`[${r.name} #${r.bib}] 실패: ${e.message}`); }
+    }));
+    if(my!==SESSION){ BUSY=false; return; }
+    $('trkRaw').textContent=dbg.join('\n\n');
+    if(ok) UPDATED=clock(nowSec());
+    $('trkMsg').textContent = errs.length ? (ok?'일부 실패: ':`기록을 가져오지 못했어요. ${PROV().poll}초 뒤 다시 시도해요. `)+errs.join(' / ')+(cachedNote()?' · '+cachedNote():'') : (EV.auto&&EV.auto.confidence&&EV.auto.confidence!=='high'?'대회를 자동으로 찾았는데 확실하지 않아요. 기록이 이상하면 ⚙️ 기록 사이트 설정에서 확인해 주세요.':'');
+    updateView();
+    BUSY=false; $('trkBusy').hidden=true;
+    if(AGAIN){ AGAIN=false; refresh(); }
+  }
+
+  // ----- 대회 찾기 (Apps Script resolve) / 설정 -----
+  const CONF={high:'확실',medium:'확인 필요',low:'불확실'};
+  let PICK=null, PICK_FOR='', RESOLVING=null;
+  function evHint(){ const p=$('trkEvProv').value;
+    $('trkEvHint').textContent = p==='smartchip' ? '스마트칩은 구간·완주 기록이 올라오면 나와요. 2분마다 확인해요.' : p==='spct' ? 'SPCT는 1분마다 확인해요. 대회 번호는 YYYYMMDD+두 자리예요 (예: 2025092102).' : 'MyResult는 30초마다 실시간으로 확인해요.'; }
+  function applyPick(m){ PICK=m; $('trkEvProv').value=m.provider; $('trkEvId').value=m.id; evHint(); }
+  function showResolve(j){
+    const box=$('trkEvRes'), m=j.match, alts=(j.candidates||[]).filter(c=>!(c.provider===m.provider&&c.id===m.id)).slice(0,4);
+    box.innerHTML=`<div class="t-evpick ${m.confidence}"><span class="tt">${esc(m.name)}<span class="t-conf ${m.confidence}">${CONF[m.confidence]||''}</span></span>
+      <span class="mm">${PROVIDERS[m.provider].label} ${esc(m.id)}번 · ${esc(m.date||'날짜 미상')}</span>
+      <span class="ww">${m.via==='AI'?'AI가 골랐어요':'이름이 가장 비슷한 대회예요'}${m.reason?' · '+esc(m.reason):''}</span></div>`+
+      (alts.length?`<div class="t-smsg">다른 대회라면 고르세요</div><div class="t-alts">${alts.map((c,i)=>`<button type="button" data-alt="${i}">${PROVIDERS[c.provider].label} ${esc(c.id)} · ${esc(c.date||'')} · ${esc(c.name)}</button>`).join('')}</div>`:'');
+    box.querySelectorAll('button[data-alt]').forEach(b=>b.addEventListener('click',()=>{ const c=alts[+b.dataset.alt]; showResolve({match:{...c,confidence:'high',via:'직접 선택'},candidates:j.candidates}); }));
+    applyPick(m); PICK_FOR=$('trkEvName').value.trim();
+    $('trkEvMore').open = m.confidence==='low';
+  }
+  async function runResolve(){
+    const name=$('trkEvName').value.trim(), box=$('trkEvRes');
+    if(!name){ box.innerHTML=''; return null; }
+    box.innerHTML=`<div class="t-smsg">“${esc(name)}” 대회를 찾는 중… (업체 세 곳 대회 목록 확인, 최대 1분)</div>`;
+    const my=RESOLVING=gas({action:'resolve',name,date:RACE?(toDateInputValue_(RACE.raceDate)||''):''},60000);
+    try{ const j=await my; if(RESOLVING!==my) return null; showResolve(j); return PICK; }
+    catch(e){ if(RESOLVING!==my) return null; PICK=null; box.innerHTML=`<div class="t-smsg">자동으로 찾지 못했어요. 직접 수정에서 업체와 대회 번호를 넣어 주세요. (${esc(e.message)})</div>`; $('trkEvMore').open=true; return null; }
+  }
+  function openSettings(){
+    $('trkEvName').value=(EV&&EV.query)||(RACE&&RACE.raceName)||'';
+    $('trkEvProv').value=(EV&&EV.provider)||'myresult'; $('trkEvId').value=(EV&&EV.id)||'';
+    $('trkEvTz').value=(TZ==='Asia/Seoul'?'':TZ); $('trkEvLink').value=''; $('trkEvDetect').textContent=''; PICK=null; PICK_FOR=''; $('trkEvRes').innerHTML=''; $('trkEvMore').open=!EV;
+    evHint(); open_('trkEventOverlay');
+  }
+  function detectLink(u){ u=String(u||''); let m=u.match(/myresult\.co\.kr\/(\d+)/); if(m) return {provider:'myresult',id:m[1]};
+    m=u.match(/spct\.(?:co\.)?kr\/.*EVENT_NO=(\d+)/i); if(m) return {provider:'spct',id:m[1]};
+    m=u.match(/smartchip\.co\.kr\/.*usedata=(\d+)/i); if(m) return {provider:'smartchip',id:m[1]}; return null; }
+  $('trkEvProv').addEventListener('change',()=>{ PICK=null; evHint(); });
+  $('trkEvId').addEventListener('input',()=>{ PICK=null; });
+  $('trkEvFind').addEventListener('click',()=>{ PICK=null; PICK_FOR=''; runResolve(); });
+  $('trkEvLink').addEventListener('input',e=>{ const d=detectLink(e.target.value), out=$('trkEvDetect');
+    if(!d){ out.textContent = e.target.value ? 'MyResult, SPCT, 스마트칩 기록 주소만 알아볼 수 있어요.' : ''; return; }
+    $('trkEvProv').value=d.provider; $('trkEvId').value=d.id; PICK=null; out.textContent=`${PROVIDERS[d.provider].label} ${d.id}번 대회로 채웠어요.`; evHint(); });
+  $('trkEvForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const name=$('trkEvName').value.trim(), btn=$('trkEvSave');
+    const manual = !!$('trkEvId').value.trim() && !PICK && $('trkEvMore').open;
+    let pick=PICK;
+    if(!manual && name && !(PICK && PICK_FOR===name)){ btn.disabled=true; btn.textContent='대회 찾는 중…'; pick=await runResolve(); btn.disabled=false; btn.textContent='저장하고 다시 보기'; }
+    const id=$('trkEvId').value.trim();
+    if(!id){ $('trkEvHint').textContent='대회를 찾지 못했어요. 직접 수정에서 대회 번호를 넣어 주세요.'; $('trkEvMore').open=true; return; }
+    const prov=$('trkEvProv').value;
+    const auto = pick && pick.provider===prov && String(pick.id)===id ? {confidence:pick.confidence, via:pick.via} : null;
+    const ev={provider:prov, id, name:(auto&&pick.name)||name, query:name, date:(auto&&pick.date)||'', auto};
+    const oldEv=EV; if(oldEv && (oldEv.provider!==ev.provider || String(oldEv.id)!==String(ev.id))){ try{ localStorage.removeItem('sio-trk-extra-'+RACE.id); localStorage.removeItem('sio-trk-pick-'+RACE.id); localStorage.removeItem('sio-trk-hide-'+RACE.id); localStorage.removeItem('sio-trk-ov-'+RACE.id); }catch(e2){} }   // 다른 대회로 바꾸면 배번이 달라져요
+    lsSet(evKey(RACE.id), ev);
+    lsSet('sio-trk-tz-'+RACE.id, $('trkEvTz').value||'');
+    close_('trkEventOverlay');
+    startRace(RACE.id, true);
+  });
+
+  // ----- 시작 / 종료 -----
+  function colorOf(i){ return COLORS[i%COLORS.length]; }
+  function buildRunners(raceId){
+    const entries=state.entries.filter(e=>e.raceId===raceId);
+    const seen=new Set(); const list=[]; const missing=[];
+    entries.forEach(e=>{
+      const who = e.proxy || (e.transfer==='open' ? '' : e.name);
+      if(!who) return;                                  // 양도중(뛰는 사람 없음)
+      const bib=String(e.bib||'').trim();
+      const known=entryDist(e.event);
+      const byProxy=!!e.proxy;                           // 기록 사이트에는 원래 신청자 이름으로 올라 있어요 → 조회는 e.name, 화면에는 대참자 이름
+      if(!bib){ if(!missing.some(m=>m.name===who)) missing.push({name:who, lookup:e.name, byProxy, evDist:known, state:'pending', cands:[]}); return; }
+      if(seen.has(bib)) return; seen.add(bib);
+      list.push({name:who, lookup:e.name, byProxy, bib, dist:known||FULL, start:null, marks:[], loaded:false, ref:''});
+    });
+    list.sort(byName).forEach((r,i)=>{ r.color=colorOf(i); });
+    return {list, missing};
+  }
+  // ----- 배번이 없는 참가자: 이름으로 기록 사이트에서 후보를 찾는다 -----
+  const nn = x => String(x||'').replace(/\s/g,'');
+  const sameDist = (a,b) => a!=null && b!=null && Math.abs(a-b)<0.6;
+  function adopt(m,c){
+    m.state='found';
+    RUNNERS.push({name:m.name, lookup:m.lookup, byProxy:m.byProxy, bib:String(c.bib), dist:c.dist||m.evDist||FULL, start:null, marks:[], loaded:false, ref:c.ref||'', byName:true, color:colorOf(RUNNERS.length)}); restoreRec(RUNNERS[RUNNERS.length-1]);
+  }
+  async function probeDist(c){                          // MyResult 검색은 종목을 안 알려줘서 기록 연결로 코스를 확인
+    try{ const p=await socketPlayer(c.bib,6000); const d=courseDistOf(p); return {...c, dist:d||null, name:c.name||String(p.name||'').trim()}; }
+    catch(e){ return c; }
+  }
+  async function searchOne(m,my){
+    m.state='searching'; m.lastTry=Date.now();
+    try{
+      const j=await gas({action:'search',provider:EV.provider,event:String(EV.id),q:m.lookup},30000);
+      if(my!==SESSION) return;
+      let list=(j.results||[]).filter(x=>!x.name || nn(x.name)===nn(m.lookup));
+      const uniq=[]; list.forEach(x=>{ if(!uniq.some(u=>String(u.bib)===String(x.bib))) uniq.push(x); }); list=uniq;
+      if(list.length>1 && m.evDist){
+        if(EV.provider==='myresult') list=await Promise.all(list.slice(0,8).map(probeDist));
+        if(my!==SESSION) return;
+        const hit=list.filter(x=>sameDist(x.dist,m.evDist));
+        if(hit.length) list=hit;                         // 신청한 종목과 같은 코스만
+      } else if(list.length===1 && m.evDist && list[0].dist && !sameDist(list[0].dist,m.evDist)){
+        list=[];                                         // 한 명뿐이어도 종목이 다르면 다른 사람일 수 있어요
+      }
+      if(!list.length){ m.state='none'; return; }
+      if(list.length===1){ adopt(m,list[0]); return; }
+      m.state='choose'; m.cands=list.slice(0,8);
+    }catch(e){ if(my!==SESSION) return; m.state='error'; m.err=e.message; }
+  }
+  async function findByName(my){
+    if(!EV) return;
+    PICKS=lsGet('sio-trk-pick-'+RACE.id,{});
+    const todo=MISSING.filter(m=>m.state!=='found' && m.state!=='choose');
+    todo.forEach(m=>{ const sv=PICKS[m.lookup]; if(sv){ adopt(m,sv); } });
+    const rest=todo.filter(m=>m.state!=='found');
+    rest.forEach(m=>{ m.state='searching'; });
+    updateView();
+    await Promise.all(rest.map(m=>searchOne(m,my)));
+    if(my!==SESSION) return;
+    updateView(); refresh();
+  }
+  function stopTimers(){ clearInterval(tickTimer); clearInterval(refreshTimer); tickTimer=refreshTimer=null; }
+  const evFromMatch = (m,q) => ({provider:m.provider,id:String(m.id),name:m.name,query:q,date:m.date||'',auto:{confidence:m.confidence,via:m.via}});
+  async function resolveFor(race){
+    const j=await gas({action:'resolve',name:race.raceName,date:toDateInputValue_(race.raceDate)||''},65000);
+    return j;
+  }
+  // 대회 전후에 대회 상세를 열면 미리 기록 사이트를 찾아 둔다 (기록 보기를 눌렀을 때 바로 열리도록)
+  window.prefetchRecordEv_ = function(race){
+    if(!race || lsGet(evKey(race.id),null) || PREFETCH[race.id]) return;
+    PREFETCH[race.id]=resolveFor(race).then(j=>{ const m=j.match; if(m && m.confidence!=='low') lsSet(evKey(race.id),evFromMatch(m,race.raceName)); })
+      .catch(()=>{}).finally(()=>{ delete PREFETCH[race.id]; });
+  };
+  async function startRace(raceId, keepOpen){
+    const race=state.races.find(r=>r.id===raceId); if(!race) return;
+    SESSION++; const my=SESSION; stopTimers(); BUSY=false; AGAIN=false;
+    RACE=race; FOLDED=true; TZ=raceTz_(race); RACE_DAY=toDateInputValue_(race.raceDate)||'9999-12-31'; XH=null; CH=null; SEL=new Set(); UPDATED='--:--:--'; NAMETRY=0;
+    const built=buildRunners(raceId); DATA=[];
+    HIDDEN=lsGet('sio-trk-hide-'+raceId,[])||[]; OV=lsGet('sio-trk-ov-'+raceId,{})||{};
+    const hk=new Set(HIDDEN.map(h=>h.k));
+    RUNNERS=built.list.filter(r=>!hk.has('b:'+r.bib)); MISSING=built.missing.filter(m=>!hk.has('n:'+m.lookup));
+    RUNNERS.forEach(r=>{ r.origBib=r.bib; const o=OV[r.bib]; if(o&&o.bib){ r.bib=String(o.bib); r.ref=o.ref||''; if(o.dist) r.dist=o.dist; r.changed=true; } });
+    (lsGet('sio-trk-extra-'+raceId,[])||[]).forEach(x=>{ if(x&&x.bib&&!RUNNERS.some(r=>r.bib===String(x.bib))) RUNNERS.push({name:x.name||('배번 '+x.bib), lookup:x.name||'', bib:String(x.bib), dist:x.dist||FULL, start:null, marks:[], loaded:false, ref:x.ref||'', extra:true, color:colorOf(RUNNERS.length)}); });
+    EV=lsGet(evKey(raceId),null);
+    $('trkTitle').textContent=race.raceName;
+    const dOk=/^\d{4}-\d{2}-\d{2}$/.test(RACE_DAY)&&RACE_DAY<'9999';
+    SUBBASE=`${dOk?`${+RACE_DAY.slice(5,7)}월 ${+RACE_DAY.slice(8,10)}일(${'일월화수목금토'[new Date(RACE_DAY+'T12:00:00Z').getUTCDay()]})`:'날짜 미정'}`+(TZ!=='Asia/Seoul'?' · 현지 시간 '+(TZ.split('/')[1]||TZ).replace(/_/g,' '):''); setSub();
+    $('trkMsg').textContent=''; $('trkRaw').textContent='아직 가져오지 않았어요.';
+    $('trkLiveLink').href='https://www.youtube.com/results?search_query='+encodeURIComponent((race.raceName||'마라톤')+' 생중계');
+    if(!keepOpen) open_('trackOverlay');
+    renderSrcNote();
+    updateView();
+    if(!EV){                                            // 처음: 대회 이름·날짜로 기록 업체·번호 찾기
+      try{
+        if(PREFETCH[raceId]){ await PREFETCH[raceId]; EV=lsGet(evKey(raceId),null); }
+        if(my!==SESSION) return;
+        if(!EV){
+          const j=await resolveFor(race);
+          if(my!==SESSION) return;
+          const m=j.match;
+          if(m.confidence==='low'){                     // 확실하지 않으면 저장하지 않고 직접 확인
+            $('trkLoading').hidden=true; MISSING.forEach(x=>{ if(x.state==='pending') x.state='none'; }); updateView();
+            $('trkMsg').textContent='기록 사이트(MyResult·SPCT·스마트칩)에서 이 대회를 찾지 못했어요. 기록 주소가 있으면 아래 창에 직접 넣어 주세요.';
+            openSettings(); showResolve(j);
+            return;
+          }
+          EV=evFromMatch(m,race.raceName); lsSet(evKey(raceId),EV);
+        }
+      }catch(e){
+        if(my!==SESSION) return;
+        $('trkLoading').hidden=true; MISSING.forEach(x=>{ if(x.state==='pending') x.state='none'; }); updateView();
+        $('trkMsg').textContent='대회의 기록 사이트를 자동으로 찾지 못했어요. ⚙️ 기록 사이트 설정에서 직접 연결해 주세요. ('+e.message+')';
+        return;
+      }
+    }
+    RUNNERS.forEach(restoreRec);
+    const cn=cachedNote(); if(cn){ const ts=RUNNERS.filter(r=>r.cached).map(r=>r.cached); UPDATED=clock(tzNow_(TZ).sec-Math.round((Date.now()-Math.max(...ts))/1000)+86400); $('trkMsg').textContent=cn+' 새로 가져오는 중…'; }
+    renderSrcNote(); updateView();
+    tickTimer=setInterval(()=>{ if(!$('trackOverlay').classList.contains('show')){ stopTimers(); return; } tick(); },15000);
+    refreshTimer=setInterval(()=>{ if(!$('trackOverlay').classList.contains('show')){ stopTimers(); return; }
+      const retry=MISSING.filter(m=>(m.state==='none'||m.state==='error') && Date.now()-(m.lastTry||0)>180000);   // 이름 검색 실패는 3분마다 다시
+      if(retry.length) Promise.all(retry.map(m=>searchOne(m,SESSION))).then(()=>{ updateView(); refresh(); });
+      refresh(); }, PROV().poll*1000);
+    refresh();
+    findByName(my);
+  }
+  function renderSrcNote(){
+    $('trkSrcNote').textContent = EV ? `기록 대회: ${EV.name||EV.query||''} · ${PROV().label} ${EV.id}번 — ${PROV().poll}초마다 가져와요${EV.provider!=='myresult'?' (Apps Script 경유)':''}.` : '';
+  }
+
+  // ----- 이벤트 -----
+  $('trkRefreshBtn').addEventListener('click',()=>{ FORCE=true; refresh(); toast('기록을 새로고침해요'); });
+  $('trkSettingsBtn').addEventListener('click',openSettings);
+  document.querySelectorAll('#trackOverlay .t-seg button[data-mode]').forEach(b=>b.addEventListener('click',()=>{ MODE=b.dataset.mode; lsSet('sio-trk-mode',MODE); updateView(); }));
+  $('trkTabs').addEventListener('click',e=>{ const b=e.target.closest('button[data-tab]'); if(!b) return; lsSet('sio-trk-tab-'+RACE.id,Number(b.dataset.tab)); XH=null; updateView(); });
+  $('trkLegend').addEventListener('click',e=>{ const b=e.target.closest('button[data-sel]'); if(!b) return; const k=b.dataset.sel;
+    if(k==='*') SEL.clear(); else if(SEL.has(k)) SEL.delete(k); else SEL.add(k);
+    if(running().every(a=>SEL.has(a.bib))) SEL.clear(); XH=null; renderChart(); });
+  $('trkFold').addEventListener('click',()=>{ FOLDED=!FOLDED; tick(); });
+
+  $('trkPick').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-pn]'); if(!b) return;
+    const m=MISSING.find(x=>x.lookup===b.dataset.pn), c=m&&m.cands[+b.dataset.i]; if(!c) return;
+    savePick(m.lookup,c);
+    adopt(m,c); updateView(); refresh();
+  });
+
+  // ----- 사람 추가 / 변경: 멤버가 아닌 사람, 이름으로 잘못 찾은 경우 -----
+  let ADD=null, ADDSEQ=0, ADDLIST=[];
+  function savePick(lookup,c){ PICKS=lsGet('sio-trk-pick-'+RACE.id,{})||{}; PICKS[lookup]={bib:String(c.bib),ref:c.ref||'',dist:c.dist||null}; lsSet('sio-trk-pick-'+RACE.id,PICKS); }
+  function saveExtras(){ lsSet('sio-trk-extra-'+RACE.id, RUNNERS.filter(r=>r.extra).map(r=>({name:r.name,bib:r.bib,ref:r.ref||'',dist:r.dist||null}))); }
+  async function searchPeople(q){
+    const digits=/^\d+$/.test(q);
+    if(digits && EV.provider==='myresult'){                // 배번은 실시간 연결로 바로 확인
+      try{ const p=await socketPlayer(q,8000); return [{bib:q, name:String(p.name||'').trim(), dist:courseDistOf(p)}]; }catch(e){ return []; }
+    }
+    const j=await gas({action:'search',provider:EV.provider,event:String(EV.id),q},30000);
+    let list=[]; (j.results||[]).forEach(x=>{ if(!list.some(u=>String(u.bib)===String(x.bib))) list.push(x); });
+    list=list.slice(0,12);
+    if(EV.provider==='myresult' && list.length>1) list=await Promise.all(list.slice(0,8).map(probeDist));   // 코스 표시
+    return list;
+  }
+  function openAdd(target){
+    if(!EV){ toast('기록 사이트를 먼저 연결해 주세요 (⚙️ 기록 사이트 설정)'); return; }
+    ADD=target;
+    const r = target.mode==='chg' ? RUNNERS.find(x=>x.bib===target.bib) : target.mode==='chgm' ? MISSING.find(x=>x.lookup===target.key) : null;
+    $('trkAddTitle').textContent = r ? `${r.name} 기록 바꾸기` : '참가자 추가';
+    $('trkAddSub').textContent = r ? '이름을 다시 조회하거나 배번을 입력해서 맞는 사람으로 바꿔요. 이 기기에만 저장돼요.' : '참가자 명단에 없는 사람도 이름이나 배번으로 찾아서 볼 수 있어요. 이 기기에만 저장돼요.';
+    $('trkAddQ').value = r ? (r.lookup||r.name) : '';
+    $('trkAddRes').innerHTML='';
+    open_('trkAddOverlay');
+    if(r) runAdd();
+  }
+  async function runAdd(){
+    const q=$('trkAddQ').value.trim(), box=$('trkAddRes'); if(!q){ box.innerHTML=''; return; }
+    const my=++ADDSEQ; box.innerHTML=`<div class="t-smsg">“${esc(q)}” 조회하는 중…</div>`;
+    let list; try{ list=await searchPeople(q); }catch(e){ if(my!==ADDSEQ) return; box.innerHTML=`<div class="t-smsg">조회하지 못했어요. (${esc(e.message)})</div>`; return; }
+    if(my!==ADDSEQ) return;
+    ADDLIST=list; const digits=/^\d+$/.test(q);
+    box.innerHTML=(list.length ? `<div class="t-alts">${list.map((c,i)=>`<button type="button" data-ai="${i}">#${esc(c.bib)} · ${esc(c.name||q)}${c.dist?' · '+courseName(c.dist):''}</button>`).join('')}</div>`
+        : `<div class="t-smsg">“${esc(q)}”에 해당하는 참가자를 찾지 못했어요.${EV.provider==='smartchip'?' (스마트칩은 기록이 올라온 뒤에 조회돼요)':''}</div>`)
+      + (digits && !list.some(c=>String(c.bib)===q) ? `<div class="t-alts" style="margin-top:6px;"><button type="button" data-ai="raw">배번 #${esc(q)} 그대로 추가</button></div>` : '');
+  }
+  $('trkAddForm').addEventListener('submit',e=>{ e.preventDefault(); runAdd(); });
+  $('trkAddRes').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-ai]'); if(!b||!ADD) return;
+    const q=$('trkAddQ').value.trim();
+    const c=b.dataset.ai==='raw' ? {bib:q,name:'',dist:null,ref:''} : ADDLIST[+b.dataset.ai]; if(!c) return;
+    const bib=String(c.bib);
+    if(ADD.mode==='add'){
+      if(RUNNERS.some(r=>r.bib===bib)){ toast('이미 보고 있는 배번이에요'); return; }
+      RUNNERS.push({name:c.name||('배번 '+bib), lookup:c.name||'', bib, dist:c.dist||FULL, start:null, marks:[], loaded:false, ref:c.ref||'', extra:true, color:colorOf(RUNNERS.length)});
+      saveExtras();
+    } else if(ADD.mode==='chg'){
+      const r=RUNNERS.find(x=>x.bib===ADD.bib); if(!r) return;
+      if(bib!==r.bib && RUNNERS.some(x=>x.bib===bib)){ toast('이미 보고 있는 배번이에요'); return; }
+      if(r.extra && c.name) r.name=c.name;
+      r.bib=bib; r.ref=c.ref||''; r.dist=c.dist||r.dist; r.start=null; r.marks=[]; r.loaded=false;
+      if(r.extra) saveExtras();
+      else if(r.byName) savePick(r.lookup,c);
+      else { OV[r.origBib||r.bib]={bib,ref:c.ref||'',dist:c.dist||null}; lsSet('sio-trk-ov-'+RACE.id,OV); r.changed=true; }
+      SEL.clear(); XH=null;
+    } else {
+      const m=MISSING.find(x=>x.lookup===ADD.key); if(!m) return;
+      adopt(m,c); savePick(m.lookup,c);
+    }
+    close_('trkAddOverlay'); updateView(); refresh();
+  });
+  // ----- 인원 편집 -----
+  const saveHidden = () => lsSet('sio-trk-hide-'+RACE.id, HIDDEN);
+  function renderEdit(){
+    const people=[...RUNNERS].sort(byName).map(r=>`<div class="t-erow"><i class="t-dot" style="background:var(${r.color})"></i>
+      <div class="t-einfo"><b>${who_(r)}</b> <small>#${esc(r.bib)} · ${r.extra?'직접 추가':r.byName?'이름으로 찾음':r.changed?'배번 변경함':'참가자'}${r.loaded?' · '+tabName(r.dist||FULL):''}</small></div>
+      <button type="button" class="t-ebtn" data-e="chg" data-bib="${esc(r.bib)}">변경</button><button type="button" class="t-ebtn del" data-e="del" data-bib="${esc(r.bib)}">삭제</button></div>`);
+    const miss=MISSING.filter(m=>m.state!=='found').map(m=>`<div class="t-erow"><i class="t-dot" style="background:#ccc"></i>
+      <div class="t-einfo"><b>${who_(m)}</b> <small>${stateText(m)}</small></div>
+      <button type="button" class="t-ebtn" data-e="chgm" data-k="${esc(m.lookup)}">찾기</button><button type="button" class="t-ebtn del" data-e="delm" data-k="${esc(m.lookup)}">삭제</button></div>`);
+    $('trkEditList').innerHTML = people.concat(miss).join('') || '<div class="t-smsg" style="padding:10px 0;">보고 있는 인원이 없어요. ➕ 인원 추가로 찾아 보세요.</div>';
+    $('trkEditHidden').innerHTML = HIDDEN.length ? `<h3>삭제한 참가자 (다시 보려면 복원)</h3>`+HIDDEN.map((h,i)=>`<div class="t-erow"><div class="t-einfo"><b>${esc(h.label)}</b></div><button type="button" class="t-ebtn" data-e="restore" data-i="${i}">복원</button></div>`).join('') : '';
+  }
+  function removeRunner(bib){
+    const i=RUNNERS.findIndex(r=>r.bib===bib); if(i<0) return; const r=RUNNERS[i];
+    RUNNERS.splice(i,1); SEL.delete(bib); XH=null;
+    if(r.extra) saveExtras();
+    else {
+      HIDDEN.push(r.byName ? {k:'n:'+r.lookup,label:r.name+' (이름으로 찾음)'} : {k:'b:'+(r.origBib||r.bib),label:r.name+' #'+(r.origBib||r.bib)}); saveHidden();
+      if(r.byName){ const pk=lsGet('sio-trk-pick-'+RACE.id,{})||{}; delete pk[r.lookup]; lsSet('sio-trk-pick-'+RACE.id,pk); }
+    }
+  }
+  $('trkEditBtn').addEventListener('click',()=>{ renderEdit(); open_('trkEditOverlay'); });
+  $('trkEditAdd').addEventListener('click',()=>openAdd({mode:'add'}));
+  $('trkEditOverlay').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-e]'); if(!b) return; const a=b.dataset.e;
+    if(a==='chg') openAdd({mode:'chg',bib:b.dataset.bib});
+    else if(a==='chgm') openAdd({mode:'chgm',key:b.dataset.k});
+    else if(a==='del'){ removeRunner(b.dataset.bib); updateView(); }
+    else if(a==='delm'){ const m=MISSING.find(x=>x.lookup===b.dataset.k); if(!m) return; MISSING=MISSING.filter(x=>x!==m); HIDDEN.push({k:'n:'+m.lookup,label:m.name+' (배번 없음)'}); saveHidden(); updateView(); }
+    else if(a==='restore'){ HIDDEN.splice(+b.dataset.i,1); saveHidden(); startRace(RACE.id,true); }
+  });
+
+  // 외부(대회 상세 버튼)에서 부름
+  window.openRecordView_ = function(raceId){ startRace(raceId, false); };
+})();
+
 </script>
 </body>
 </html>
