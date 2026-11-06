@@ -3150,7 +3150,8 @@ const PhotoCache = (()=>{
   };
 })();
 
-const MAX_PHOTOS_PER_ENTRY = 10;
+const MAX_PHOTOS_PER_ENTRY = 20;   // 참가 기록 사진 상한 (서버 PHOTO_MAX_PER_ENTRY와 맞춤)
+const MAX_PHOTOS_PER_RACE = 20;   // 대회 전체 사진 상한 (서버 PHOTO_MAX_PER_RACE와 맞춤)
 const fullPhotoUrls_ = new Map(); // 이번 접속 중 한 번 받은 원본 (photoId -> object URL)
 const thumbUrls_ = new Map();     // photoId -> object URL
 
@@ -3353,7 +3354,8 @@ function createPhotoGallery_(cfg){
     const grid = document.getElementById(cfg.gridId);
     const canEdit = cfg.canEdit();
     grid.innerHTML = '';
-    document.getElementById(cfg.countId).textContent = items.length ? `${items.length}/${MAX_PHOTOS_PER_ENTRY}` : '';
+    const maxN = cfg.max || MAX_PHOTOS_PER_ENTRY;
+    document.getElementById(cfg.countId).textContent = items.length ? `${items.length}/${maxN}` : '';
 
     items.forEach(p=>{
       const div = document.createElement('div');
@@ -3405,7 +3407,7 @@ function createPhotoGallery_(cfg){
       grid.appendChild(retry);
       return;
     }
-    if(canEdit && items.length + pending.length < MAX_PHOTOS_PER_ENTRY){
+    if(canEdit && items.length + pending.length < (cfg.max || MAX_PHOTOS_PER_ENTRY)){
       const add = document.createElement('button');
       add.type = 'button'; add.className = 'photo-add';
       add.innerHTML = '<b>＋</b>사진 추가';
@@ -3458,7 +3460,7 @@ function createPhotoGallery_(cfg){
     const myToken = token;
     let added = 0, failed = 0, skipped = 0, lastError = '';
     for(const f of files){
-      if(items.length + pending.length >= MAX_PHOTOS_PER_ENTRY){ skipped++; continue; }
+      if(items.length + pending.length >= (cfg.max || MAX_PHOTOS_PER_ENTRY)){ skipped++; continue; }
       let pend = null;
       try{
         const [full, thumb] = await Promise.all([compressImage_(f, 1600, 0.82), compressImage_(f, 240, 0.7)]);
@@ -3488,7 +3490,7 @@ function createPhotoGallery_(cfg){
       }
     }
     if(failed) toast(lastError && !/failed|Failed|network/i.test(lastError) ? lastError : '일부 사진을 올리지 못했어요');
-    else if(skipped) toast(`사진은 최대 ${MAX_PHOTOS_PER_ENTRY}장까지 올릴 수 있어요`);
+    else if(skipped) toast(`사진은 최대 ${cfg.max || MAX_PHOTOS_PER_ENTRY}장까지 올릴 수 있어요`);
     else if(added) toast(`사진 ${added}장 저장 완료`);
   });
 
@@ -3504,7 +3506,7 @@ const recordGallery = createPhotoGallery_({
 
 // 대회 상세: 모든 크루원이 보고, 관리자만 추가/삭제 (서버도 관리자 확인). 사진 키는 'race_<대회id>'
 const raceGallery = createPhotoGallery_({
-  gridId:'racePhotoGrid', countId:'racePhotoCount', inputId:'racePhotoInput',
+  gridId:'racePhotoGrid', countId:'racePhotoCount', inputId:'racePhotoInput', max: MAX_PHOTOS_PER_RACE,
   getKey: ()=> state.activeRace ? 'race_'+state.activeRace.id : null,
   canEdit: ()=> isAdmin_(),
   onUpdate: (count)=>{
