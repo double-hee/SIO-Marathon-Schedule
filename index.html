@@ -3097,18 +3097,25 @@ document.querySelectorAll('#recordGoalH,#recordGoalM,#recordGoalS,#recordResultH
 
 /* ================= 참가 기록 사진 (서버: 구글 드라이브에 저장) ================= */
 // 사진 업로드는 용량이 커서 keepalive(64KB 제한)를 쓰는 apiPost 대신 별도 함수로 보냄
-async function apiPostBig_(action, payload){
+async function apiPostBig_(action, payload, ms){
+  const ctl = new AbortController(), to = setTimeout(()=>ctl.abort(), ms || 90000);
   try{
     const res = await fetch(CONFIG.GAS_URL, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({action, ...payload})
+      body: JSON.stringify({action, ...payload}),
+      signal: ctl.signal
     });
-    return await res.json();
+    const text = await res.text();
+    try{ return JSON.parse(text); }
+    catch(e){   // 서버가 JSON 대신 오류 페이지를 돌려준 경우 (구글 서버 일시 오류·사용량 제한 등)
+      const msg = (text.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').match(/(Exception|오류|Error|exceeded|too many|초과)[^.]{0,80}/i)||[])[0];
+      return { ok:false, retry:true, error:'서버 응답 오류' + (msg ? ': '+msg : ` (HTTP ${res.status})`) };
+    }
   }catch(err){
     console.error(err);
-    return { ok:false, error:'네트워크 오류가 발생했어요' };
-  }
+    return { ok:false, retry:true, error: err.name==='AbortError' ? '서버 응답이 너무 늦어요(시간 초과)' : '네트워크 오류가 발생했어요' };
+  }finally{ clearTimeout(to); }
 }
 
 // 썸네일과 사진 목록을 기기(IndexedDB)에 캐시: 모달을 열 때 서버 응답을 기다리지 않고 바로 보여주고, 서버와는 동시에 맞춰봄
@@ -3459,25 +3466,33 @@ function createPhotoGallery_(cfg){
     if(String(key).startsWith('tmp_')){ toast('참가 신청 저장 중이에요. 잠시 후 다시 시도해주세요'); return; }
     const myToken = token;
     let added = 0, failed = 0, skipped = 0, lastError = '';
-    for(const f of files){
-      if(items.length + pending.length >= (cfg.max || MAX_PHOTOS_PER_ENTRY)){ skipped++; continue; }
+    const room = Math.max(0, (cfg.max || MAX_PHOTOS_PER_ENTRY) - items.length - pending.length);
+    const queue = files.slice(0, room); skipped = files.length - queue.length;
+    const batchStart = Date.now();   // 고른 순서대로 정렬되도록 사진마다 순서 값(batchStart + 순번)을 붙인다
+    // 화면이 꺼지면 업로드가 끊기므로, 올리는 동안 화면 꺼짐을 막는다 (지원하는 브라우저만)
+    let wake = null; try{ if(navigator.wakeLock) wake = await navigator.wakeLock.request('screen'); }catch(e){}
+    const uploadOne = async (f, idx)=>{
       let pend = null;
       try{
         const [full, thumb] = await Promise.all([compressImage_(f, 1600, 0.82), compressImage_(f, 240, 0.7)]);
         pend = {key: Math.random().toString(36).slice(2), url: URL.createObjectURL(thumb)};
         pending.push(pend);
         if(myToken === token) draw();
-        const res = await apiPostBig_('uploadPhoto', {
-          entryId: key, name: state.user,
-          image: await blobToB64_(full), thumb: await blobToB64_(thumb)
-        });
+        const body = { entryId: key, name: state.user, clientId: 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,10), order: batchStart + idx,
+                       image: await blobToB64_(full), thumb: await blobToB64_(thumb) };
+        let res = null;
+        for(let attempt=0; attempt<3; attempt++){   // 네트워크·서버 일시 오류는 잠시 뒤 다시 시도 (같은 업로드 번호라 두 번 저장되지 않음)
+          if(attempt) await new Promise(r=>setTimeout(r, attempt*3000));
+          res = await apiPostBig_('uploadPhoto', body);
+          if(res.ok || !res.retry) break;
+        }
         if(!res.ok) throw new Error(res.error || 'upload-failed');
         PhotoCache.putThumb(res.photo.id, thumb);
         thumbUrls_.set(res.photo.id, URL.createObjectURL(thumb));
         PhotoCache.putFull(res.photo.id, full); // 방금 올린 사진은 원본도 이미 있으니 기기에 저장해 크게 볼 때 바로 열림
         fullPhotoUrls_.set(res.photo.id, URL.createObjectURL(full));
-        if(myToken === token) items.push(res.photo);
-        PhotoCache.getList(key).then(l=>PhotoCache.putList(key, [...(l||[]).filter(x=>x.id!==res.photo.id), res.photo]));
+        if(myToken === token && !items.some(x=>x.id===res.photo.id)){ items.push(res.photo); items.sort((a,b)=>a.createdAt-b.createdAt); }
+        PhotoCache.getList(key).then(l=>PhotoCache.putList(key, [...(l||[]).filter(x=>x.id!==res.photo.id), res.photo].sort((a,b)=>a.createdAt-b.createdAt)));
         added++;
       }catch(err){
         failed++; lastError = String(err.message || '');
@@ -3488,9 +3503,13 @@ function createPhotoGallery_(cfg){
         }
         if(myToken === token){ draw(); notify(); }
       }
-    }
-    if(failed) toast(lastError && !/failed|Failed|network/i.test(lastError) ? lastError : '일부 사진을 올리지 못했어요');
-    else if(skipped) toast(`사진은 최대 ${cfg.max || MAX_PHOTOS_PER_ENTRY}장까지 올릴 수 있어요`);
+    };
+    // 2장씩 동시에 올린다 (서버는 드라이브 저장을 잠금 밖에서 해서 서로 기다리지 않음)
+    let next = 0;
+    await Promise.all([0,1].map(async ()=>{ while(next < queue.length){ const idx = next++; await uploadOne(queue[idx], idx); } }));
+    try{ if(wake) await wake.release(); }catch(e){}
+    if(failed) toast(`${added ? `사진 ${added}장 저장, ` : ''}${failed}장 실패 — ${lastError && !/failed|Failed/i.test(lastError) ? lastError : '다시 시도해 주세요'}`);
+    else if(skipped) toast(`사진은 최대 ${cfg.max || MAX_PHOTOS_PER_ENTRY}장까지 올릴 수 있어요${added?` (${added}장 저장)`:''}`);
     else if(added) toast(`사진 ${added}장 저장 완료`);
   });
 
