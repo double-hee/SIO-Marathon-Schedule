@@ -51,6 +51,15 @@
 
   /* ---------- Shell ---------- */
   #shell{display:none; flex-direction:column; min-height:100vh;}
+  .today-bar{margin:10px 14px 0; padding:10px 12px; background:#FFF7E8; border:1.5px solid #F2C46D; border-radius:12px;}
+  .today-label{font-size:12.5px; font-weight:700; color:#8A5A00; margin-bottom:7px;}
+  .today-chips, .trk-switch{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; padding-bottom:2px;}
+  .today-chips::-webkit-scrollbar, .trk-switch::-webkit-scrollbar{display:none;}
+  .today-chip{flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:999px; border:1.5px solid var(--navy); background:#fff; color:var(--navy); font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;}
+  .today-chip .n{font-weight:500; font-size:12px; color:#7a746b;}
+  .today-chip.on{background:var(--navy); color:#fff;}
+  .today-chip.on .n{color:#dfe5ee;}
+  .trk-switch{margin:2px 0 8px;}
   header.top{background:var(--navy); color:#fff; padding:16px 18px 14px; display:flex; align-items:center; gap:12px;}
   header.top .who{flex:1 1 70px; min-width:70px;}
   header.top .who .crew{font-size:11px; opacity:0.6; letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
@@ -533,6 +542,7 @@
       <button class="master-btn" id="memberMgrBtn" type="button" style="display:none;">👥 회원 관리</button>
       <button class="logout" id="logoutBtn">로그아웃</button>
     </header>
+    <div class="today-bar" id="todayBar" hidden></div>   <!-- 대회 당일: 오늘 대회 기록 보기 바로가기 -->
 
     <main id="mainMine">
       <div class="section-title">내 대회 <span class="count" id="mineCount"></span></div>
@@ -1001,6 +1011,7 @@
   <div class="modal modal-wrap">
     <button class="modal-close" data-close="trackOverlay">✕</button>
     <h2 id="trkTitle">기록 보기</h2>
+    <div class="trk-switch" id="trkSwitch" hidden></div>   <!-- 오늘 대회가 여러 개면 바로 바꾸기 -->
     <div class="sub" id="trkSub"></div>
     <div class="t-clock">현재 <b id="trkNow">--:--:--</b> · 기록 <b id="trkUpdated">--:--:--</b><span class="t-busy" id="trkBusy" hidden>새로고침 중…</span></div>
     <div class="record-action-row" style="margin:10px 0 0;">
@@ -1886,6 +1897,7 @@ document.addEventListener('click', (e)=>{
 renderChartPeriodUI_();
 
 function renderMine(){
+  renderTodayBar_();
   populateMineYearFilter();
   renderMineList();
   renderMineChartFilter();
@@ -1998,6 +2010,7 @@ document.getElementById('racesSearchInput').addEventListener('input', ()=>{
 });
 
 function renderRaces(){
+  renderTodayBar_();
   populateRacesYearFilter();
   renderRacesList();
   saveCachedData();
@@ -2731,6 +2744,25 @@ function raceDayDiff_(race){   // 한국 날짜 기준: 오늘 - 대회일 (일)
   if(!d) return null;
   return Math.round((Date.parse(tzNow_('Asia/Seoul').date) - Date.parse(d)) / 864e5);
 }
+// 오늘(한국 날짜) 열리는 대회: 내가 참가한 대회 → 크루 참가자 많은 순
+function todayRaces_(){
+  return state.races.filter(r=>raceDayDiff_(r)===0).map(r=>{
+    const es=state.entries.filter(e=>e.raceId===r.id && (e.proxy || e.transfer!=='open'));
+    return {race:r, n:es.length, mine:es.some(isMineEntry_)};
+  }).sort((a,b)=>(b.mine-a.mine) || (b.n-a.n) || String(a.race.raceName).localeCompare(String(b.race.raceName),'ko'));
+}
+const TODAY_PREFETCHED_ = new Set();
+function renderTodayBar_(){
+  const bar=document.getElementById('todayBar'); if(!bar) return;
+  const list=state.user ? todayRaces_() : [];
+  if(!list.length){ bar.hidden=true; bar.innerHTML=''; return; }
+  bar.hidden=false;
+  bar.innerHTML=`<div class="today-label">📊 오늘 대회 기록 보기</div><div class="today-chips">`+
+    list.map(x=>`<button type="button" class="today-chip" data-race="${escapeHtml(x.race.id)}">${x.mine?'⭐ ':''}${escapeHtml(x.race.raceName)}<span class="n">👥 ${x.n}</span></button>`).join('')+`</div>`;
+  // 기록 사이트(업체·대회 번호)를 미리 찾아 두면 처음 눌렀을 때도 바로 열린다
+  list.forEach(x=>{ if(!TODAY_PREFETCHED_.has(x.race.id) && window.prefetchRecordEv_){ TODAY_PREFETCHED_.add(x.race.id); window.prefetchRecordEv_(x.race); } });
+}
+document.getElementById('todayBar').addEventListener('click', e=>{ const b=e.target.closest('[data-race]'); if(b && window.openRecordView_) window.openRecordView_(b.dataset.race); });
 function raceRecordOpen_(race){ const n = raceDayDiff_(race); return n !== null && n >= -1; }   // 대회 하루 전부터 (해외 시차 대비)
 document.getElementById('raceRecordBtn').addEventListener('click', ()=>{
   const race = state.activeRace; if(!race) return;
@@ -5232,15 +5264,20 @@ if('serviceWorker' in navigator){
         list=[];                                         // 한 명뿐이어도 종목이 다르면 다른 사람일 수 있어요
       }
       if(!list.length){ m.state='none'; return; }
-      if(list.length===1){ adopt(m,list[0]); return; }
+      if(list.length===1){ const a=lsGet(autoKey(),{})||{}; a[m.lookup]={bib:String(list[0].bib),ref:list[0].ref||'',dist:list[0].dist||null}; lsSet(autoKey(),a); adopt(m,list[0]); return; }
       m.state='choose'; m.cands=list.slice(0,8);
     }catch(e){ if(my!==SESSION) return; m.state='error'; m.err=e.message; }
   }
+  const autoKey = () => 'sio-trk-auto-'+RACE.id+'-'+EV.provider+':'+EV.id;      // 이름으로 자동으로 찾은 사람 (업체·대회가 바뀌면 무효)
+  function adoptSaved(){
+    if(!EV) return;
+    PICKS=lsGet('sio-trk-pick-'+RACE.id,{})||{}; const auto=lsGet(autoKey(),{})||{};
+    MISSING.forEach(m=>{ if(m.state==='found' || m.state==='choose') return; const sv=PICKS[m.lookup]||auto[m.lookup]; if(sv) adopt(m,sv); });
+  }
   async function findByName(my){
     if(!EV) return;
-    PICKS=lsGet('sio-trk-pick-'+RACE.id,{});
+    adoptSaved();
     const todo=MISSING.filter(m=>m.state!=='found' && m.state!=='choose');
-    todo.forEach(m=>{ const sv=PICKS[m.lookup]; if(sv){ adopt(m,sv); } });
     const rest=todo.filter(m=>m.state!=='found');
     rest.forEach(m=>{ m.state='searching'; });
     updateView();
@@ -5271,7 +5308,7 @@ if('serviceWorker' in navigator){
     RUNNERS.forEach(r=>{ r.origBib=r.bib; const o=OV[r.bib]; if(o&&o.bib){ r.bib=String(o.bib); r.ref=o.ref||''; if(o.dist) r.dist=o.dist; r.changed=true; } });
     (lsGet('sio-trk-extra-'+raceId,[])||[]).forEach(x=>{ if(x&&x.bib&&!RUNNERS.some(r=>r.bib===String(x.bib))) RUNNERS.push({name:x.name||('배번 '+x.bib), lookup:x.name||'', bib:String(x.bib), dist:x.dist||FULL, start:null, marks:[], loaded:false, ref:x.ref||'', extra:true, color:colorOf(RUNNERS.length)}); });
     EV=lsGet(evKey(raceId),null);
-    $('trkTitle').textContent=race.raceName;
+    $('trkTitle').textContent=race.raceName; renderSwitch();
     const dOk=/^\d{4}-\d{2}-\d{2}$/.test(RACE_DAY)&&RACE_DAY<'9999';
     SUBBASE=`${dOk?`${+RACE_DAY.slice(5,7)}월 ${+RACE_DAY.slice(8,10)}일(${'일월화수목금토'[new Date(RACE_DAY+'T12:00:00Z').getUTCDay()]})`:'날짜 미정'}`+(TZ!=='Asia/Seoul'?' · 현지 시간 '+(TZ.split('/')[1]||TZ).replace(/_/g,' '):''); setSub();
     $('trkMsg').textContent=''; Object.keys(AUTONOTE).forEach(k=>delete AUTONOTE[k]); $('trkAutoNote').hidden=true; $('trkRaw').textContent='아직 가져오지 않았어요.';
@@ -5304,6 +5341,7 @@ if('serviceWorker' in navigator){
     }
     if(EV.provider==='sportstats'){ renderSrcNote(); updateView(); return; }   // 링크로만 연결: 조회·타이머 없음
     RUNNERS.forEach(restoreRec);
+    adoptSaved();   // 이름으로 찾아 둔 사람도 바로 붙여서 저장된 기록을 즉시 보여줌 (검색은 나중에 확인만)
     const cn=cachedNote(); if(cn){ const ts=RUNNERS.filter(r=>r.cached).map(r=>r.cached); UPDATED=clock(tzNow_(TZ).sec-Math.round((Date.now()-Math.max(...ts))/1000)+86400); $('trkMsg').textContent=cn+' 새로 가져오는 중…'; }
     renderSrcNote(); updateView();
     tickTimer=setInterval(()=>{ if(!$('trackOverlay').classList.contains('show')){ stopTimers(); return; } tick(); autoSaveResult_().catch(()=>{}); },15000);
@@ -5314,6 +5352,15 @@ if('serviceWorker' in navigator){
     refresh();
     findByName(my);
   }
+  function renderSwitch(){
+    const sw=$('trkSwitch'), list=todayRaces_();
+    if(list.length<2 || !list.some(x=>x.race.id===RACE.id)){ sw.hidden=true; sw.innerHTML=''; return; }
+    sw.hidden=false;
+    sw.innerHTML=list.map(x=>`<button type="button" class="today-chip${x.race.id===RACE.id?' on':''}" data-race="${esc(x.race.id)}">${x.mine?'⭐ ':''}${esc(x.race.raceName)}<span class="n">👥 ${x.n}</span></button>`).join('');
+    const on=sw.querySelector('.on'); if(on) requestAnimationFrame(()=>{ sw.scrollLeft=Math.max(0,on.offsetLeft-sw.offsetLeft-12); });   // 지금 대회가 보이게 가로로 스크롤
+  }
+  $('trkSwitch').addEventListener('click',e=>{ const b=e.target.closest('[data-race]'); if(!b || !RACE || b.dataset.race===RACE.id) return;
+    startRace(b.dataset.race, true); const md=$('trackOverlay').querySelector('.modal'); if(md) md.scrollTop=0; });
   function renderSrcNote(){
     if(EV && EV.provider==='sportstats'){ $('trkSrcNote').textContent=`기록 대회: ${EV.name||EV.query||''} · SportStats — 링크로 연결돼요 (기록은 SportStats 사이트에서 확인).`; return; }
     $('trkSrcNote').textContent = EV ? `기록 대회: ${EV.name||EV.query||''} · ${PROV().label} ${EV.id}번 — ${PROV().poll}초마다 가져와요${EV.provider!=='myresult'?' (Apps Script 경유)':''}.` : '';
@@ -5415,7 +5462,7 @@ if('serviceWorker' in navigator){
     if(r.extra) saveExtras();
     else {
       HIDDEN.push(r.byName ? {k:'n:'+r.lookup,label:r.name+' (이름으로 찾음)'} : {k:'b:'+(r.origBib||r.bib),label:r.name+' #'+(r.origBib||r.bib)}); saveHidden();
-      if(r.byName){ const pk=lsGet('sio-trk-pick-'+RACE.id,{})||{}; delete pk[r.lookup]; lsSet('sio-trk-pick-'+RACE.id,pk); }
+      if(r.byName){ const pk=lsGet('sio-trk-pick-'+RACE.id,{})||{}; delete pk[r.lookup]; lsSet('sio-trk-pick-'+RACE.id,pk); const au=lsGet(autoKey(),{})||{}; delete au[r.lookup]; lsSet(autoKey(),au); }
     }
   }
   $('trkEditBtn').addEventListener('click',()=>{ renderEdit(); open_('trkEditOverlay'); });
