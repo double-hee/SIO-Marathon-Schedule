@@ -2218,8 +2218,11 @@ function searchMatch_(hay, query){
 
 // 대회 전체 검색: 대회명뿐 아니라 장소, 기타 대회 정보(메모), 신청 방식, 종목, 날짜, 참가자 이름까지 함께 찾음
 // 검색어를 띄어쓰기로 나누면 모든 단어가 (어디에서든) 들어 있는 대회만 보여줌 (예: "춘천 홍길동")
+// 비활성화된 회원은 대회 참가자 목록·인원 수에서 뺀다 (대참이면 실제 뛰는 사람 기준). 참가자 편집 화면에는 그대로 보임
+function isInactiveMember_(n){ return !!n && (state.inactiveMembers||[]).includes(n); }
+function visibleEntry_(e){ return !isInactiveMember_(e.proxy || e.name); }
 function raceSearchText_(r){
-  const raceEntries = state.entries.filter(e=>e.raceId===r.id);
+  const raceEntries = state.entries.filter(e=>e.raceId===r.id && visibleEntry_(e));
   const events = getEventOptionsForRace_(r).map(ev=>eventLabel_(ev));
   const parts = [
     r.raceName, r.place, r.memo, r.applyType, r.time,
@@ -2264,7 +2267,7 @@ function renderRacesList(){
   const nextRaceId = races.find(r=>{ const diff = daysUntil_(r.raceDate); return diff!==null && diff>=0; })?.id;
 
   container.innerHTML = races.map(r=>{
-    const raceEntries = state.entries.filter(e=>e.raceId===r.id);
+    const raceEntries = state.entries.filter(e=>e.raceId===r.id && visibleEntry_(e));
     const count = raceEntries.length;
     const eventsForRace = sortEvents_([...new Set(raceEntries.map(e=>normalizeEventKey_(e.event)))]);
     const pillsHtml = eventsForRace.length
@@ -2747,7 +2750,7 @@ function raceDayDiff_(race){   // 한국 날짜 기준: 오늘 - 대회일 (일)
 // 오늘(한국 날짜) 열리는 대회: 내가 참가한 대회 → 크루 참가자 많은 순
 function todayRaces_(){
   return state.races.filter(r=>raceDayDiff_(r)===0).map(r=>{
-    const es=state.entries.filter(e=>e.raceId===r.id && (e.proxy || e.transfer!=='open'));
+    const es=state.entries.filter(e=>e.raceId===r.id && (e.proxy || e.transfer!=='open') && visibleEntry_(e));
     return {race:r, n:es.length, mine:es.some(isMineEntry_)};
   }).sort((a,b)=>(b.mine-a.mine) || (b.n-a.n) || String(a.race.raceName).localeCompare(String(b.race.raceName),'ko'));
 }
@@ -4426,7 +4429,7 @@ function renderParticipants(raceId, filterElId, listElId, deleteBtnId){
   filterElId = filterElId || 'raceEventFilter';
   listElId = listElId || 'raceParticipantList';
   deleteBtnId = deleteBtnId || 'raceDeleteBtn';
-  const parts = state.entries.filter(e=>e.raceId===raceId);
+  const parts = state.entries.filter(e=>e.raceId===raceId && visibleEntry_(e));
   const counts = {};
   parts.forEach(p=>{ const key = normalizeEventKey_(p.event); counts[key] = (counts[key]||0)+1; });
   const events = sortEvents_(Object.keys(counts)); // 실제 존재하는 종목값을 전부 동적으로 표시 (고정 목록에 없는 값도 누락 없이 표시됨)
@@ -4455,7 +4458,7 @@ function renderParticipants(raceId, filterElId, listElId, deleteBtnId){
     ? filtered.map(participantRowHtml_).join('')
     : `<div class="empty" style="padding:20px;">해당 종목 참가자가 없어요</div>`;
 
-  updateRaceDeleteButton(parts.length, deleteBtnId);
+  updateRaceDeleteButton(state.entries.filter(e=>e.raceId===raceId).length, deleteBtnId);   // 삭제 안내는 비활성 회원 참가까지 포함한 실제 수
 }
 
 // 관리자용: 참가자 일괄 편집 (추가/삭제/종목변경/동반·대참 메모 수정)
@@ -5222,7 +5225,7 @@ if('serviceWorker' in navigator){
   // ----- 시작 / 종료 -----
   function colorOf(i){ return COLORS[i%COLORS.length]; }
   function buildRunners(raceId){
-    const entries=state.entries.filter(e=>e.raceId===raceId);
+    const entries=state.entries.filter(e=>e.raceId===raceId && visibleEntry_(e));
     const seen=new Set(); const list=[]; const missing=[];
     entries.forEach(e=>{
       const who = e.proxy || (e.transfer==='open' ? '' : e.name);
