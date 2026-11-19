@@ -2228,7 +2228,7 @@ function raceSearchText_(r){
     r.raceName, r.place, r.memo, r.applyType, r.time,
     fmtDate(r.raceDate), String(r.raceDate||''),
     ...events,
-    ...raceEntries.map(e=>`${e.name} ${e.bib||''} ${e.note||''} ${eventLabel_(e.event)} ${e.solo?'개별':''} ${e.proxy?e.proxy+' 대참 대신':''} ${(!e.proxy&&e.transfer==='open')?'양도중 양도':''}`)
+    ...raceEntries.map(e=>`${hideOwner_(e)?'':e.name} ${e.bib||''} ${e.note||''} ${eventLabel_(e.event)} ${e.solo?'개별':''} ${e.proxy?e.proxy+' 대참 대신':''} ${(!e.proxy&&e.transfer==='open')?'양도중 양도':''}`)
   ];
   return parts.filter(Boolean).join(' ').toLowerCase();
 }
@@ -3909,7 +3909,7 @@ function recIndex_(entry){ return state.records.findIndex(r=>r.entryId===entry.i
 function entryTagsHtml_(p){
   let h = '';
   if(p.solo) h += '<span class="tag tag-solo">개별</span>';
-  if(p.proxy) h += `<span class="tag tag-proxy">${escapeHtml(p.proxy)} 대참</span>`;
+  if(p.proxy) h += hideOwner_(p) ? '<span class="tag tag-proxy">대참</span>' : `<span class="tag tag-proxy">${escapeHtml(p.proxy)} 대참</span>`;
   else if(p.transfer==='open') h += '<span class="tag tag-open">양도중</span>';
   return h;
 }
@@ -3917,7 +3917,9 @@ function entryTagsHtml_(p){
 function cleanBib_(v){ return String(v==null?'':v).replace(/\s+/g,'').slice(0,12); }
 function bibTagHtml_(p){ return p && p.bib ? `<span class="tag tag-bib">배번 <b>${escapeHtml(p.bib)}</b></span>` : ''; }
 // 대회 카드(목록)에는 배번을 표시하지 않음 — 대회 상세(참가자 목록)와 내 기록 화면에서만 보임
-function entryNameHtml_(p){ return escapeHtml(p.name) + entryTagsHtml_(p); }
+// 명의자가 비활성화된 대참: 명의자 이름을 숨기고 뛰는 사람(대참자) 이름을 보여준다
+function hideOwner_(p){ return !!(p && p.proxy && isInactiveMember_(p.name)); }
+function entryNameHtml_(p){ return escapeHtml(hideOwner_(p) ? p.proxy : p.name) + entryTagsHtml_(p); }
 
 function mergeEntry_(srv){
   if(!srv) return;
@@ -4175,7 +4177,7 @@ function participantRowHtml_(p){
   const me = state.user;
   const isOwner = p.name===me;
   const canSolo = isOwner; // 관리자도 다른 사람 줄은 여기서 바꾸지 않음 (✏️ 참가자 편집에서 수정)
-  const tagsNoSolo = p.proxy ? `<span class="tag tag-proxy">${escapeHtml(p.proxy)} 대참</span>` : (p.transfer==='open' ? '<span class="tag tag-open">양도중</span>' : '');
+  const tagsNoSolo = p.proxy ? (hideOwner_(p) ? '<span class="tag tag-proxy">대참</span>' : `<span class="tag tag-proxy">${escapeHtml(p.proxy)} 대참</span>`) : (p.transfer==='open' ? '<span class="tag tag-open">양도중</span>' : '');
   const soloTag = (!canSolo && p.solo) ? '<span class="tag tag-solo">개별</span>' : '';
   const canBib = isOwner || (p.proxy && p.proxy===me);
   const bibInput = canBib ? `<input type="text" class="bib-input" maxlength="12" inputmode="text" autocomplete="off" data-act="bib" data-id="${p.id}" value="${escapeHtml(p.bib||'').replace(/"/g,'&quot;')}" placeholder="배번">` : '';
@@ -4200,7 +4202,7 @@ function participantRowHtml_(p){
   const memoPh = p.solo ? '누구와 가나요? (선택) 예: 친구 2명' : '메모 (선택) 예: 가족과 함께, 배우자 동반';
   const memoRow = isOwner
     ? `<div class="solo-memo"><input type="text" maxlength="60" data-act="solo-note" data-id="${p.id}" value="${escapeHtml(p.note||'').replace(/"/g,'&quot;')}" placeholder="${memoPh}"><button class="p-btn p-btn-save" type="button" data-act="solo-note-save" data-id="${p.id}">저장</button></div>` : '';
-  return `<div class="participant-row"><span class="pn">${escapeHtml(p.name)}${bibTagHtml_(p)}${soloTag}${tagsNoSolo}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(eventLabel_(p.event))}</span>${line2.length?`<div class="p-line2">${line2.join('')}</div>`:''}${memoRow}</div>`;
+  return `<div class="participant-row"><span class="pn">${escapeHtml(hideOwner_(p) ? p.proxy : p.name)}${bibTagHtml_(p)}${soloTag}${tagsNoSolo}${p.note?`<span class="companion-note"> · ${escapeHtml(p.note)}</span>`:''}</span><span class="pe mono">${escapeHtml(eventLabel_(p.event))}</span>${line2.length?`<div class="p-line2">${line2.join('')}</div>`:''}${memoRow}</div>`;
 }
 (function(){
   const list = document.getElementById('raceParticipantList');
@@ -4765,7 +4767,7 @@ if('serviceWorker' in navigator){
   const preLabel = a => a.started ? '출발' : PROV().hasStart ? '출발 전' : '기록 대기';
 
   // ----- 화면: 카드 / 코스 / 그래프 / 표 -----
-  const nameHTML = a => `<span class="t-name"><i class="t-dot" style="background:var(${a.color})"></i>${esc(a.name)}${a.byProxy&&a.lookup?` <small>(${esc(a.lookup)})</small>`:''} <small>#${esc(a.bib)}${!isFull(a.dist)?' · '+courseName(a.dist):''}</small></span>`;
+  const nameHTML = a => `<span class="t-name"><i class="t-dot" style="background:var(${a.color})"></i>${esc(a.name)}${a.byProxy&&a.lookup&&!isInactiveMember_(a.lookup)?` <small>(${esc(a.lookup)})</small>`:''} <small>#${esc(a.bib)}${!isFull(a.dist)?' · '+courseName(a.dist):''}</small></span>`;
   function rowOf(a,t){
     let val, badge, cls='racing';
     if(a.pre){ val='–:––:––'; badge=raceOver()?'대회 종료':a.started?'🏃 출발':preLabel(a); cls=a.started&&!raceOver()?'racing':'ended'; }
@@ -4773,7 +4775,7 @@ if('serviceWorker' in navigator){
     else if(raceOver()){ val=hms(a.last.net); badge=a.last.k+' · 대회 종료'; cls='ended'; }
     else { val=hms(a.predNet); badge='🏃 '+remainOf(a,t); }
     const lbl = a.pre?'':a.done?'완주':raceOver()?'통과':'예상';
-    return `<div class="t-row${a.done?' fin':''}" style="--rc:var(${a.color})"><i class="t-dot" style="background:var(${a.color})"></i><span class="t-rwho"><span class="t-rname">${esc(a.name)}${a.byProxy&&a.lookup?` <span class="t-rreg">(${esc(a.lookup)})</span>`:''}</span>${a.dist?`<small class="t-rsub">${courseName(a.dist)}</small>`:''}</span>
+    return `<div class="t-row${a.done?' fin':''}" style="--rc:var(${a.color})"><i class="t-dot" style="background:var(${a.color})"></i><span class="t-rwho"><span class="t-rname">${esc(a.name)}${a.byProxy&&a.lookup&&!isInactiveMember_(a.lookup)?` <span class="t-rreg">(${esc(a.lookup)})</span>`:''}</span>${a.dist?`<small class="t-rsub">${courseName(a.dist)}</small>`:''}</span>
       <span class="t-rval"><small>${lbl}</small> ${val}</span><span class="t-badge ${cls}">${badge}</span></div>`;
   }
   function renderCards(t){
@@ -4873,7 +4875,7 @@ if('serviceWorker' in navigator){
     const tb=$('trkTbl'); tb.innerHTML=h+'</tbody>'; tb.classList.toggle('wide',DATA.length>=3);
   }
   const stateText = m => m.state==='searching'||m.state==='pending' ? '이름으로 찾는 중…' : m.state==='choose' ? `후보 ${m.cands.length}명 · 선택 필요` : m.state==='none' ? '배번 없음 · 이름 검색 결과 없음' : m.state==='error' ? '배번 없음 · 이름 검색 실패' : '배번 없음';
-  const who_ = r => esc(r.name)+(r.byProxy&&r.lookup?' ('+esc(r.lookup)+')':'');   // 맨 위 명단에서만 (대참) 표시
+  const who_ = r => esc(r.name)+(r.byProxy&&r.lookup&&!isInactiveMember_(r.lookup)?' ('+esc(r.lookup)+')':'');   // 맨 위 명단에서만 (대참) 표시
   function renderWho(){
     const pk=MISSING.filter(m=>m.state==='choose');
     const lost=MISSING.filter(m=>m.state==='none'||m.state==='error');
