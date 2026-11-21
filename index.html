@@ -4765,17 +4765,25 @@ if('serviceWorker' in navigator){
   const remainOf = (a,t) => { if(a.predClock==null) return '진행 중'; const left=a.predClock-t, lm=Math.max(0,Math.round(left/60));
     return left<=0 ? '도착 임박' : `${Math.floor(lm/60)}:${String(lm%60).padStart(2,'0')} 남음`; };
   const preLabel = a => a.started ? '출발' : PROV().hasStart ? '출발 전' : '기록 대기';
+  // 출발 기록을 주지 않는 업체(스마트칩 등): 같은 대회에서 먼저 기록이 나온 사람의 출발 시각으로 추정 (같은 종목 우선)
+  const estStart = a => {
+    if(a.st!=null || raceOver()) return null;
+    const pick = list => { const v=list.filter(b=>b.st!=null).map(b=>b.st); return v.length?Math.min(...v):null; };
+    return pick(DATA.filter(b=>normDist(b.dist||FULL)===normDist(a.dist||FULL))) ?? pick(DATA);
+  };
 
   // ----- 화면: 카드 / 코스 / 그래프 / 표 -----
   const nameHTML = a => `<span class="t-name"><i class="t-dot" style="background:var(${a.color})"></i>${esc(a.name)}${a.byProxy&&a.lookup&&!isInactiveMember_(a.lookup)?` <small>(${esc(a.lookup)})</small>`:''} <small>#${esc(a.bib)}${!isFull(a.dist)?' · '+courseName(a.dist):''}</small></span>`;
   function rowOf(a,t){
     let val, badge, cls='racing';
     if(a.pre){ const go=a.started&&a.st!=null&&!raceOver();   // 출발했지만 아직 첫 구간 기록이 없을 때: 출발 시각 표시
-      val=go?clock(a.st):'–:––:––'; badge=raceOver()?'대회 종료':go?'⏳ 기록 대기':a.started?'🏃 출발':preLabel(a); cls=a.started&&!raceOver()?'racing':'ended'; }
+      const es=go?null:estStart(a), gs=es!=null&&t>=es;          // 출발 기록이 없으면 같은 대회 출발 시각으로 추정
+      val=go?clock(a.st):gs?clock(es):'–:––:––'; badge=raceOver()?'대회 종료':(go||gs)?'⏳ 기록 대기':a.started?'🏃 출발':preLabel(a); cls=(a.started||gs)&&!raceOver()?'racing':'ended';
+      a._lbl = go?'출발':gs?'출발(추정)':''; }
     else if(a.done){ val=hms(a.last.net); badge='🏆 완주'; cls=''; }
     else if(raceOver()){ val=hms(a.last.net); badge=a.last.k+' · 대회 종료'; cls='ended'; }
     else { val=hms(a.predNet); badge='🏃 '+remainOf(a,t); }
-    const lbl = a.pre?(a.started&&a.st!=null&&!raceOver()?'출발':''):a.done?'완주':raceOver()?'통과':'예상';
+    const lbl = a.pre?(a._lbl||''):a.done?'완주':raceOver()?'통과':'예상';
     return `<div class="t-row${a.done?' fin':''}" style="--rc:var(${a.color})"><i class="t-dot" style="background:var(${a.color})"></i><span class="t-rwho"><span class="t-rname">${esc(a.name)}${a.byProxy&&a.lookup&&!isInactiveMember_(a.lookup)?` <span class="t-rreg">(${esc(a.lookup)})</span>`:''}</span>${a.dist?`<small class="t-rsub">${courseName(a.dist)}</small>`:''}</span>
       <span class="t-rval"><small>${lbl}</small> ${val}</span><span class="t-badge ${cls}">${badge}</span></div>`;
   }
@@ -4787,9 +4795,10 @@ if('serviceWorker' in navigator){
     box.innerHTML = DATA.map(a=>{
       if(a.pre){
         const over=raceOver();
-        const badge = over ? `<span class="t-badge ended">대회 종료</span>` : a.started ? `<span class="t-badge racing">🏃 출발</span>` : `<span class="t-badge ended">${preLabel(a)}</span>`;
-        const big = a.started && !over ? hms(Math.floor(Math.max(0,t-a.st))) : '–:––:––';
-        const sub = over ? '기록 없음' : a.started ? `출발 후 경과 시간 · 출발 <b>${esc(String(a.start).split('.')[0])}</b>` : PROV().hasStart ? '아직 출발 기록이 없어요' : PROV().preNote;
+        const es = !a.started && !over ? estStart(a) : null, gs = es!=null && t>=es;
+        const badge = over ? `<span class="t-badge ended">대회 종료</span>` : a.started ? `<span class="t-badge racing">🏃 출발</span>` : gs ? `<span class="t-badge racing">⏳ 기록 대기</span>` : `<span class="t-badge ended">${preLabel(a)}</span>`;
+        const big = a.started && !over ? hms(Math.floor(Math.max(0,t-a.st))) : gs ? hms(Math.floor(t-es)) : '–:––:––';
+        const sub = over ? '기록 없음' : gs ? `추정 경과 시간 · 같은 대회 출발 <b>${clock(es)}</b> 기준 (첫 구간 통과 후 실제 기록이 나와요)` : a.started ? `출발 후 경과 시간 · 출발 <b>${esc(String(a.start).split('.')[0])}</b>` : PROV().hasStart ? '아직 출발 기록이 없어요' : PROV().preNote;
         return `<div class="t-card" style="--rc:var(${a.color})"><div class="t-top">${nameHTML(a)}${badge}</div>
           <div><div class="t-big">${big}</div><div class="t-sub">${sub}</div>${a.started&&!over?`<div class="t-sub">첫 기록은 첫 구간 통과 후 나와요</div>`:''}</div></div>`;
       }
@@ -4826,7 +4835,8 @@ if('serviceWorker' in navigator){
     s+=`<text x="${L}" y="26" text-anchor="middle">0</text>`;
     DATA.forEach((a,i)=>{
       const km=estKm(a,t), x=sx(km), y=96+i*32, c=col(a.color);
-      const label = a.pre ? (a.started&&a.st!=null ? '출발 '+clock(a.st) : preLabel(a)) : a.done ? '완주 '+hms(a.last.net) : (raceOver()||a.st==null) ? a.last.k+'까지' : km.toFixed(1)+'km';
+      const es = a.pre&&!a.started ? estStart(a) : null;
+      const label = a.pre ? (a.started&&a.st!=null ? '출발 '+clock(a.st) : (es!=null&&t>=es) ? '기록 대기 · 출발 '+clock(es)+' 추정' : preLabel(a)) : a.done ? '완주 '+hms(a.last.net) : (raceOver()||a.st==null) ? a.last.k+'까지' : km.toFixed(1)+'km';
       s+=`<line x1="${x}" x2="${x}" y1="54" y2="${y-14}" stroke="${c}" stroke-width="1" stroke-dasharray="2 3"/>
           <circle cx="${x}" cy="50" r="8" fill="${c}" stroke="#fff" stroke-width="2"/>
           <text x="${Math.max(L,Math.min(x-20,R-150))}" y="${y+4}" style="fill:${c};font-family:'Pretendard',sans-serif;font-weight:700;font-size:18px">${esc(a.name)} ${label}</text>`;
