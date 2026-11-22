@@ -57,12 +57,16 @@
   .trk-mapline{border-top:1px solid var(--t-line, #ece7de); margin-bottom:12px;}
   .course-tabs[hidden]{display:none;}
   .scrub[hidden]{display:none;}
-  #raceScrubWrap .scrub-bar{margin-left:calc(100% * 40 / 360); margin-right:calc(100% * 10 / 360);}   /* 대회 상세: 고저차 그래프 가로 축과 맞춤 */
+  #raceScrubWrap .scrub-bar{margin-left:calc(100% * 40 / 360); margin-right:calc(100% * 36 / 360);}   /* 대회 상세: 고저차 그래프 가로 축과 맞춤 */
   #trkScrubWrap .scrub-bar{margin-left:calc(100% * 74 / 600); margin-right:calc(100% * 80 / 600);}   /* 구간별 페이스·고저차 그래프와 가로 축을 맞춤 */
   .leaflet-control .map-move-btn, .map-move-btn{font:700 12px 'Pretendard',sans-serif; color:var(--clay-dark,#A2331F); background:#fff; border:2px solid var(--clay,#C6402C); border-radius:999px; padding:5px 11px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.18); white-space:nowrap;}
   .map-move-btn.on{background:var(--navy,#1B2A41); border-color:var(--navy,#1B2A41); color:#fff;}
   .course-map.map-moving{box-shadow:0 0 0 2px var(--navy,#1B2A41);}
   .scrub{margin:2px 0 6px;}
+  .scrub-line{position:relative; display:flow-root;}
+  .scrub-step{position:absolute; top:20px; left:0; transform:translateY(-50%); z-index:2; width:28px; height:28px; padding:0; border-radius:50%; border:1.5px solid var(--navy,#1B2A41); background:#fff; color:var(--navy,#1B2A41); font:700 17px/1 'Pretendard',sans-serif; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;}
+  .scrub-step.plus{left:auto; right:0;}
+  .scrub-step:active{background:var(--navy,#1B2A41); color:#fff;}
   .scrub-bar{position:relative; height:8px; margin:16px 12px 12px; border-radius:4px; background:#e3ddd3; cursor:pointer; touch-action:none;}
   .scrub-bar::before{content:""; position:absolute; left:-12px; right:-12px; top:-14px; bottom:-14px;}   /* 손가락으로 잡기 쉽게 누르는 영역을 넓힘 */
   .scrub-bar:focus-visible{outline:2px solid #1B2A41; outline-offset:6px;}
@@ -882,7 +886,7 @@
       </div>
       <div class="course-tabs" id="raceCourseTabs" hidden></div>
       <div class="course-map" id="raceCourseMap" hidden></div>
-      <div class="scrub" id="raceScrubWrap" hidden><div class="scrub-bar" data-for="raceScrub" role="slider" tabindex="0" aria-label="코스 위 거리" aria-valuemin="0" aria-valuenow="0"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div><input type="range" id="raceScrub" min="0" max="100" step="1" value="0" hidden><div class="scrub-info" id="raceScrubInfo">막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요</div></div>
+      <div class="scrub" id="raceScrubWrap" hidden><div class="scrub-line"><button type="button" class="scrub-step" data-step-for="raceScrub" data-dir="-1" aria-label="이전 주요 지점">−</button><div class="scrub-bar" data-for="raceScrub" role="slider" tabindex="0" aria-label="코스 위 거리" aria-valuemin="0" aria-valuenow="0"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div><button type="button" class="scrub-step plus" data-step-for="raceScrub" data-dir="1" aria-label="다음 주요 지점">+</button></div><input type="range" id="raceScrub" min="0" max="100" step="1" value="0" hidden><div class="scrub-info" id="raceScrubInfo">막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요</div></div>
       <div id="raceElev" hidden></div>
     </div>
 
@@ -1104,7 +1108,7 @@
       <h2 class="t-h">지금 어디쯤 (추정)</h2>
       <div class="t-panel">   <!-- 지금 어디쯤: 거리 막대 그림 + (코스가 있으면) 지도·거리 막대·고저차 -->
         <div class="t-scroll"><svg id="trkTrack" width="100%" viewBox="0 0 600 190" role="img" aria-label="코스 위 추정 위치"></svg></div>
-        <div class="t-sub trk-note" id="trkEstNote"></div><div id="trkMapWrap" class="trk-mapwrap" hidden><div class="trk-mapline"></div><div class="t-sub trk-note" id="trkMapNote"></div><div class="course-map" id="trkMap"></div><div class="scrub" id="trkScrubWrap" hidden><div class="scrub-bar" data-for="trkScrub" role="slider" tabindex="0" aria-label="코스 위 거리" aria-valuemin="0" aria-valuenow="0"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div><input type="range" id="trkScrub" min="0" max="100" step="1" value="0" hidden><div class="scrub-info" id="trkScrubInfo">막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요</div></div><div id="trkElev" hidden></div></div>
+        <div class="t-sub trk-note" id="trkEstNote"></div><div id="trkMapWrap" class="trk-mapwrap" hidden><div class="trk-mapline"></div><div class="t-sub trk-note" id="trkMapNote"></div><div class="course-map" id="trkMap"></div><div class="scrub" id="trkScrubWrap" hidden><div class="scrub-line"><button type="button" class="scrub-step" data-step-for="trkScrub" data-dir="-1" aria-label="이전 주요 지점">−</button><div class="scrub-bar" data-for="trkScrub" role="slider" tabindex="0" aria-label="코스 위 거리" aria-valuemin="0" aria-valuenow="0"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div><button type="button" class="scrub-step plus" data-step-for="trkScrub" data-dir="1" aria-label="다음 주요 지점">+</button></div><input type="range" id="trkScrub" min="0" max="100" step="1" value="0" hidden><div class="scrub-info" id="trkScrubInfo">막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요</div></div><div id="trkElev" hidden></div></div>
       </div>
       <h2 class="t-h">구간별 페이스</h2>
       <div class="t-panel">
@@ -2897,16 +2901,36 @@ function drawElevScrub_(svg, g, km){
 }
 // 거리 막대(지도 아래) ↔ 지도 위 위치 ↔ 고저차 그래프 위치를 함께 움직인다
 const SCRUB_ = {};   // 막대 id → {map(): 지도, course(): 코스}
-function handleScrub_(inp){
+function handleScrub_(inp, label){
   const reg=SCRUB_[inp.id]; if(!reg) return; const c=reg.course(); if(!c) return; const g=courseGeo_(c); if(g.pts.length<2) return;
+  if(label===undefined){ delete inp.dataset.label; label=''; } else if(label) inp.dataset.label=label;   // 끌어서 옮기면 지점 이름은 지움
   inp.max=String(Math.round(g.total*100)); const km=Math.min(g.total, (+inp.value||0)/100); inp.dataset.active='1';
   drawScrubBar_(inp.id, g.total ? km/g.total : 0, km);
-  const m=reg.map(); if(m && m.setScrub) m.setScrub(pointAtKm_(g,km), km.toFixed(1)+' km');
+  const m=reg.map(); if(m && m.setScrub) m.setScrub(pointAtKm_(g,km), label || km.toFixed(1)+' km');
   const info=document.getElementById(inp.id+'Info');
-  if(info) info.innerHTML=`<b>${km.toFixed(2)} km</b>${g.ele?` · 고도 ${Math.round(eleAtKm_(g,km))} m`:''} · 남은 거리 ${(g.total-km).toFixed(2)} km`;
+  if(info) info.innerHTML=`${label?`<b class="scrub-pt">${label}</b> · `:''}<b>${km.toFixed(2)} km</b>${g.ele?` · 고도 ${Math.round(eleAtKm_(g,km))} m`:''} · 남은 거리 ${(g.total-km).toFixed(2)} km`;
   const svg=document.querySelector(`svg[data-scrub-for="${inp.id}"]`); if(svg){ svg.dataset.scrub=String(km); drawElevScrub_(svg, g, km); }
   if(SCRUB_TOUCH_===inp.id && reg.onMove) reg.onMove(g.total ? km/g.total : 0);
 }
+// − / + 버튼: 주요 지점(5K 단위·하프·도착)으로 차례로 이동. 지점은 종목 거리 기준이고, 코스 파일 길이에 비율로 맞춘다
+function courseRealKm_(c, g){
+  const ev=c.event ? eventDistanceKm_(normalizeEventKey_(c.event)) : 0; if(ev>0) return ev;
+  const std=[42.195,21.0975,10,5]; for(const d of std) if(Math.abs(g.total-d)/d<=0.05) return d;
+  return g.total;
+}
+function scrubPoints_(D){
+  const pts=[{km:0,label:'출발'}];
+  for(let k=5;k<D-0.3;k+=5){ if(D>22 && k>21.0975 && pts[pts.length-1].km<21.0975) pts.push({km:21.0975,label:'하프'}); pts.push({km:k,label:k+'K'}); }
+  if(D>22 && pts[pts.length-1].km<21.0975) pts.push({km:21.0975,label:'하프'});
+  pts.push({km:D,label:'도착'}); return pts;
+}
+function scrubStep_(id, dir){
+  const reg=SCRUB_[id], inp=document.getElementById(id); if(!reg||!inp) return; const c=reg.course(); if(!c) return; const g=courseGeo_(c); if(g.pts.length<2||!g.total) return;
+  const D=courseRealKm_(c,g), k=D/g.total, cur=(inp.dataset.active ? (+inp.value||0)/100 : 0)*k, pts=scrubPoints_(D);
+  const p = dir>0 ? pts.find(q=>q.km>cur+0.02) : [...pts].reverse().find(q=>q.km<cur-0.02); if(!p) return;
+  inp.max=String(Math.round(g.total*100)); inp.value=String(Math.round(p.km/k*100)); handleScrub_(inp, p.label);
+}
+document.addEventListener('click', e=>{ const b=e.target.closest && e.target.closest('.scrub-step'); if(!b) return; e.preventDefault(); scrubStep_(b.dataset.stepFor, +b.dataset.dir); });
 function drawScrubBar_(id, frac, km){
   const bar=document.querySelector(`.scrub-bar[data-for="${id}"]`); if(!bar) return; const pct=(Math.max(0,Math.min(1,frac))*100).toFixed(3)+'%';
   bar.querySelector('.scrub-fill').style.width=pct; bar.querySelector('.scrub-thumb').style.left=pct;
@@ -2928,9 +2952,9 @@ function setupScrub_(id, reg){   // 코스가 바뀌거나 다시 그려졌을 �
   SCRUB_[id]=reg; const inp=document.getElementById(id), wrap=document.getElementById(id+'Wrap'), c=reg.course();
   if(!inp) return; wrap.hidden=!c; if(!c) return;
   inp.max=String(Math.round(courseGeo_(c).total*100));
-  if(inp.dataset.active) handleScrub_(inp);
+  if(inp.dataset.active) handleScrub_(inp, inp.dataset.label||'');
 }
-function resetScrub_(id){ const inp=document.getElementById(id); if(!inp) return; inp.value='0'; delete inp.dataset.active; drawScrubBar_(id, 0, 0);
+function resetScrub_(id){ const inp=document.getElementById(id); if(!inp) return; inp.value='0'; delete inp.dataset.active; delete inp.dataset.label; drawScrubBar_(id, 0, 0);
   const info=document.getElementById(id+'Info'); if(info) info.textContent='막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요'; }
 document.addEventListener('input', e=>{ if(e.target.matches && e.target.matches('.scrub input[type=range]')) handleScrub_(e.target); });
 // 고저차 그래프를 누르거나 좌우로 끌어도 같은 동작
@@ -3077,7 +3101,7 @@ function renderRaceElev_(list, c){
   box.hidden=false;
   if(!g.ele){ box.innerHTML='<div class="photo-hint">이 코스 파일에는 고도 정보가 없어서 고저차 그래프를 그릴 수 없어요.</div>'; return; }
   box.innerHTML=elevBlockHtml_('raceElevSvg','raceScrub');
-  renderElevSvg_(document.getElementById('raceElevSvg'), g, []); renderElevStats_(document.getElementById('raceElevSvgStats'), g);
+  renderElevSvg_(document.getElementById('raceElevSvg'), g, [], {rf:36/360}); renderElevStats_(document.getElementById('raceElevSvgStats'), g);
 }
 function renderRaceCourse_(race){
   const list=sortedCourses_(coursesCached_(race.id)), admin=isAdmin_();
