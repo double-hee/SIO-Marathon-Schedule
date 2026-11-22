@@ -57,10 +57,10 @@
   .trk-mapline{border-top:1px solid var(--t-line, #ece7de); margin-bottom:12px;}
   .course-tabs[hidden]{display:none;}
   .scrub[hidden]{display:none;}
-  #raceScrubWrap .scrub-bar{margin-left:calc(100% * 50 / 360); margin-right:calc(100% * 50 / 360);}
-  #raceScrubWrap .scrub-step{left:calc(100% * 50 / 360 - 48px);} #raceScrubWrap .scrub-step.plus{left:auto; right:calc(100% * 50 / 360 - 48px);}   /* 막대가 −·+ 가운데 */   /* 대회 상세: 고저차 그래프 가로 축과 맞춤 */
-  #trkScrubWrap .scrub-bar{margin-left:calc(100% * 88 / 600); margin-right:calc(100% * 88 / 600);}
-  #trkScrubWrap .scrub-step{left:calc(100% * 88 / 600 - 48px);} #trkScrubWrap .scrub-step.plus{left:auto; right:calc(100% * 88 / 600 - 48px);}   /* 막대 끝(동그라미)과 −·+ 사이 20px */   /* 구간별 페이스·고저차 그래프와 가로 축을 맞춤 */
+  #raceScrubWrap .scrub-bar{margin-left:calc(100% * 40 / 360); margin-right:calc(100% * 40 / 360);}
+  #raceScrubWrap .scrub-step{left:calc(100% * 40 / 360 - 48px);} #raceScrubWrap .scrub-step.plus{left:auto; right:calc(100% * 40 / 360 - 48px);}   /* 버튼은 막대 바깥쪽으로 (막대 끝과 20px) */   /* 막대가 −·+ 가운데 */   /* 대회 상세: 고저차 그래프 가로 축과 맞춤 */
+  #trkScrubWrap .scrub-bar{margin-left:calc(100% * 74 / 600); margin-right:calc(100% * 74 / 600);}
+  #trkScrubWrap .scrub-step{left:calc(100% * 74 / 600 - 48px);} #trkScrubWrap .scrub-step.plus{left:auto; right:calc(100% * 74 / 600 - 48px);}   /* 막대 끝(동그라미)과 −·+ 사이 20px */   /* 구간별 페이스·고저차 그래프와 가로 축을 맞춤 */
   .leaflet-control .map-move-btn, .map-move-btn{font:700 12px 'Pretendard',sans-serif; color:var(--clay-dark,#A2331F); background:#fff; border:2px solid var(--clay,#C6402C); border-radius:999px; padding:5px 11px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.18); white-space:nowrap;}
   .map-fit-btn{display:flex !important; align-items:center; justify-content:center; color:#1B2A41 !important;}
   .map-move-btn.on{background:var(--navy,#1B2A41); border-color:var(--navy,#1B2A41); color:#fff;}
@@ -3133,7 +3133,7 @@ function renderRaceElev_(list, c){
   box.hidden=false;
   if(!g.ele){ box.innerHTML='<div class="photo-hint">이 코스 파일에는 고도 정보가 없어서 고저차 그래프를 그릴 수 없어요.</div>'; return; }
   box.innerHTML=elevBlockHtml_('raceElevSvg','raceScrub');
-  renderElevSvg_(document.getElementById('raceElevSvg'), g, [], {lf:50/360, rf:50/360}); renderElevStats_(document.getElementById('raceElevSvgStats'), g);
+  renderElevSvg_(document.getElementById('raceElevSvg'), g, [], {lf:40/360, rf:40/360}); renderElevStats_(document.getElementById('raceElevSvgStats'), g);
 }
 function renderRaceCourse_(race){
   const list=sortedCourses_(coursesCached_(race.id)), admin=isAdmin_();
@@ -5337,7 +5337,7 @@ if('serviceWorker' in navigator){
     svg.appendChild(gEl);
   }
   function renderChart(){
-    const L=88,R=512,T=24,B=316, svg=$('trkChart'), RUN=picked();   // 좌우 여백 같게: 거리 막대(−·+ 가운데)·고저차와 가로 축 일치
+    const L=74,R=526,T=24,B=316, svg=$('trkChart'), RUN=picked();   // 좌우 여백 같게: 거리 막대(−·+ 가운데)·고저차와 가로 축 일치
     if(!RUN.length){ CH=null; svg.innerHTML=`<text x="300" y="190" text-anchor="middle">5K 기록이 들어오면 그래프가 나와요</text><g id="trkXhair"></g>`; $('trkLegend').innerHTML=''; drawXhair(); return; }
     const all=RUN.flatMap(a=>a.splits.map(s=>s.pace));
     const lo=Math.floor((Math.min(...all)-15)/30)*30, hi=Math.ceil((Math.max(...all)+15)/30)*30;
@@ -5469,7 +5469,7 @@ if('serviceWorker' in navigator){
       if(!g){ box.hidden=true; box.innerHTML=''; }
       else if(!g.ele){ box.hidden=false; box.innerHTML='<div class="t-sub">이 코스 파일에는 고도 정보가 없어서 고저차 그래프를 그릴 수 없어요.</div>'; }
       else{ if(!$('trkElevSvg')) box.innerHTML=elevBlockHtml_('trkElevSvg','trkScrub'); box.hidden=false;
-        renderElevSvg_($('trkElevSvg'), g, marks, {lf:88/600, rf:88/600, axisKm:COURSE}); renderElevStats_($('trkElevSvgStats'), g); } }
+        renderElevSvg_($('trkElevSvg'), g, marks, {lf:74/600, rf:74/600, axisKm:COURSE}); renderElevStats_($('trkElevSvgStats'), g); } }
     const scrubReg={map:()=>MAP, course:()=>sc, onMove:paceScrubLine, onEnd:()=>paceScrubLine(null)};
     if(SCRUB_KEY!==RACE.id+'|'+selId){ if(SCRUB_KEY.split('|')[0]!==RACE.id){ resetScrub_('trkScrub'); const ti=$('trkScrub'); if(ti){ ti.dataset.active='1'; ti.dataset.label='출발'; } } const sv=$('trkElevSvg'); if(sv) delete sv.dataset.scrub; SCRUB_KEY=RACE.id+'|'+selId; setupScrub_('trkScrub',scrubReg); }
     else SCRUB_.trkScrub = scrubReg;
