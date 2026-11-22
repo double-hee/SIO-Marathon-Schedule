@@ -99,7 +99,6 @@
   .course-up{display:flex; gap:8px; align-items:center; margin:6px 0 4px;}
   .course-up select{flex:1 1 auto; min-width:0; width:auto !important; max-width:60%; font:inherit; font-size:13px; padding:6px 8px; border-radius:8px; border:1.5px solid #d9d3c9; background:#fff;}
   .course-up .course-file-btn{flex:0 0 auto; border-radius:999px; padding:6px 14px; white-space:nowrap;}
-  .km-label{font:600 10px 'Roboto Mono',monospace; color:#1B2A41; background:rgba(255,255,255,.88); border-radius:4px; text-align:center; line-height:15px; box-shadow:0 0 0 1px rgba(27,42,65,.15);}
   .leaflet-tooltip.map-tip{font-family:'Pretendard',sans-serif; font-weight:700; font-size:12px; padding:2px 6px;}
   .today-bar{margin:10px 14px 0; padding:10px 12px; background:#FFF7E8; border:1.5px solid #F2C46D; border-radius:12px;}
   .today-label{font-size:12.5px; font-weight:700; color:#8A5A00; margin-bottom:7px;}
@@ -3039,7 +3038,6 @@ function makeCourseMap_(el, list, selId){
       selB=selB?selB.extend(ln.getBounds()):ln.getBounds();
       L.circleMarker(g.pts[0],{radius:6,color:'#fff',weight:2,fillColor:'#27AE60',fillOpacity:1}).bindTooltip('출발').addTo(base);
       L.circleMarker(g.pts[g.pts.length-1],{radius:6,color:'#fff',weight:2,fillColor:'#C0392B',fillOpacity:1}).bindTooltip('도착').addTo(base);
-      for(let k=5;k<g.total-0.5;k+=5) L.marker(pointAtKm_(g,k),{icon:L.divIcon({className:'km-label',html:k+'K',iconSize:[28,15],iconAnchor:[14,7]}),interactive:false}).addTo(base);
     });
     return selB||allB;
   };
