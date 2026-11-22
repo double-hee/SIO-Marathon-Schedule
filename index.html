@@ -76,7 +76,8 @@
   .course-tab.on{border-color:#1B2A41; background:#1B2A41; color:#fff;}
   .course-tab.on small{color:#cfd6e0;}
   .course-file-btn{position:relative; cursor:pointer; display:inline-flex; align-items:center;}
-  .vh-file{position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; pointer-events:none;}
+  .vh-file{position:absolute; left:0; top:0; width:1px !important; height:1px !important; min-width:0 !important; padding:0 !important; margin:0 !important; border:0 !important; opacity:0; overflow:hidden; clip-path:inset(50%); pointer-events:none;}
+  .course-file-btn{overflow:hidden;}
   :root{--el-grid:#ece7de; --el-muted:#8a8378; --el-fill:rgba(31,138,91,.16); --el-line:#1F8A5B; --el-bg:#fff;}
   .elev-wrap{margin:4px 0 8px;}
   .elev-svg{width:100%; height:auto; display:block;}
@@ -202,7 +203,7 @@
   /* Modal */
   .overlay{display:none; position:fixed; inset:0; background:rgba(20,18,16,0.5); z-index:50; align-items:flex-end; justify-content:center;}
   .overlay.show{display:flex;}
-  .modal{background:var(--paper); width:100%; max-width:520px; border-radius:18px 18px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto;}
+  .modal{background:var(--paper); width:100%; max-width:520px; border-radius:18px 18px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; overflow-x:hidden; overflow-x:clip;}   /* 창이 좌우로 밀리지 않게 */
   .modal h2{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:22px; margin:0 0 4px;}
   .record-action-row{display:flex; align-items:center; gap:8px; margin:8px 0 10px; flex-wrap:wrap;}
   .record-info-row{display:flex; align-items:stretch; justify-content:space-between; gap:10px; margin-bottom:16px;}
@@ -3032,9 +3033,10 @@ function makeCourseMap_(el, list, selId){
     if(!scrub){ scrub=L.circleMarker(p,{radius:6,color:'#1B2A41',weight:2.5,fillColor:'#FFD54F',fillOpacity:1,interactive:false}).bindTooltip(label,{permanent:true,direction:'right',offset:[8,0],className:'map-tip scrub-tip'}).addTo(map); }
     else { scrub.setLatLng(p); scrub.setTooltipContent(label); }
     scrub.bringToFront();
-    try{ map.panInside(p,{padding:[46,46], animate:false}); }catch(e){}
+    try{ if(map._loaded) map.panInside(p,{padding:[46,46], animate:false}); }catch(e){}
   };
-  let fitB=draw(selId), dead=false; map.on('unload',()=>{ dead=true; });   // 지운 지도에 늦게 도착한 맞추기 요청은 무시
+  let fitB=draw(selId), dead=false; map.on('unload',()=>{ dead=true; });
+  if(fitB) map.fitBounds(fitB,{padding:[18,18]}); else map.setView([37.5,127],11);   // 처음부터 위치를 정해 둬야 거리 막대 표시 등이 바로 동작   // 지운 지도에 늦게 도착한 맞추기 요청은 무시
   const fit=()=>{ if(dead) return; map.invalidateSize(); if(fitB) map.fitBounds(fitB,{padding:[18,18]}); };
   setTimeout(fit,60); setTimeout(fit,450);
   return {map, runners, fit, setSel:id=>{ fitB=draw(id); fit(); }, setScrub};
@@ -3059,7 +3061,7 @@ function renderRaceCourse_(race){
   document.getElementById('raceCourseList').innerHTML = admin ? list.map(c=>`<div class="course-row"><span>🗺 ${escapeHtml(courseLabel_(c))} · ${(c.distKm||0).toFixed(1)}km${c.name?` <small>${escapeHtml(c.name)}</small>`:''}</span><button type="button" class="small-action-inline btn-danger-text" data-course-del="${escapeHtml(c.id)}">삭제</button></div>`).join('') : '';
   const sel=document.getElementById('raceCourseEvent');
   const keep=sel.value;
-  sel.innerHTML = '<option value="auto">자동 (길이로 판단)</option><option value="">모든 종목</option>'+getEventOptionsForRace_(race).map(ev=>`<option value="${escapeHtml(ev)}">${escapeHtml(eventLabel_(ev))}</option>`).join('');
+  sel.innerHTML = '<option value="auto">자동 (길이로 판단)</option>'+getEventOptionsForRace_(race).map(ev=>`<option value="${escapeHtml(ev)}">${escapeHtml(eventLabel_(ev))}</option>`).join('');
   sel.value = (sel.dataset.chosen===race.id && [...sel.options].some(o=>o.value===keep)) ? keep : 'auto';   // 이 대회에서 직접 고른 게 아니면 '자동'
   if(!list.some(c=>c.id===RACE_SEL_[race.id])) RACE_SEL_[race.id] = list[0] ? list[0].id : null;
   const selC=list.find(c=>c.id===RACE_SEL_[race.id])||null;
@@ -3071,7 +3073,10 @@ function renderRaceCourse_(race){
   if(RACE_SCRUB_RACE_!==race.id){ resetScrub_('raceScrub'); RACE_SCRUB_RACE_=race.id; }   // 다른 대회를 열면 막대 처음으로
   const raceSel=()=>{ const L2=sortedCourses_(coursesCached_(race.id)); return L2.find(c=>c.id===RACE_SEL_[race.id])||null; };
   setupScrub_('raceScrub', {map:()=>RACE_MAP_, course:raceSel});
-  if(list.length) loadLeaflet_().then(()=>{ if(state.activeRace && state.activeRace.id===race.id && !RACE_MAP_){ RACE_MAP_=makeCourseMap_(mapEl, list, RACE_SEL_[race.id]); setupScrub_('raceScrub', {map:()=>RACE_MAP_, course:raceSel}); } }).catch(()=>{ mapEl.hidden=true; });
+  if(list.length) loadLeaflet_().then(()=>{ if(state.activeRace && state.activeRace.id===race.id && !RACE_MAP_){
+      try{ RACE_MAP_=makeCourseMap_(mapEl, list, RACE_SEL_[race.id]); }catch(e){ console.error(e); }
+      try{ setupScrub_('raceScrub', {map:()=>RACE_MAP_, course:raceSel}); }catch(e){ console.error(e); } } })
+    .catch(()=>{ mapEl.hidden=true; });   // 지도 라이브러리를 못 불러온 경우에만 숨김
 }
 document.getElementById('raceCourseTabs').addEventListener('click', e=>{
   const b=e.target.closest('[data-course]'); const race=state.activeRace; if(!b || !race) return;
