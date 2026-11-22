@@ -52,6 +52,7 @@
   /* ---------- Shell ---------- */
   #shell{display:none; flex-direction:column; min-height:100vh;}
   .course-map{height:280px; border-radius:12px; overflow:hidden; isolation:isolate; background:#e8e4dc; margin-bottom:8px;}
+  .trk-mapwrap{margin-top:12px; padding-top:12px; border-top:1px solid var(--t-line, #ece7de);}
   .course-tabs[hidden]{display:none;}
   .vscroll{position:fixed; width:22px; z-index:5; touch-action:none; cursor:pointer;}
   .vscroll[hidden]{display:none;}
@@ -1096,10 +1097,9 @@
       <div class="t-cards" id="trkCards"></div>
       <button type="button" class="t-fold" id="trkFold"></button>
       <h2 class="t-h">지금 어디쯤 (추정)</h2>
-      <div class="t-panel t-scroll"><svg id="trkTrack" width="100%" viewBox="0 0 600 190" role="img" aria-label="코스 위 추정 위치"></svg></div>
-      <div id="trkMapWrap" hidden>
-        <h2 class="t-h">코스 지도 (추정 위치)</h2>
-        <div class="t-panel"><div class="course-map" id="trkMap"></div><div class="scrub" id="trkScrubWrap" hidden><div class="scrub-bar" data-for="trkScrub" role="slider" tabindex="0" aria-label="코스 위 거리" aria-valuemin="0" aria-valuenow="0"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div><input type="range" id="trkScrub" min="0" max="100" step="1" value="0" hidden><div class="scrub-info" id="trkScrubInfo">막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요</div></div><div id="trkElev" hidden></div><div class="t-sub" id="trkMapNote" style="margin-top:6px;"></div></div>
+      <div class="t-panel">   <!-- 지금 어디쯤: 거리 막대 그림 + (코스가 있으면) 지도·거리 막대·고저차 -->
+        <div class="t-scroll"><svg id="trkTrack" width="100%" viewBox="0 0 600 190" role="img" aria-label="코스 위 추정 위치"></svg></div>
+        <div id="trkMapWrap" class="trk-mapwrap" hidden><div class="course-map" id="trkMap"></div><div class="scrub" id="trkScrubWrap" hidden><div class="scrub-bar" data-for="trkScrub" role="slider" tabindex="0" aria-label="코스 위 거리" aria-valuemin="0" aria-valuenow="0"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div><input type="range" id="trkScrub" min="0" max="100" step="1" value="0" hidden><div class="scrub-info" id="trkScrubInfo">막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요</div></div><div id="trkElev" hidden></div><div class="t-sub" id="trkMapNote" style="margin-top:6px;"></div></div>
       </div>
       <h2 class="t-h">구간별 페이스</h2>
       <div class="t-panel">
