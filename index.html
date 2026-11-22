@@ -3134,7 +3134,8 @@ function renderRaceCourse_(race){
   if(RACE_MAP_){ RACE_MAP_.map.remove(); RACE_MAP_=null; }
   mapEl.hidden = !list.length;
   renderRaceElev_(list, selC);
-  if(RACE_SCRUB_RACE_!==race.id){ resetScrub_('raceScrub'); RACE_SCRUB_RACE_=race.id; }   // 다른 대회를 열면 막대 처음으로
+  if(RACE_SCRUB_RACE_!==race.id){ resetScrub_('raceScrub'); RACE_SCRUB_RACE_=race.id;   // 다른 대회를 열면 막대 처음으로
+    const ri=document.getElementById('raceScrub'); if(ri){ ri.dataset.active='1'; ri.dataset.label='출발'; } }   // 처음 열면 세로 선을 출발 지점에 두어 바로 잡아 끌 수 있게
   const raceSel=()=>{ const L2=sortedCourses_(coursesCached_(race.id)); return L2.find(c=>c.id===RACE_SEL_[race.id])||null; };
   setupScrub_('raceScrub', {map:()=>RACE_MAP_, course:raceSel});
   if(list.length) loadLeaflet_().then(()=>{ if(state.activeRace && state.activeRace.id===race.id && !RACE_MAP_){
