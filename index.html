@@ -3095,12 +3095,27 @@ function makeCourseMap_(el, list, selId){
   const pinchOn=e=>{ if(dead){ document.removeEventListener('touchstart',pinchOn,true); return; } if(!moving && e.touches && e.touches.length>=2 && el.contains(e.target)) setMove(true); };
   document.addEventListener('touchstart', pinchOn, {capture:true, passive:true});
   let scrub=null;
+  // 노란 점과 거리 표시가 지도 밖이나 버튼(지도 이동·확대·축소 등) 밑에 숨지 않게 지도를 옮김
+  const keepVisible=p=>{
+    const tip=scrub && scrub.getTooltip() && scrub.getTooltip().getElement(), tw=(tip ? tip.offsetWidth : 60)+16;
+    map.panInside(p,{paddingTopLeft:[24,24], paddingBottomRight:[tw+8,24], animate:false});
+    const cr=el.getBoundingClientRect(), sz=map.getSize();
+    const rects=[...el.querySelectorAll('.leaflet-control')].map(c=>c.getBoundingClientRect()).filter(r=>r.width&&r.height).map(r=>({l:r.left-cr.left-6, r:r.right-cr.left+6, t:r.top-cr.top-6, b:r.bottom-cr.top+6}));
+    for(let i=0;i<3;i++){
+      const q=map.latLngToContainerPoint(p), box={l:q.x-10, r:q.x+tw, t:q.y-16, b:q.y+16};
+      const hit=rects.find(r=>box.l<r.r && box.r>r.l && box.t<r.b && box.b>r.t); if(!hit) return;
+      const fits=(dx,dy)=>box.l+dx>=0 && box.r+dx<=sz.x && box.t+dy>=0 && box.b+dy<=sz.y && !rects.some(r=>box.l+dx<r.r && box.r+dx>r.l && box.t+dy<r.b && box.b+dy>r.t);
+      const opts=[[0,hit.b-box.t],[0,hit.t-box.b],[hit.l-box.r,0],[hit.r-box.l,0]].sort((a,b)=>Math.hypot(...a)-Math.hypot(...b));   // 점을 옮길 거리(작은 것부터)
+      const mv=opts.find(([dx,dy])=>fits(dx,dy)) || opts[0];
+      map.panBy([-mv[0],-mv[1]],{animate:false});
+    }
+  };
   const setScrub=(p,label)=>{   // 거리 막대 위치: 노란 점 + 거리 표시, 확대한 상태에서도 화면 밖으로 나가면 따라가게 지도를 옮김
     if(!p) return;
     if(!scrub){ scrub=L.circleMarker(p,{radius:6,color:'#1B2A41',weight:2.5,fillColor:'#FFD54F',fillOpacity:1,interactive:false}).bindTooltip(label,{permanent:true,direction:'right',offset:[8,0],className:'map-tip scrub-tip'}).addTo(map); }
     else { scrub.setLatLng(p); scrub.setTooltipContent(label); }
     scrub.bringToFront();
-    try{ if(map._loaded) map.panInside(p,{padding:[46,46], animate:false}); }catch(e){}
+    try{ if(map._loaded) keepVisible(p); }catch(e){}
   };
   let fitB=draw(selId), dead=false; map.on('unload',()=>{ dead=true; });
   if(fitB) map.fitBounds(fitB,{padding:[18,18]}); else map.setView([37.5,127],11);   // 처음부터 위치를 정해 둬야 거리 막대 표시 등이 바로 동작   // 지운 지도에 늦게 도착한 맞추기 요청은 무시
