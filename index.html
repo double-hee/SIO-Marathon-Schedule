@@ -54,12 +54,10 @@
   .course-map{height:280px; border-radius:12px; overflow:hidden; isolation:isolate; background:#e8e4dc; margin-bottom:8px;}
   .trk-mapwrap{margin-top:12px; padding-top:12px; border-top:1px solid var(--t-line, #ece7de);}
   .course-tabs[hidden]{display:none;}
-  .vscroll{position:fixed; width:22px; z-index:5; touch-action:none; cursor:pointer;}
-  .vscroll[hidden]{display:none;}
-  .vscroll::before{content:""; position:absolute; right:6px; top:0; bottom:0; width:3px; border-radius:2px; background:rgba(27,42,65,.10);}
-  .vscroll-thumb{position:absolute; right:4px; top:0; width:6px; border-radius:4px; background:rgba(27,42,65,.42); pointer-events:none; transition:width .12s, background .12s;}
-  .vscroll.on .vscroll-thumb{width:8px; right:3px; background:rgba(27,42,65,.78);}
   .scrub[hidden]{display:none;}
+  .leaflet-control .map-move-btn, .map-move-btn{font:600 12px 'Pretendard',sans-serif; color:var(--navy,#1B2A41); background:#fff; border:1.5px solid var(--navy,#1B2A41); border-radius:999px; padding:5px 11px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.18); white-space:nowrap;}
+  .map-move-btn.on{background:var(--navy,#1B2A41); color:#fff;}
+  .course-map.map-moving{box-shadow:0 0 0 2px var(--navy,#1B2A41);}
   .scrub{margin:2px 0 6px;}
   .scrub-bar{position:relative; height:8px; margin:16px 12px 12px; border-radius:4px; background:#e3ddd3; cursor:pointer; touch-action:none;}
   .scrub-bar::before{content:""; position:absolute; left:-12px; right:-12px; top:-14px; bottom:-14px;}   /* 손가락으로 잡기 쉽게 누르는 영역을 넓힘 */
@@ -95,7 +93,8 @@
   .course-row small{color:#a39d94; font-size:11.5px;}
   .course-admin{margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed #e0d9cd;}
   .course-up{display:flex; gap:8px; align-items:center; margin:6px 0 4px;}
-  .course-up select{font:inherit; font-size:13px; padding:6px 8px; border-radius:8px; border:1.5px solid #d9d3c9; background:#fff;}
+  .course-up select{flex:1 1 auto; min-width:0; width:auto !important; max-width:60%; font:inherit; font-size:13px; padding:6px 8px; border-radius:8px; border:1.5px solid #d9d3c9; background:#fff;}
+  .course-up .course-file-btn{flex:0 0 auto; border-radius:999px; padding:6px 14px; white-space:nowrap;}
   .km-label{font:600 10px 'Roboto Mono',monospace; color:#1B2A41; background:rgba(255,255,255,.88); border-radius:4px; text-align:center; line-height:15px; box-shadow:0 0 0 1px rgba(27,42,65,.15);}
   .leaflet-tooltip.map-tip{font-family:'Pretendard',sans-serif; font-weight:700; font-size:12px; padding:2px 6px;}
   .today-bar{margin:10px 14px 0; padding:10px 12px; background:#FFF7E8; border:1.5px solid #F2C46D; border-radius:12px;}
@@ -209,9 +208,12 @@
   /* Modal */
   .overlay{display:none; position:fixed; inset:0; background:rgba(20,18,16,0.5); z-index:50; align-items:flex-end; justify-content:center;}
   .overlay.show{display:flex;}
-  .modal{background:var(--paper); width:100%; max-width:520px; border-radius:18px 18px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; overflow-x:hidden; overflow-x:clip;}   /* 창이 좌우로 밀리지 않게 */
+  .modal{background:var(--paper); width:100%; max-width:520px; border-radius:18px 18px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); max-height:88vh; overflow-y:auto; overflow-x:hidden;}
+  #raceOverlay .modal, #trackOverlay .modal{border-radius:0;}   /* 스크롤할 때 둥근 모서리 틈(뒤쪽 검은 머리글)이 깜박이지 않게 */   /* 창이 좌우로 밀리지 않게 */
   .modal h2{font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:22px; margin:0 0 4px;}
-  .record-action-row{display:flex; align-items:center; gap:8px; margin:8px 0 10px; flex-wrap:wrap;}
+  .record-action-row{display:flex; align-items:center; gap:6px; margin:8px 0 10px; flex-wrap:wrap;}
+  #raceAdminActions{flex-wrap:nowrap;}   /* 대회 편집·삭제·기록 보기는 한 줄 */
+  #raceAdminActions > button{min-width:0; overflow:hidden; text-overflow:ellipsis;}
   .record-info-row{display:flex; align-items:stretch; justify-content:space-between; gap:10px; margin-bottom:16px;}
   .record-info-text{font-size:12.5px; color:#8a8680; line-height:1.6;}
   .record-info-btn{flex-shrink:0; white-space:nowrap; font-size:12.5px; font-weight:700; padding:0 16px; border-radius:9px; background:var(--navy); border:1.5px solid var(--navy); color:#fff; box-shadow:0 3px 8px rgba(27,42,65,0.4); transition:transform 0.1s;}
@@ -870,8 +872,8 @@
       <label>코스 지도 <span id="raceCourseInfo" style="font-weight:500; color:#a39d94;"></span></label>
       <div class="course-admin" id="raceCourseAdmin" style="display:none;">
         <div class="course-up"><select id="raceCourseEvent" aria-label="코스 종목"></select>
-        <label class="small-action-inline btn-info-text course-file-btn" id="raceCourseUploadBtn">🗺 코스 파일 올리기<input type="file" id="raceCourseInput" class="vh-file" multiple></label></div>
-        <div class="photo-hint">가민·스트라바·대회 홈페이지의 코스 파일(GPX·KML·TCX)을 올리면, 기록 보기에서 지도 위에 주자 추정 위치가 나와요. 여러 파일을 한 번에 골라도 돼요. 종목은 "자동"이면 코스 길이로 골라요(42km→풀, 21km→하프). 같은 종목은 새 파일로 바뀌어요.</div>
+        <label class="small-action-inline btn-info-text course-file-btn" id="raceCourseUploadBtn">코스 파일 올리기<input type="file" id="raceCourseInput" class="vh-file" multiple></label></div>
+        <div class="photo-hint">가민·스트라바·대회 홈페이지의 코스 파일(GPX·KML·TCX)을 올리면, 기록 보기에서 지도 위에 주자 추정 위치가 나와요. 여러 파일을 한 번에 골라도 돼요(안드로이드 파일 선택 화면에서는 첫 파일을 길게 누르면 여러 개를 고를 수 있어요). 종목은 "자동"이면 코스 길이로 골라요(42km→풀, 21km→하프). 같은 종목은 새 파일로 바뀌어요.</div>
         <div id="raceCoursePending"></div>
         <div id="raceCourseList"></div>
       </div>
@@ -3015,7 +3017,7 @@ function courseTabsHtml_(list, selId){
 }
 function makeCourseMap_(el, list, selId){
   const L=window.L;
-  const map=L.map(el,{scrollWheelZoom:false, zoomSnap:0.5, zoomAnimation:false, fadeAnimation:false, markerZoomAnimation:false});   // 15초마다 주자 표시를 다시 그려서, 확대 애니메이션 중 갱신 오류가 나지 않게 끔
+  const map=L.map(el,{scrollWheelZoom:false, zoomControl:false, zoomSnap:0.5, zoomAnimation:false, fadeAnimation:false, markerZoomAnimation:false});   // 15초마다 주자 표시를 다시 그려서, 확대 애니메이션 중 갱신 오류가 나지 않게 끔
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
   const base=L.layerGroup().addTo(map), runners=L.layerGroup().addTo(map);
   const draw = sel => {
@@ -3033,6 +3035,18 @@ function makeCourseMap_(el, list, selId){
     });
     return selB||allB;
   };
+  // 지도 이동: 꺼져 있으면 지도를 만져도 화면이 위아래로 스크롤되고, 켜면 지도를 끌기·확대·축소할 수 있다 (기본: 꺼짐)
+  const zoomCtl=L.control.zoom({position:'topleft'}); let moving=false, moveBtn=null;
+  const setMove=on=>{ moving=on;
+    ['dragging','touchZoom','doubleClickZoom','boxZoom','keyboard'].forEach(h=>{ if(map[h]) on ? map[h].enable() : map[h].disable(); });
+    if(on) zoomCtl.addTo(map); else zoomCtl.remove();
+    el.style.touchAction = on ? 'none' : 'pan-y';
+    el.classList.toggle('map-moving', on);
+    if(moveBtn){ moveBtn.classList.toggle('on', on); moveBtn.setAttribute('aria-pressed', String(on)); moveBtn.textContent = on ? '지도 이동 ON' : '지도 이동 OFF'; }
+  };
+  const MoveCtl=L.Control.extend({ options:{position:'topright'}, onAdd(){ const b=L.DomUtil.create('button','map-move-btn'); b.type='button';
+    L.DomEvent.disableClickPropagation(b); L.DomEvent.on(b,'click',e=>{ L.DomEvent.stop(e); setMove(!moving); }); moveBtn=b; return b; } });
+  map.addControl(new MoveCtl()); setMove(false);
   let scrub=null;
   const setScrub=(p,label)=>{   // 거리 막대 위치: 노란 점 + 거리 표시, 확대한 상태에서도 화면 밖으로 나가면 따라가게 지도를 옮김
     if(!p) return;
@@ -3161,33 +3175,6 @@ document.getElementById('raceCourseList').addEventListener('click', async e=>{
   setCourses_(race.id, (coursesCached_(race.id)||[]).filter(c=>c.id!==b.dataset.courseDel)); renderRaceCourse_(race); toast('코스를 지웠어요');
 });
 
-// 화면 오른쪽 세로 스크롤 막대: 지도를 만지면 지도가 움직이니, 이 막대를 위아래로 끌어 화면(창 안 내용)을 움직인다
-function attachVScroll_(ovId){
-  const ov=document.getElementById(ovId), md=ov && ov.querySelector('.modal'); if(!md) return;
-  const rail=document.createElement('div'); rail.className='vscroll'; rail.hidden=true; rail.setAttribute('aria-hidden','true');
-  rail.innerHTML='<div class="vscroll-thumb"></div>'; ov.appendChild(rail);
-  const th=rail.firstChild; let drag=null, raf=0;
-  const layout=()=>{ raf=0;
-    if(!ov.classList.contains('show')){ rail.hidden=true; return; }
-    const max=md.scrollHeight-md.clientHeight; if(max<40){ rail.hidden=true; return; }
-    const r=md.getBoundingClientRect(); rail.hidden=false;
-    rail.style.top=(r.top+56)+'px'; rail.style.height=Math.max(80, r.height-56-20)+'px'; rail.style.left=(r.right-24)+'px';
-    const H=rail.clientHeight, tH=Math.max(48, H*md.clientHeight/md.scrollHeight);
-    th.style.height=tH+'px'; th.style.transform=`translateY(${(H-tH)*Math.min(1,md.scrollTop/max)}px)`;
-  };
-  const soon=()=>{ if(!raf) raf=requestAnimationFrame(layout); };
-  md.addEventListener('scroll', soon, {passive:true}); window.addEventListener('resize', soon);
-  new MutationObserver(soon).observe(ov, {attributes:true, attributeFilter:['class']});
-  new MutationObserver(soon).observe(md, {childList:true, subtree:true});
-  const move=e=>{ const rr=rail.getBoundingClientRect(), tH=th.offsetHeight, max=md.scrollHeight-md.clientHeight;
-    md.scrollTop=Math.max(0,Math.min(1,(e.clientY-rr.top-drag.grab)/Math.max(1,rr.height-tH)))*max; };
-  rail.addEventListener('pointerdown', e=>{ e.preventDefault(); try{ rail.setPointerCapture(e.pointerId); }catch(_){}
-    const tr=th.getBoundingClientRect(); drag={grab:(e.clientY>=tr.top && e.clientY<=tr.bottom) ? e.clientY-tr.top : th.offsetHeight/2};
-    rail.classList.add('on'); move(e); });
-  rail.addEventListener('pointermove', e=>{ if(drag) move(e); });
-  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>rail.addEventListener(t, ()=>{ drag=null; rail.classList.remove('on'); }));
-}
-['raceOverlay','trackOverlay'].forEach(attachVScroll_);
 
 // 오늘(한국 날짜) 열리는 대회: 내가 참가한 대회 → 크루 참가자 많은 순
 function todayRaces_(){
@@ -5060,7 +5047,7 @@ function updateRaceDeleteButton(participantCount, btnId){
   raceDeletableCount = participantCount;
   const btn = document.getElementById(btnId || 'raceDeleteBtn');
   if(!btn) return;
-  btn.textContent = participantCount > 0 ? `🗑 대회 삭제 (참가자 ${participantCount}명)` : '🗑 대회 삭제';
+  btn.textContent = participantCount > 0 ? `🗑 대회 삭제 (${participantCount}명)` : '🗑 대회 삭제';
   btn.style.opacity = 1;
 }
 
