@@ -51,6 +51,30 @@
 
   /* ---------- Shell ---------- */
   #shell{display:none; flex-direction:column; min-height:100vh;}
+  .course-map{height:280px; border-radius:12px; overflow:hidden; isolation:isolate; background:#e8e4dc; margin-bottom:8px;}
+  .course-tabs[hidden]{display:none;}
+  .course-tabs{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin:0 0 8px; padding-bottom:2px;}
+  .course-tabs::-webkit-scrollbar{display:none;}
+  .course-tab{flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; padding:6px 11px; border-radius:999px; border:1.5px solid #d9d3c9; background:#fff; color:#1B2A41; font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;}
+  .course-tab i{width:10px; height:10px; border-radius:50%; display:inline-block;}
+  .course-tab small{font-weight:500; font-size:11.5px; color:#8a8378;}
+  .course-tab.on{border-color:#1B2A41; background:#1B2A41; color:#fff;}
+  .course-tab.on small{color:#cfd6e0;}
+  .course-file-btn{position:relative; cursor:pointer; display:inline-flex; align-items:center;}
+  .vh-file{position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; pointer-events:none;}
+  :root{--el-grid:#ece7de; --el-muted:#8a8378; --el-fill:rgba(31,138,91,.16); --el-line:#1F8A5B; --el-bg:#fff;}
+  .elev-wrap{margin:4px 0 8px;}
+  .elev-svg{width:100%; height:auto; display:block;}
+  .elev-stats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; margin-top:6px;}
+  .elev-stats div{background:#fff; border:1px solid #e6e0d6; border-radius:10px; padding:6px 4px; text-align:center; font-size:11px; color:#8a8378;}
+  .elev-stats b{display:block; font:700 14px 'Roboto Mono',monospace; color:#1B2A41; margin-top:2px;}
+  .elev-stats .up b{color:#1F8A5B;} .elev-stats .dn b{color:#2E6FD0;}
+  .course-row{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13.5px; padding:4px 0;}
+  .course-row small{color:#a39d94; font-size:11.5px;}
+  .course-up{display:flex; gap:8px; align-items:center; margin:6px 0 4px;}
+  .course-up select{font:inherit; font-size:13px; padding:6px 8px; border-radius:8px; border:1.5px solid #d9d3c9; background:#fff;}
+  .km-label{font:600 10px 'Roboto Mono',monospace; color:#1B2A41; background:rgba(255,255,255,.88); border-radius:4px; text-align:center; line-height:15px; box-shadow:0 0 0 1px rgba(27,42,65,.15);}
+  .leaflet-tooltip.map-tip{font-family:'Pretendard',sans-serif; font-weight:700; font-size:12px; padding:2px 6px;}
   .today-bar{margin:10px 14px 0; padding:10px 12px; background:#FFF7E8; border:1.5px solid #F2C46D; border-radius:12px;}
   .today-label{font-size:12.5px; font-weight:700; color:#8A5A00; margin-bottom:7px;}
   .today-chips, .trk-switch{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; padding-bottom:2px;}
@@ -819,6 +843,18 @@
       <input type="file" id="racePhotoInput" accept="image/*" multiple style="display:none;">
       <div class="photo-hint" id="racePhotoHint" style="display:none;">관리자만 사진을 추가·삭제할 수 있어요.</div>
     </div>
+    <div class="field" id="raceCourseField" style="display:none;">
+      <label>코스 지도 <span id="raceCourseInfo" style="font-weight:500; color:#a39d94;"></span></label>
+      <div class="course-tabs" id="raceCourseTabs" hidden></div>
+      <div class="course-map" id="raceCourseMap" hidden></div>
+      <div id="raceElev" hidden></div>
+      <div id="raceCourseList"></div>
+      <div class="course-admin" id="raceCourseAdmin" style="display:none;">
+        <div class="course-up"><select id="raceCourseEvent" aria-label="코스 종목"></select>
+        <label class="small-action-inline btn-info-text course-file-btn" id="raceCourseUploadBtn">🗺 코스 파일 올리기<input type="file" id="raceCourseInput" class="vh-file"></label></div>
+        <div class="photo-hint">가민·스트라바·대회 홈페이지의 코스 파일(GPX·KML·TCX)을 올리면, 기록 보기에서 지도 위에 주자 추정 위치가 나와요. 같은 종목은 새 파일로 바뀌어요.</div>
+      </div>
+    </div>
 
     <div class="field">
       <div class="apply-status-header">
@@ -1037,6 +1073,10 @@
       <button type="button" class="t-fold" id="trkFold"></button>
       <h2 class="t-h">지금 어디쯤 (추정)</h2>
       <div class="t-panel t-scroll"><svg id="trkTrack" width="100%" viewBox="0 0 600 190" role="img" aria-label="코스 위 추정 위치"></svg></div>
+      <div id="trkMapWrap" hidden>
+        <h2 class="t-h">코스 지도 (추정 위치)</h2>
+        <div class="t-panel"><div class="course-map" id="trkMap"></div><div id="trkElev" hidden></div><div class="t-sub" id="trkMapNote" style="margin-top:6px;"></div></div>
+      </div>
       <h2 class="t-h">구간별 페이스</h2>
       <div class="t-panel">
         <div class="t-readout" id="trkReadout"><span class="t-hint">선 근처를 길게 누르면 그 사람의 구간 페이스가 여기 나와요.</span></div>
@@ -2747,6 +2787,236 @@ function raceDayDiff_(race){   // 한국 날짜 기준: 오늘 - 대회일 (일)
   if(!d) return null;
   return Math.round((Date.parse(tzNow_('Asia/Seoul').date) - Date.parse(d)) / 864e5);
 }
+/* ================= 코스 지도 (GPX/KML/TCX → OpenStreetMap) ================= */
+// 대회(·종목)별 코스 경로는 관리자가 올린 파일을 줄여서(최대 2000점) 시트에 저장. 기기에도 기억해 두고 바로 그린다
+const COURSE_MEM_ = new Map();
+function coursesCached_(raceId){
+  if(COURSE_MEM_.has(raceId)) return COURSE_MEM_.get(raceId);
+  try{ const v=JSON.parse(localStorage.getItem('sio-course-'+raceId)||'null'); if(Array.isArray(v)){ COURSE_MEM_.set(raceId,v); return v; } }catch(e){}
+  return null;
+}
+function setCourses_(raceId, list){ COURSE_MEM_.set(raceId, list); try{ localStorage.setItem('sio-course-'+raceId, JSON.stringify(list)); }catch(e){} }
+async function fetchCourses_(raceId){
+  const res = await apiPost('getCourses', {raceId});
+  if(res && res.ok){ setCourses_(raceId, res.courses||[]); return res.courses||[]; }
+  return coursesCached_(raceId) || [];
+}
+function polyEncode_(pts){
+  let out='', pla=0, plo=0;
+  const enc = v => { v = v<0 ? ~(v<<1) : (v<<1); let s=''; while(v>=0x20){ s+=String.fromCharCode((0x20|(v&0x1f))+63); v>>=5; } return s+String.fromCharCode(v+63); };
+  pts.forEach(([la,lo])=>{ const a=Math.round(la*1e5), b=Math.round(lo*1e5); out+=enc(a-pla)+enc(b-plo); pla=a; plo=b; });
+  return out;
+}
+function polyDecode_(str){
+  const pts=[]; let i=0, la=0, lo=0;
+  const dec = () => { let r=0, sh=0, b; do{ b=str.charCodeAt(i++)-63; r|=(b&0x1f)<<sh; sh+=5; }while(b>=0x20 && i<=str.length); return (r&1) ? ~(r>>1) : (r>>1); };
+  while(i<str.length){ la+=dec(); lo+=dec(); pts.push([la/1e5, lo/1e5]); }
+  return pts;
+}
+// 고도(m)는 0.1m 단위 정수의 차이를 좌표와 같은 방식으로 문자열에 담는다
+function eleEncode_(arr){
+  let out='', prev=0;
+  const enc = v => { v = v<0 ? ~(v<<1) : (v<<1); let s=''; while(v>=0x20){ s+=String.fromCharCode((0x20|(v&0x1f))+63); v>>=5; } return s+String.fromCharCode(v+63); };
+  arr.forEach(e=>{ const v=Math.round(e*10); out+=enc(v-prev); prev=v; });
+  return out;
+}
+function eleDecode_(str){
+  const out=[]; let i=0, v=0;
+  while(i<(str||'').length){ let r=0, sh=0, b; do{ b=str.charCodeAt(i++)-63; r|=(b&0x1f)<<sh; sh+=5; }while(b>=0x20 && i<=str.length); v+=(r&1)?~(r>>1):(r>>1); out.push(v/10); }
+  return out;
+}
+// 빈 고도는 앞뒤 값으로 채운다. 고도가 거의 없으면 null
+function fillEle_(pts){
+  const raw=pts.map(p=>p[2]); if(raw.filter(isFinite).length < pts.length*0.6) return null;
+  let last=raw.find(isFinite); return raw.map(e=>isFinite(e)?(last=e):last);
+}
+// 누적 상승·하강: GPS 고도 잡음을 줄이려고 앞뒤 2점씩 평균을 낸 뒤 더한다
+function eleStats_(ele){
+  const sm=ele.map((_,i)=>{ let s=0,n=0; for(let j=Math.max(0,i-2);j<=Math.min(ele.length-1,i+2);j++){ s+=ele[j]; n++; } return s/n; });
+  let up=0, dn=0; for(let i=1;i<sm.length;i++){ const d=sm[i]-sm[i-1]; if(d>0) up+=d; else dn-=d; }
+  return {up:Math.round(up), dn:Math.round(dn), max:Math.round(Math.max(...ele)), min:Math.round(Math.min(...ele))};
+}
+// 거리–고도 그래프 (SVG). marks: [{km, color, label}] → 주자 위치 표시
+function renderElevSvg_(svg, g, marks){
+  const W=360, H=200, L=40, R=10, T=14, B=24, ele=g.ele;   // 폰 화면 폭에 맞춘 비율 (글자가 작아지지 않게) if(!ele || !ele.length){ svg.innerHTML=''; return; }
+  const lo=Math.min(...ele), hi=Math.max(...ele), span=Math.max(20, hi-lo), step=span<=40?10:span<=100?20:span<=250?50:100;
+  const y0=Math.floor((lo-span*0.08)/step)*step, y1=Math.ceil((hi+span*0.15)/step)*step, tot=g.total||1;
+  const X=km=>L+(W-L-R)*km/tot, Y=e=>T+(H-T-B)*(1-(e-y0)/(y1-y0));
+  let h='';
+  for(let v=y0; v<=y1+1e-9; v+=step){ const y=Y(v); h+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--el-grid)" stroke-width="1"/><text x="${L-6}" y="${y+4}" text-anchor="end" style="font-size:10.5px" fill="var(--el-muted)">${v}m</text>`; }
+  const kst = tot>30?10:tot>12?5:tot>6?2:1;
+  for(let k=0; k<=tot+1e-9; k+=kst){ const x=X(k); h+=`<text x="${x}" y="${H-6}" text-anchor="middle" style="font-size:10.5px" fill="var(--el-muted)">${k} km</text>`; }
+  let d=''; g.cum.forEach((c,i)=>{ d+=(i?'L':'M')+X(c).toFixed(1)+','+Y(ele[i]).toFixed(1); });
+  h+=`<path d="${d}L${X(tot).toFixed(1)},${Y(y0)}L${X(0)},${Y(y0)}Z" fill="var(--el-fill)"/><path d="${d}" fill="none" stroke="var(--el-line)" stroke-width="2" stroke-linejoin="round"/>`;
+  // 주자: 세로 점선 + 점 + 이름 (가까우면 이름을 위로 쌓음)
+  const ms=(marks||[]).map(m=>({...m, x:X(Math.max(0,Math.min(tot,m.km)))})).sort((a,b)=>a.x-b.x); const rows=[];
+  ms.forEach(m=>{ const e=eleAtKm_(g,m.km), y=Y(e); let row=0; while(rows[row]!==undefined && m.x-rows[row]<46) row++; rows[row]=m.x;
+    const ly=Math.max(T+10, y-14-row*15);
+    h+=`<line x1="${m.x}" x2="${m.x}" y1="${y}" y2="${Y(y0)}" stroke="${m.color}" stroke-width="1.2" stroke-dasharray="3 3"/><circle cx="${m.x}" cy="${y}" r="5.5" fill="${m.color}" stroke="#fff" stroke-width="2"/><text x="${Math.min(W-R-2,Math.max(L+2,m.x))}" y="${ly}" text-anchor="${m.x>W-50?'end':m.x<L+30?'start':'middle'}" style="font-size:11px; fill:${m.color}; font-family:Pretendard,sans-serif; font-weight:700" paint-order="stroke" stroke="var(--el-bg)" stroke-width="3">${escapeHtml(m.label)}</text>`; });
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.innerHTML=h;
+}
+function eleAtKm_(g, km){
+  if(!g.ele) return 0; if(km<=0) return g.ele[0]; if(km>=g.total) return g.ele[g.ele.length-1];
+  let lo=0, hi=g.cum.length-1; while(hi-lo>1){ const m=(lo+hi)>>1; if(g.cum[m]<=km) lo=m; else hi=m; }
+  const seg=g.cum[hi]-g.cum[lo], f=seg?(km-g.cum[lo])/seg:0; return g.ele[lo]+(g.ele[hi]-g.ele[lo])*f;
+}
+function elevBlockHtml_(id){ return `<div class="elev-wrap"><svg class="elev-svg" id="${id}" role="img" aria-label="거리에 따른 고도"></svg><div class="elev-stats" id="${id}Stats"></div></div>`; }
+function renderElevStats_(el, g){
+  if(!g.ele){ el.innerHTML=''; return; } const s=eleStats_(g.ele);
+  el.innerHTML=`<div>총 거리<b>${g.total.toFixed(2)} km</b></div><div class="up">누적 상승<b>${s.up} m</b></div><div class="dn">누적 하강<b>${s.dn} m</b></div><div>최고/최저<b>${s.max}/${s.min} m</b></div>`;
+}
+function haversineKm_(a,b){
+  const R=6371.0088, r=Math.PI/180, dla=(b[0]-a[0])*r, dlo=(b[1]-a[1])*r;
+  const h=Math.sin(dla/2)**2 + Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dlo/2)**2;
+  return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
+}
+function courseLenKm_(pts){ let s=0; for(let i=1;i<pts.length;i++) s+=haversineKm_(pts[i-1],pts[i]); return s; }
+// GPX(trkpt·rtept) · KML(coordinates) · TCX(Position) · GeoJSON 에서 좌표만 뽑는다
+function parseCourseFile_(text){
+  let pts=[];
+  try{
+    const doc=new DOMParser().parseFromString(text,'application/xml');
+    if(!doc.querySelector('parsererror')){
+      doc.querySelectorAll('trkpt, rtept').forEach(n=>{ const la=+n.getAttribute('lat'), lo=+n.getAttribute('lon'), e=n.querySelector('ele'); if(isFinite(la)&&isFinite(lo)) pts.push([la,lo, e?parseFloat(e.textContent):NaN]); });
+      if(!pts.length) doc.querySelectorAll('coordinates').forEach(n=>n.textContent.trim().split(/\s+/).forEach(s=>{ const [lo,la]=s.split(',').map(Number); const el=s.split(',')[2]; if(isFinite(la)&&isFinite(lo)) pts.push([la,lo, el!==undefined?parseFloat(el):NaN]); }));
+      if(!pts.length) doc.querySelectorAll('Position').forEach(n=>{ const la=+((n.querySelector('LatitudeDegrees')||{}).textContent), lo=+((n.querySelector('LongitudeDegrees')||{}).textContent), al=n.parentNode&&n.parentNode.querySelector('AltitudeMeters'); if(isFinite(la)&&isFinite(lo)) pts.push([la,lo, al?parseFloat(al.textContent):NaN]); });
+    }
+  }catch(e){}
+  if(!pts.length){ try{ const j=JSON.parse(text);
+    const walk=g=>{ if(!g) return; if(g.type==='FeatureCollection') g.features.forEach(f=>walk(f.geometry)); else if(g.type==='Feature') walk(g.geometry);
+      else if(g.type==='LineString') g.coordinates.forEach(c=>pts.push([c[1],c[0],c.length>2?+c[2]:NaN])); else if(g.type==='MultiLineString') g.coordinates.forEach(l=>l.forEach(c=>pts.push([c[1],c[0],c.length>2?+c[2]:NaN]))); };
+    walk(j); }catch(e){} }
+  return pts.filter((p,i)=>Math.abs(p[0])<=90 && Math.abs(p[1])<=180 && (i===0 || p[0]!==pts[i-1][0] || p[1]!==pts[i-1][1]));
+}
+// 모양을 유지하면서 점 수 줄이기 (더글러스-포이커, 최대 maxN점)
+function simplifyCourse_(pts, maxN){
+  if(pts.length<=maxN) return pts;
+  const lat0=pts[0][0]*Math.PI/180, X=p=>p[1]*111.32*Math.cos(lat0), Y=p=>p[0]*110.57;
+  const run = tol => {
+    const keep=new Uint8Array(pts.length); keep[0]=keep[pts.length-1]=1; const st=[[0,pts.length-1]];
+    while(st.length){ const [a,b]=st.pop(); const ax=X(pts[a]), ay=Y(pts[a]), bx=X(pts[b]), by=Y(pts[b]), dx=bx-ax, dy=by-ay, L2=dx*dx+dy*dy; let md=0, mi=-1;
+      for(let i=a+1;i<b;i++){ const px=X(pts[i]), py=Y(pts[i]); let tt=L2?((px-ax)*dx+(py-ay)*dy)/L2:0; tt=Math.max(0,Math.min(1,tt)); const ex=ax+tt*dx-px, ey=ay+tt*dy-py, d=ex*ex+ey*ey; if(d>md){ md=d; mi=i; } }
+      if(mi>0 && md>tol*tol){ keep[mi]=1; st.push([a,mi],[mi,b]); } }
+    return pts.filter((_,i)=>keep[i]);
+  };
+  let tol=0.002, out=run(tol);           // 2m부터 시작해 점이 많으면 허용 오차를 늘린다
+  while(out.length>maxN && tol<0.2){ tol*=1.6; out=run(tol); }
+  return out;
+}
+const COURSE_GEO_ = new WeakMap();
+function courseGeo_(c){
+  if(COURSE_GEO_.has(c)) return COURSE_GEO_.get(c);
+  const pts=polyDecode_(c.poly||''), cum=[0]; for(let i=1;i<pts.length;i++) cum.push(cum[i-1]+haversineKm_(pts[i-1],pts[i]));
+  const ele=c.ele?eleDecode_(c.ele):null;
+  const g={pts, cum, total:cum[cum.length-1]||0, ele:(ele && ele.length===pts.length)?ele:null}; COURSE_GEO_.set(c,g); return g;
+}
+function pointAtKm_(g, km){
+  if(!g.pts.length) return null; if(km<=0) return g.pts[0]; if(km>=g.total) return g.pts[g.pts.length-1];
+  let lo=0, hi=g.cum.length-1; while(hi-lo>1){ const m=(lo+hi)>>1; if(g.cum[m]<=km) lo=m; else hi=m; }
+  const seg=g.cum[hi]-g.cum[lo], f=seg?(km-g.cum[lo])/seg:0, a=g.pts[lo], b=g.pts[hi];
+  return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f];
+}
+let LEAFLET_P_ = null;
+function loadLeaflet_(){
+  if(window.L) return Promise.resolve(window.L);
+  if(LEAFLET_P_) return LEAFLET_P_;
+  LEAFLET_P_ = new Promise((res,rej)=>{
+    const css=document.createElement('link'); css.rel='stylesheet'; css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(css);
+    const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    s.onload=()=>res(window.L); s.onerror=()=>{ LEAFLET_P_=null; rej(new Error('지도를 불러오지 못했어요')); }; document.head.appendChild(s);
+  });
+  return LEAFLET_P_;
+}
+const COURSE_COLORS_ = ['#1B2A41','#C0392B','#2E86C1','#7D3C98'];
+// 같은 대회에 코스가 여러 개면: 거리 긴 순(풀→하프→10K)으로 정렬하고, 색도 이 순서로 고정
+function sortedCourses_(list){ return [...(list||[])].sort((a,b)=>(b.distKm||0)-(a.distKm||0)); }
+function courseColor_(list, c){ return COURSE_COLORS_[Math.max(0,list.indexOf(c))%COURSE_COLORS_.length]; }
+function courseLabel_(c){ return c.event ? eventLabel_(c.event) : '모든 종목'; }
+function courseTabsHtml_(list, selId){
+  if(list.length<2) return '';
+  return list.map(c=>`<button type="button" class="course-tab${c.id===selId?' on':''}" data-course="${escapeHtml(c.id)}"><i style="background:${courseColor_(list,c)}"></i>${escapeHtml(courseLabel_(c))}<small>${(c.distKm||0).toFixed(1)}km</small></button>`).join('');
+}
+function makeCourseMap_(el, list, selId){
+  const L=window.L;
+  const map=L.map(el,{scrollWheelZoom:false, zoomSnap:0.5, zoomAnimation:false, fadeAnimation:false, markerZoomAnimation:false});   // 15초마다 주자 표시를 다시 그려서, 확대 애니메이션 중 갱신 오류가 나지 않게 끔
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
+  const base=L.layerGroup().addTo(map), runners=L.layerGroup().addTo(map);
+  const draw = sel => {
+    base.clearLayers(); let selB=null, allB=null;
+    const on = c => list.length===1 || !sel || c.id===sel;
+    [...list.filter(c=>!on(c)), ...list.filter(on)].forEach(c=>{      // 흐린 코스를 먼저, 고른 코스를 위에
+      const g=courseGeo_(c); if(g.pts.length<2) return;
+      const ln=L.polyline(g.pts, on(c) ? {color:courseColor_(list,c), weight:4.5, opacity:.9} : {color:'#8A94A6', weight:3, opacity:.4}).addTo(base);
+      allB=allB?allB.extend(ln.getBounds()):ln.getBounds();
+      if(!on(c)) return;
+      selB=selB?selB.extend(ln.getBounds()):ln.getBounds();
+      L.circleMarker(g.pts[0],{radius:6,color:'#fff',weight:2,fillColor:'#27AE60',fillOpacity:1}).bindTooltip('출발').addTo(base);
+      L.circleMarker(g.pts[g.pts.length-1],{radius:6,color:'#fff',weight:2,fillColor:'#C0392B',fillOpacity:1}).bindTooltip('도착').addTo(base);
+      for(let k=5;k<g.total-0.5;k+=5) L.marker(pointAtKm_(g,k),{icon:L.divIcon({className:'km-label',html:k+'K',iconSize:[28,15],iconAnchor:[14,7]}),interactive:false}).addTo(base);
+    });
+    return selB||allB;
+  };
+  let fitB=draw(selId), dead=false; map.on('unload',()=>{ dead=true; });   // 지운 지도에 늦게 도착한 맞추기 요청은 무시
+  const fit=()=>{ if(dead) return; map.invalidateSize(); if(fitB) map.fitBounds(fitB,{padding:[18,18]}); };
+  setTimeout(fit,60); setTimeout(fit,450);
+  return {map, runners, fit, setSel:id=>{ fitB=draw(id); fit(); }};
+}
+// 대회 상세: 코스 지도 미리보기 + (관리자) 코스 파일 올리기·지우기
+let RACE_MAP_ = null;
+const RACE_SEL_ = {};   // 대회별로 대회 상세에서 고른 코스
+function renderRaceElev_(list, c){
+  const box=document.getElementById('raceElev'), g=c&&courseGeo_(c);
+  if(!c){ box.hidden=true; box.innerHTML=''; return; }
+  box.hidden=false;
+  if(!g.ele){ box.innerHTML='<div class="photo-hint">이 코스 파일에는 고도 정보가 없어서 고저차 그래프를 그릴 수 없어요.</div>'; return; }
+  box.innerHTML=elevBlockHtml_('raceElevSvg');
+  renderElevSvg_(document.getElementById('raceElevSvg'), g, []); renderElevStats_(document.getElementById('raceElevSvgStats'), g);
+}
+function renderRaceCourse_(race){
+  const list=sortedCourses_(coursesCached_(race.id)), admin=isAdmin_();
+  const field=document.getElementById('raceCourseField');
+  field.style.display = (admin || list.length) ? 'block' : 'none';
+  document.getElementById('raceCourseAdmin').style.display = admin ? 'block' : 'none';
+  document.getElementById('raceCourseInfo').textContent = list.length ? `${list.length}개` : '';
+  document.getElementById('raceCourseList').innerHTML = admin ? list.map(c=>`<div class="course-row"><span>🗺 ${escapeHtml(courseLabel_(c))} · ${(c.distKm||0).toFixed(1)}km${c.name?` <small>${escapeHtml(c.name)}</small>`:''}</span><button type="button" class="small-action-inline btn-danger-text" data-course-del="${escapeHtml(c.id)}">삭제</button></div>`).join('') : '';
+  const sel=document.getElementById('raceCourseEvent');
+  sel.innerHTML = '<option value="">모든 종목</option>'+getEventOptionsForRace_(race).map(ev=>`<option value="${escapeHtml(ev)}">${escapeHtml(eventLabel_(ev))}</option>`).join('');
+  if(!list.some(c=>c.id===RACE_SEL_[race.id])) RACE_SEL_[race.id] = list[0] ? list[0].id : null;
+  const selC=list.find(c=>c.id===RACE_SEL_[race.id])||null;
+  const tabs=document.getElementById('raceCourseTabs'); tabs.innerHTML=courseTabsHtml_(list, RACE_SEL_[race.id]); tabs.hidden=list.length<2;
+  const mapEl=document.getElementById('raceCourseMap');
+  if(RACE_MAP_){ RACE_MAP_.map.remove(); RACE_MAP_=null; }
+  mapEl.hidden = !list.length;
+  renderRaceElev_(list, selC);
+  if(list.length) loadLeaflet_().then(()=>{ if(state.activeRace && state.activeRace.id===race.id && !RACE_MAP_){ RACE_MAP_=makeCourseMap_(mapEl, list, RACE_SEL_[race.id]); } }).catch(()=>{ mapEl.hidden=true; });
+}
+document.getElementById('raceCourseTabs').addEventListener('click', e=>{
+  const b=e.target.closest('[data-course]'); const race=state.activeRace; if(!b || !race) return;
+  const list=sortedCourses_(coursesCached_(race.id)); RACE_SEL_[race.id]=b.dataset.course;
+  document.querySelectorAll('#raceCourseTabs .course-tab').forEach(x=>x.classList.toggle('on', x.dataset.course===b.dataset.course));
+  if(RACE_MAP_) RACE_MAP_.setSel(b.dataset.course);
+  renderRaceElev_(list, list.find(c=>c.id===b.dataset.course));
+});
+document.getElementById('raceCourseInput').addEventListener('change', async e=>{
+  const f=e.target.files && e.target.files[0]; e.target.value=''; const race=state.activeRace; if(!f || !race) return;
+  const pts=parseCourseFile_(await f.text());
+  if(pts.length<2){ toast('코스 좌표를 찾지 못했어요. GPX·KML·TCX 파일인지 확인해 주세요'); return; }
+  const slim=simplifyCourse_(pts, 2000), distKm=Math.round(courseLenKm_(pts)*100)/100, event=document.getElementById('raceCourseEvent').value;
+  const eleArr=fillEle_(slim);
+  toast('코스 저장 중...');
+  const res=await apiPostBig_('saveCourse',{name:state.user, raceId:race.id, event, poly:polyEncode_(slim), ele:eleArr?eleEncode_(eleArr):'', distKm, fileName:f.name});
+  if(!res.ok){ toast(res.error||'코스를 저장하지 못했어요'); return; }
+  const list=(coursesCached_(race.id)||[]).filter(c=>String(c.event||'')!==String(event)).concat([res.course]);
+  setCourses_(race.id, list); renderRaceCourse_(race);
+  toast(`코스를 저장했어요 (${distKm.toFixed(1)}km)`);
+});
+document.getElementById('raceCourseList').addEventListener('click', async e=>{
+  const b=e.target.closest('[data-course-del]'); const race=state.activeRace; if(!b || !race) return;
+  const res=await apiPost('deleteCourse',{name:state.user, courseId:b.dataset.courseDel});
+  if(!res.ok){ toast(res.error||'지우지 못했어요'); return; }
+  setCourses_(race.id, (coursesCached_(race.id)||[]).filter(c=>c.id!==b.dataset.courseDel)); renderRaceCourse_(race); toast('코스를 지웠어요');
+});
+
 // 오늘(한국 날짜) 열리는 대회: 내가 참가한 대회 → 크루 참가자 많은 순
 function todayRaces_(){
   return state.races.filter(r=>raceDayDiff_(r)===0).map(r=>{
@@ -4299,6 +4569,8 @@ async function openRaceModal(raceId){
 
   renderParticipants(raceId);
   open_('raceOverlay');
+  renderRaceCourse_(race);
+  fetchCourses_(race.id).then(()=>{ if(state.activeRace && state.activeRace.id===race.id) renderRaceCourse_(race); }).catch(()=>{});
 }
 
 // 종목별 신청현황: 기본은 모두에게 읽기 전용으로 표시, 관리자는 "편집" 버튼을 눌러야 입력 폼으로 전환됨
@@ -4933,7 +5205,42 @@ if('serviceWorker' in navigator){
     if(loaded){ renderChart(); renderTable(); }
     tick();
   }
-  function tick(){ const t=nowSec(); $('trkNow').textContent=clock(t)+(TZ!=='Asia/Seoul'?' (현지)':''); if(!DATA.length) return; renderCards(t); renderTrack(t); }
+  // ----- 코스 지도: 주자마다 자기 거리에 맞는 코스 위에서 (추정 거리 ÷ 종목 거리) 비율 지점에 표시 -----
+  let MAP=null, MAPKEY='';
+  function courseFor(a,list){
+    const d=a.dist||FULL; let best=null, bd=1e9;
+    list.forEach(c=>{ const diff=Math.abs((c.distKm||0)-d)/d; if(diff<bd){ bd=diff; best=c; } });
+    return bd<=0.15 ? best : null;   // 종목 거리와 15% 안쪽으로 맞는 코스만 (안 맞는 코스에 억지로 올리지 않음)
+  }
+  let MAPSEL='';
+  // 기록 보기 맨 위의 종목 탭(풀·하프·10K)을 따라 그 종목 코스를 진하게, 그 종목 주자를 지도와 고저차 그래프에 표시
+  function renderMap(t){
+    const list=sortedCourses_((RACE && coursesCached_(RACE.id)) || []), wrap=$('trkMapWrap');
+    if(!list.length){ wrap.hidden=true; if(MAP){ MAP.map.remove(); MAP=null; MAPKEY=''; } return; }
+    wrap.hidden=false;
+    if(!window.L){ loadLeaflet_().then(()=>renderMap(nowSec())).catch(()=>{ $('trkMapNote').textContent='지도를 불러오지 못했어요'; }); return; }
+    const sc=courseFor({dist:COURSE}, list), selId=sc ? sc.id : 'none';
+    const key=RACE.id+'|'+list.map(c=>c.id).join(',');
+    if(!MAP || MAPKEY!==key){ if(MAP) MAP.map.remove(); MAP=makeCourseMap_($('trkMap'), list, selId); MAPKEY=key; MAPSEL=selId; }
+    else if(MAPSEL!==selId){ MAP.setSel(selId); MAPSEL=selId; }
+    MAP.runners.clearLayers();
+    const marks=[]; let shown=0;
+    DATA.forEach(a=>{
+      const c=courseFor(a,list); if(!c) return; const g=courseGeo_(c); if(g.pts.length<2) return;
+      const km=a.done ? (a.dist||FULL) : estKm(a,t), frac=Math.max(0,Math.min(1, km/(a.dist||FULL)));
+      window.L.circleMarker(pointAtKm_(g, frac*g.total),{radius:8,color:'#fff',weight:2.5,fillColor:col(a.color),fillOpacity:1}).bindTooltip(a.name+(a.done?' 완주':a.pre?'':' '+km.toFixed(1)+'km'),{permanent:true,direction:'top',offset:[0,-9],className:'map-tip'}).addTo(MAP.runners);
+      if(c===sc) marks.push({km:frac*g.total, color:col(a.color), label:a.name});
+      shown++;
+    });
+    { const box=$('trkElev'), g=sc&&courseGeo_(sc);
+      if(!g){ box.hidden=true; box.innerHTML=''; }
+      else if(!g.ele){ box.hidden=false; box.innerHTML='<div class="t-sub">이 코스 파일에는 고도 정보가 없어서 고저차 그래프를 그릴 수 없어요.</div>'; }
+      else{ if(!$('trkElevSvg')) box.innerHTML=elevBlockHtml_('trkElevSvg'); box.hidden=false;
+        renderElevSvg_($('trkElevSvg'), g, marks); renderElevStats_($('trkElevSvgStats'), g); } }
+    $('trkMapNote').textContent = !sc ? `${tabName(COURSE)} 코스 파일이 없어서 위치를 표시하지 못해요. 관리자가 대회 상세에서 이 종목 코스를 올리면 나와요.`
+      : shown ? '구간 기록과 페이스로 추정한 위치예요. 코스 파일 거리와 실제 거리가 다르면 비율로 맞춰 표시해요.' : '';
+  }
+  function tick(){ const t=nowSec(); $('trkNow').textContent=clock(t)+(TZ!=='Asia/Seoul'?' (현지)':''); if(!DATA.length){ renderMap(t); return; } renderCards(t); renderTrack(t); renderMap(t); }
 
   // ----- 그래프 길게 누르기 -----
   const HINT='<span class="t-hint">선 근처를 길게 누르면 그 사람의 구간 페이스가 여기 나와요.</span>';
@@ -5316,6 +5623,7 @@ if('serviceWorker' in navigator){
     (lsGet('sio-trk-extra-'+raceId,[])||[]).forEach(x=>{ if(x&&x.bib&&!RUNNERS.some(r=>r.bib===String(x.bib))) RUNNERS.push({name:x.name||('배번 '+x.bib), lookup:x.name||'', bib:String(x.bib), dist:x.dist||FULL, start:null, marks:[], loaded:false, ref:x.ref||'', extra:true, color:colorOf(RUNNERS.length)}); });
     EV=lsGet(evKey(raceId),null);
     $('trkTitle').textContent=race.raceName; renderSwitch();
+    fetchCourses_(raceId).then(()=>{ if(RACE && RACE.id===raceId) renderMap(nowSec()); }).catch(()=>{});   // 코스 지도: 저장된 코스로 먼저 그리고, 새로 받아와 갱신
     const dOk=/^\d{4}-\d{2}-\d{2}$/.test(RACE_DAY)&&RACE_DAY<'9999';
     SUBBASE=`${dOk?`${+RACE_DAY.slice(5,7)}월 ${+RACE_DAY.slice(8,10)}일(${'일월화수목금토'[new Date(RACE_DAY+'T12:00:00Z').getUTCDay()]})`:'날짜 미정'}`+(TZ!=='Asia/Seoul'?' · 현지 시간 '+(TZ.split('/')[1]||TZ).replace(/_/g,' '):''); setSub();
     $('trkMsg').textContent=''; Object.keys(AUTONOTE).forEach(k=>delete AUTONOTE[k]); $('trkAutoNote').hidden=true; $('trkRaw').textContent='아직 가져오지 않았어요.';
