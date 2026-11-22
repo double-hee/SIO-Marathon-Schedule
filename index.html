@@ -74,7 +74,7 @@
   .scrub-thumb{position:absolute; left:0; top:50%; width:22px; height:22px; border-radius:50%; background:#1B2A41; border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.3); transform:translate(-50%,-50%); pointer-events:none;}
   .scrub-info{font-size:12.5px; color:#6d675e; font-variant-numeric:tabular-nums; min-height:18px;}
   .scrub-info b{color:#1B2A41; font-family:'Roboto Mono',monospace;}
-  .elev-svg{touch-action:pan-y; cursor:ew-resize; -webkit-user-select:none; user-select:none;}
+  .elev-svg{touch-action:pan-y; -webkit-user-select:none; user-select:none;}
   .course-tabs{display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin:0 0 8px; padding-bottom:2px;}
   .course-tabs::-webkit-scrollbar{display:none;}
   .course-tab{flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; padding:6px 11px; border-radius:999px; border:1.5px solid #d9d3c9; background:#fff; color:#1B2A41; font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;}
@@ -2896,7 +2896,7 @@ function drawElevScrub_(svg, g, km){
   const m=svg._ev; if(!m) return; const old=svg.querySelector('.elev-scrub'); if(old) old.remove();
   const x=m.X(Math.max(0,Math.min(m.tot,km))), y=m.Y(eleAtKm_(g,km));
   const gEl=document.createElementNS('http://www.w3.org/2000/svg','g'); gEl.setAttribute('class','elev-scrub');
-  gEl.innerHTML=`<line x1="${x}" x2="${x}" y1="${m.T}" y2="${m.Y(m.y0)}" stroke="#1B2A41" stroke-width="1.5"/><circle cx="${x}" cy="${y}" r="6" fill="#FFD54F" stroke="#1B2A41" stroke-width="2.5"/>`;
+  gEl.innerHTML=`<line x1="${x}" x2="${x}" y1="${m.T}" y2="${m.Y(m.y0)}" stroke="transparent" stroke-width="28" style="cursor:ew-resize"/><line x1="${x}" x2="${x}" y1="${m.T}" y2="${m.Y(m.y0)}" stroke="#1B2A41" stroke-width="1.5"/><circle cx="${x}" cy="${y}" r="6" fill="#FFD54F" stroke="#1B2A41" stroke-width="2.5"/>`;
   svg.appendChild(gEl);
 }
 // 거리 막대(지도 아래) ↔ 지도 위 위치 ↔ 고저차 그래프 위치를 함께 움직인다
@@ -2962,7 +2962,11 @@ let ELEV_DRAG_=null;
 const elevPick_=(svg,clientX)=>{ const m=svg._ev, inp=document.getElementById(svg.dataset.scrubFor); if(!m||!inp) return;
   const r=svg.getBoundingClientRect(), x=(clientX-r.left)/r.width*m.W, km=Math.max(0,Math.min(m.tot,(x-m.L)/(m.W-m.L-m.R)*m.tot));
   inp.value=String(Math.round(km*100)); handleScrub_(inp); };
-document.addEventListener('pointerdown', e=>{ const svg=e.target.closest && e.target.closest('svg.elev-svg[data-scrub-for]'); if(!svg) return; ELEV_DRAG_=svg; SCRUB_TOUCH_=svg.dataset.scrubFor; elevPick_(svg,e.clientX); });
+// 세로 선(현재 위치)을 잡았을 때만 끌어서 옮긴다. 그래프 아무 데나 눌러서는 이동하지 않음
+const elevLineX_=svg=>{ const m=svg._ev; if(!m || svg.dataset.scrub===undefined || svg.dataset.scrub==='') return null; const r=svg.getBoundingClientRect(); return r.left + m.X(Math.max(0,Math.min(m.tot,+svg.dataset.scrub)))*r.width/m.W; };
+document.addEventListener('pointerdown', e=>{ const svg=e.target.closest && e.target.closest('svg.elev-svg[data-scrub-for]'); if(!svg) return;
+  const lx=elevLineX_(svg); if(lx==null || Math.abs(e.clientX-lx)>22) return;
+  ELEV_DRAG_=svg; SCRUB_TOUCH_=svg.dataset.scrubFor; try{ svg.setPointerCapture(e.pointerId); }catch(_){} elevPick_(svg,e.clientX); });
 document.addEventListener('pointermove', e=>{ if(ELEV_DRAG_) elevPick_(ELEV_DRAG_,e.clientX); });
 ['pointerup','pointercancel'].forEach(t=>document.addEventListener(t, ()=>{ ELEV_DRAG_=null; scrubTouchEnd_(); }));
 function eleAtKm_(g, km){
