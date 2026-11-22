@@ -52,11 +52,12 @@
   /* ---------- Shell ---------- */
   #shell{display:none; flex-direction:column; min-height:100vh;}
   .course-map{height:280px; border-radius:12px; overflow:hidden; isolation:isolate; background:#e8e4dc; margin-bottom:8px;}
-  .trk-mapwrap{margin-top:12px;}
+  .trk-mapwrap{margin-top:12px;} #trkEstNote{margin:8px 0 0;}
   .trk-note{margin:0 0 12px;} .trk-note:empty{display:none;}
   .trk-mapline{border-top:1px solid var(--t-line, #ece7de); margin-bottom:12px;}
   .course-tabs[hidden]{display:none;}
   .scrub[hidden]{display:none;}
+  #raceScrubWrap .scrub-bar{margin-left:calc(100% * 40 / 360); margin-right:calc(100% * 10 / 360);}   /* 대회 상세: 고저차 그래프 가로 축과 맞춤 */
   #trkScrubWrap .scrub-bar{margin-left:calc(100% * 74 / 600); margin-right:calc(100% * 80 / 600);}   /* 구간별 페이스·고저차 그래프와 가로 축을 맞춤 */
   .leaflet-control .map-move-btn, .map-move-btn{font:600 12px 'Pretendard',sans-serif; color:var(--navy,#1B2A41); background:#fff; border:1.5px solid var(--navy,#1B2A41); border-radius:999px; padding:5px 11px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.18); white-space:nowrap;}
   .map-move-btn.on{background:var(--navy,#1B2A41); color:#fff;}
@@ -1104,7 +1105,7 @@
       <h2 class="t-h">지금 어디쯤 (추정)</h2>
       <div class="t-panel">   <!-- 지금 어디쯤: 거리 막대 그림 + (코스가 있으면) 지도·거리 막대·고저차 -->
         <div class="t-scroll"><svg id="trkTrack" width="100%" viewBox="0 0 600 190" role="img" aria-label="코스 위 추정 위치"></svg></div>
-        <div id="trkMapWrap" class="trk-mapwrap" hidden><div class="t-sub trk-note" id="trkMapNote"></div><div class="trk-mapline"></div><div class="course-map" id="trkMap"></div><div class="scrub" id="trkScrubWrap" hidden><div class="scrub-bar" data-for="trkScrub" role="slider" tabindex="0" aria-label="코스 위 거리" aria-valuemin="0" aria-valuenow="0"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div><input type="range" id="trkScrub" min="0" max="100" step="1" value="0" hidden><div class="scrub-info" id="trkScrubInfo">막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요</div></div><div id="trkElev" hidden></div></div>
+        <div class="t-sub trk-note" id="trkEstNote"></div><div id="trkMapWrap" class="trk-mapwrap" hidden><div class="trk-mapline"></div><div class="t-sub trk-note" id="trkMapNote"></div><div class="course-map" id="trkMap"></div><div class="scrub" id="trkScrubWrap" hidden><div class="scrub-bar" data-for="trkScrub" role="slider" tabindex="0" aria-label="코스 위 거리" aria-valuemin="0" aria-valuenow="0"><div class="scrub-fill"></div><div class="scrub-thumb"></div></div><input type="range" id="trkScrub" min="0" max="100" step="1" value="0" hidden><div class="scrub-info" id="trkScrubInfo">막대를 좌우로 움직이면 그 거리의 위치가 지도에 나와요</div></div><div id="trkElev" hidden></div></div>
       </div>
       <h2 class="t-h">구간별 페이스</h2>
       <div class="t-panel">
@@ -5392,6 +5393,7 @@ if('serviceWorker' in navigator){
   // 기록 보기 맨 위의 종목 탭(풀·하프·10K)을 따라 그 종목 코스를 진하게, 그 종목 주자를 지도와 고저차 그래프에 표시
   function renderMap(t){
     const list=sortedCourses_((RACE && coursesCached_(RACE.id)) || []), wrap=$('trkMapWrap');
+    $('trkEstNote').textContent = DATA.length ? '구간 기록과 페이스로 추정한 위치예요.'+(list.length?' 코스 파일 거리와 실제 거리가 다르면 비율로 맞춰 표시해요.':'') : '';   // 지도가 없어도 추정 안내는 항상
     if(!list.length){ wrap.hidden=true; if(MAP){ MAP.map.remove(); MAP=null; MAPKEY=''; } return; }
     wrap.hidden=false;
     if(!window.L){ loadLeaflet_().then(()=>renderMap(nowSec())).catch(()=>{ $('trkMapNote').textContent='지도를 불러오지 못했어요'; }); return; }
@@ -5417,7 +5419,7 @@ if('serviceWorker' in navigator){
     if(SCRUB_KEY!==RACE.id+'|'+selId){ if(SCRUB_KEY.split('|')[0]!==RACE.id) resetScrub_('trkScrub'); const sv=$('trkElevSvg'); if(sv) delete sv.dataset.scrub; SCRUB_KEY=RACE.id+'|'+selId; setupScrub_('trkScrub',scrubReg); }
     else SCRUB_.trkScrub = scrubReg;
     $('trkMapNote').textContent = !sc ? `${tabName(COURSE)} 코스 파일이 없어서 위치를 표시하지 못해요. 관리자가 대회 상세에서 이 종목 코스를 올리면 나와요.`
-      : shown ? '구간 기록과 페이스로 추정한 위치예요. 코스 파일 거리와 실제 거리가 다르면 비율로 맞춰 표시해요.' : '';
+      : '';
   }
   function tick(){ const t=nowSec(); $('trkNow').textContent=clock(t)+(TZ!=='Asia/Seoul'?' (현지)':''); if(!DATA.length){ renderMap(t); return; } renderCards(t); renderTrack(t); renderMap(t); }
 
