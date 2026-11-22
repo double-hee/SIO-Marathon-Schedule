@@ -3071,17 +3071,17 @@ function makeCourseMap_(el, list, selId){
     return selB||allB;
   };
   // 지도 이동: 꺼져 있으면 지도를 만져도 화면이 위아래로 스크롤되고, 켜면 지도를 끌기·확대·축소할 수 있다 (기본: 꺼짐)
-  const zoomCtl=L.control.zoom({position:'topleft'}); let moving=false, moveBtn=null, fitCtl=null;
-  // 전체 보기: 누르면 코스 전체가 보이게 맞춤 (지도 이동 ON/OFF와 상관없이 늘 보임)
-  const FitCtl=L.Control.extend({ options:{position:'topleft'}, onAdd(){ const d=L.DomUtil.create('div','leaflet-bar map-fit-ctl'), a=L.DomUtil.create('a','map-fit-btn',d);
-    a.href='#'; a.title='코스 전체 보기'; a.setAttribute('role','button'); a.setAttribute('aria-label','코스 전체 보기');
-    a.innerHTML='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    L.DomEvent.disableClickPropagation(d); L.DomEvent.on(a,'click',e=>{ L.DomEvent.stop(e); fit(); }); return d; } });
-  fitCtl=new FitCtl();
+  const zoomCtl=L.control.zoom({position:'topleft', zoomInTitle:'확대', zoomOutTitle:'축소'}); let moving=false, moveBtn=null, fitCtl=null;
+  // 왼쪽 위 버튼 (지도 이동 ON/OFF와 상관없이 늘 보임): 확대 · 축소 · 현재 위치를 가운데로 · 코스 전체 보기
+  const navBtn=(d,cls,title,svg,fn)=>{ const a=L.DomUtil.create('a',cls,d); a.href='#'; a.title=title; a.setAttribute('role','button'); a.setAttribute('aria-label',title);
+    a.innerHTML='<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">'+svg+'</svg>'; L.DomEvent.on(a,'click',e=>{ L.DomEvent.stop(e); fn(); }); };
+  const FitCtl=L.Control.extend({ options:{position:'topleft'}, onAdd(){ const d=L.DomUtil.create('div','leaflet-bar map-fit-ctl');
+    navBtn(d,'map-fit-btn map-center-btn','현재 위치를 가운데로','<circle cx="10" cy="10" r="3.2" fill="currentColor"/><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 1.5v3M10 15.5v3M1.5 10h3M15.5 10h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>', ()=>{ if(scrub) map.panTo(scrub.getLatLng(),{animate:false}); });
+    navBtn(d,'map-fit-btn','코스 전체 보기','<path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>', ()=>fit());
+    L.DomEvent.disableClickPropagation(d); return d; } });
+  fitCtl=new FitCtl(); zoomCtl.addTo(map); fitCtl.addTo(map);
   const setMove=on=>{ moving=on;
     ['dragging','touchZoom','doubleClickZoom','boxZoom','keyboard'].forEach(h=>{ if(map[h]) on ? map[h].enable() : map[h].disable(); });
-    if(on) zoomCtl.addTo(map); else zoomCtl.remove();
-    if(fitCtl){ fitCtl.remove(); fitCtl.addTo(map); }   // 전체 보기 버튼은 늘 확대·축소 버튼 아래
     el.style.touchAction = on ? 'none' : 'pan-y';
     el.classList.toggle('map-moving', on);
     if(moveBtn){ moveBtn.classList.toggle('on', on); moveBtn.setAttribute('aria-pressed', String(on)); moveBtn.textContent = on ? '지도 이동 ON' : '지도 이동 OFF'; }
