@@ -55,6 +55,7 @@
   .trk-mapwrap{margin-top:12px; padding-top:12px; border-top:1px solid var(--t-line, #ece7de);}
   .course-tabs[hidden]{display:none;}
   .scrub[hidden]{display:none;}
+  #trkScrubWrap .scrub-bar{margin-left:calc(100% * 74 / 600); margin-right:calc(100% * 80 / 600);}   /* 구간별 페이스·고저차 그래프와 가로 축을 맞춤 */
   .leaflet-control .map-move-btn, .map-move-btn{font:600 12px 'Pretendard',sans-serif; color:var(--navy,#1B2A41); background:#fff; border:1.5px solid var(--navy,#1B2A41); border-radius:999px; padding:5px 11px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.18); white-space:nowrap;}
   .map-move-btn.on{background:var(--navy,#1B2A41); color:#fff;}
   .course-map.map-moving{box-shadow:0 0 0 2px var(--navy,#1B2A41);}
@@ -2863,15 +2864,17 @@ function eleStats_(ele){
   return {up:Math.round(up), dn:Math.round(dn), max:Math.round(Math.max(...ele)), min:Math.round(Math.min(...ele))};
 }
 // 거리–고도 그래프 (SVG). marks: [{km, color, label}] → 주자 위치 표시
-function renderElevSvg_(svg, g, marks){
-  const W=360, H=200, L=40, R=10, T=14, B=24, ele=g.ele;   // 폰 화면 폭에 맞춘 비율 (글자가 작아지지 않게) if(!ele || !ele.length){ svg.innerHTML=''; return; }
+function renderElevSvg_(svg, g, marks, opt){
+  opt=opt||{};   // opt.lf/opt.rf: 왼쪽·오른쪽 여백(폭 비율), opt.axisKm: 눈금을 공식 거리로 (기록 보기: 구간별 페이스 그래프와 가로 축을 맞춤)
+  const W=360, H=200, L=opt.lf!=null?W*opt.lf:40, R=opt.rf!=null?W*opt.rf:10, T=14, B=24, ele=g.ele;   // 폰 화면 폭에 맞춘 비율 (글자가 작아지지 않게)
+  if(!ele || !ele.length){ svg.innerHTML=''; return; }
   const lo=Math.min(...ele), hi=Math.max(...ele), span=Math.max(20, hi-lo), step=span<=40?10:span<=100?20:span<=250?50:100;
   const y0=Math.floor((lo-span*0.08)/step)*step, y1=Math.ceil((hi+span*0.15)/step)*step, tot=g.total||1;
   const X=km=>L+(W-L-R)*km/tot, Y=e=>T+(H-T-B)*(1-(e-y0)/(y1-y0));
   let h='';
   for(let v=y0; v<=y1+1e-9; v+=step){ const y=Y(v); h+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--el-grid)" stroke-width="1"/><text x="${L-6}" y="${y+4}" text-anchor="end" style="font-size:10.5px" fill="var(--el-muted)">${v}m</text>`; }
-  const kst = tot>30?10:tot>12?5:tot>6?2:1;
-  for(let k=0; k<=tot+1e-9; k+=kst){ const x=X(k); h+=`<text x="${x}" y="${H-6}" text-anchor="middle" style="font-size:10.5px" fill="var(--el-muted)">${k} km</text>`; }
+  const ax=opt.axisKm||tot, kst = ax>30?10:ax>12?5:ax>6?2:1;
+  for(let k=0; k<=ax+1e-9; k+=kst){ const x=X(k*tot/ax); h+=`<text x="${x}" y="${H-6}" text-anchor="middle" style="font-size:10.5px" fill="var(--el-muted)">${k} km</text>`; }
   let d=''; g.cum.forEach((c,i)=>{ d+=(i?'L':'M')+X(c).toFixed(1)+','+Y(ele[i]).toFixed(1); });
   h+=`<path d="${d}L${X(tot).toFixed(1)},${Y(y0)}L${X(0)},${Y(y0)}Z" fill="var(--el-fill)"/><path d="${d}" fill="none" stroke="var(--el-line)" stroke-width="2" stroke-linejoin="round"/>`;
   // 주자: 세로 점선 + 점 + 이름 (가까우면 이름을 위로 쌓음)
@@ -2900,6 +2903,7 @@ function handleScrub_(inp){
   const info=document.getElementById(inp.id+'Info');
   if(info) info.innerHTML=`<b>${km.toFixed(2)} km</b>${g.ele?` · 고도 ${Math.round(eleAtKm_(g,km))} m`:''} · 남은 거리 ${(g.total-km).toFixed(2)} km`;
   const svg=document.querySelector(`svg[data-scrub-for="${inp.id}"]`); if(svg){ svg.dataset.scrub=String(km); drawElevScrub_(svg, g, km); }
+  if(SCRUB_TOUCH_===inp.id && reg.onMove) reg.onMove(g.total ? km/g.total : 0);
 }
 function drawScrubBar_(id, frac, km){
   const bar=document.querySelector(`.scrub-bar[data-for="${id}"]`); if(!bar) return; const pct=(Math.max(0,Math.min(1,frac))*100).toFixed(3)+'%';
@@ -2907,12 +2911,13 @@ function drawScrubBar_(id, frac, km){
   bar.setAttribute('aria-valuenow', km!=null ? km.toFixed(2) : '0'); bar.setAttribute('aria-valuetext', km!=null ? km.toFixed(2)+' km' : '0 km');
 }
 // 막대를 누르거나 좌우로 끌면 그 비율의 거리로 (막대 왼쪽 끝 = 0km, 오른쪽 끝 = 도착)
-let SCRUB_DRAG_=null;
+let SCRUB_DRAG_=null, SCRUB_TOUCH_=null;
+const scrubTouchEnd_=()=>{ if(SCRUB_TOUCH_){ const r=SCRUB_[SCRUB_TOUCH_]; SCRUB_TOUCH_=null; if(r && r.onEnd) r.onEnd(); } };
 const scrubAt_=(bar,clientX)=>{ const inp=document.getElementById(bar.dataset.for); if(!inp) return; const r=bar.getBoundingClientRect();
   const f=Math.max(0,Math.min(1,(clientX-r.left)/r.width)); inp.value=String(Math.round(f*(+inp.max||0))); handleScrub_(inp); };
-document.addEventListener('pointerdown', e=>{ const bar=e.target.closest && e.target.closest('.scrub-bar'); if(!bar) return; SCRUB_DRAG_=bar; try{ bar.setPointerCapture(e.pointerId); }catch(_){} scrubAt_(bar,e.clientX); e.preventDefault(); });
+document.addEventListener('pointerdown', e=>{ const bar=e.target.closest && e.target.closest('.scrub-bar'); if(!bar) return; SCRUB_DRAG_=bar; SCRUB_TOUCH_=bar.dataset.for; try{ bar.setPointerCapture(e.pointerId); }catch(_){} scrubAt_(bar,e.clientX); e.preventDefault(); });
 document.addEventListener('pointermove', e=>{ if(SCRUB_DRAG_) scrubAt_(SCRUB_DRAG_,e.clientX); });
-['pointerup','pointercancel'].forEach(t=>document.addEventListener(t, ()=>{ SCRUB_DRAG_=null; }));
+['pointerup','pointercancel'].forEach(t=>document.addEventListener(t, ()=>{ SCRUB_DRAG_=null; scrubTouchEnd_(); }));
 document.addEventListener('keydown', e=>{ const bar=e.target.closest && e.target.closest('.scrub-bar'); if(!bar) return; const inp=document.getElementById(bar.dataset.for); if(!inp) return;
   const step={ArrowRight:10, ArrowUp:10, ArrowLeft:-10, ArrowDown:-10, PageUp:100, PageDown:-100}[e.key]; let v=+inp.value||0;
   if(step) v+=step; else if(e.key==='Home') v=0; else if(e.key==='End') v=+inp.max||0; else return;
@@ -2931,9 +2936,9 @@ let ELEV_DRAG_=null;
 const elevPick_=(svg,clientX)=>{ const m=svg._ev, inp=document.getElementById(svg.dataset.scrubFor); if(!m||!inp) return;
   const r=svg.getBoundingClientRect(), x=(clientX-r.left)/r.width*m.W, km=Math.max(0,Math.min(m.tot,(x-m.L)/(m.W-m.L-m.R)*m.tot));
   inp.value=String(Math.round(km*100)); handleScrub_(inp); };
-document.addEventListener('pointerdown', e=>{ const svg=e.target.closest && e.target.closest('svg.elev-svg[data-scrub-for]'); if(!svg) return; ELEV_DRAG_=svg; elevPick_(svg,e.clientX); });
+document.addEventListener('pointerdown', e=>{ const svg=e.target.closest && e.target.closest('svg.elev-svg[data-scrub-for]'); if(!svg) return; ELEV_DRAG_=svg; SCRUB_TOUCH_=svg.dataset.scrubFor; elevPick_(svg,e.clientX); });
 document.addEventListener('pointermove', e=>{ if(ELEV_DRAG_) elevPick_(ELEV_DRAG_,e.clientX); });
-['pointerup','pointercancel'].forEach(t=>document.addEventListener(t, ()=>{ ELEV_DRAG_=null; }));
+['pointerup','pointercancel'].forEach(t=>document.addEventListener(t, ()=>{ ELEV_DRAG_=null; scrubTouchEnd_(); }));
 function eleAtKm_(g, km){
   if(!g.ele) return 0; if(km<=0) return g.ele[0]; if(km>=g.total) return g.ele[g.ele.length-1];
   let lo=0, hi=g.cum.length-1; while(hi-lo>1){ const m=(lo+hi)>>1; if(g.cum[m]<=km) lo=m; else hi=m; }
@@ -3059,6 +3064,7 @@ function makeCourseMap_(el, list, selId){
   if(fitB) map.fitBounds(fitB,{padding:[18,18]}); else map.setView([37.5,127],11);   // 처음부터 위치를 정해 둬야 거리 막대 표시 등이 바로 동작   // 지운 지도에 늦게 도착한 맞추기 요청은 무시
   const fit=()=>{ if(dead) return; map.invalidateSize(); if(fitB) map.fitBounds(fitB,{padding:[18,18]}); };
   setTimeout(fit,60); setTimeout(fit,450);
+  if(window.ResizeObserver){ let lastW=0; new ResizeObserver(()=>{ if(dead) return; const w=el.clientWidth, h=el.clientHeight; if(!w||!h) return; const wasZero=!lastW; lastW=w; map.invalidateSize(); if(wasZero) fit(); }).observe(el); }   // 숨겨진 상태에서 만들어졌다가 보이게 되면 크기를 다시 계산
   return {map, runners, fit, setSel:id=>{ fitB=draw(id); fit(); }, setScrub};
 }
 // 대회 상세: 코스 지도 미리보기 + (관리자) 코스 파일 올리기·지우기
@@ -5264,6 +5270,14 @@ if('serviceWorker' in navigator){
     });
     svg.innerHTML=s;
   }
+  // 거리 막대·고저차 그래프를 만지는 동안: 구간별 페이스 그래프에 같은 지점 세로 점선 (frac: 코스 비율, null이면 지움)
+  function paceScrubLine(frac){
+    const svg=$('trkChart'); if(!svg) return; const old=svg.querySelector('.pace-scrub'); if(old) old.remove();
+    if(frac==null || !CH) return; const d=frac*COURSE, x=CH.sx(d);
+    const gEl=document.createElementNS('http://www.w3.org/2000/svg','g'); gEl.setAttribute('class','pace-scrub');
+    gEl.innerHTML=`<line x1="${x}" x2="${x}" y1="${CH.T}" y2="${CH.B}" stroke="#1B2A41" stroke-width="2" stroke-dasharray="6 5"/><text x="${Math.min(CH.R-4,Math.max(CH.L+4,x))}" y="${CH.T-6}" text-anchor="middle" style="fill:#1B2A41;font-weight:700;font-size:15px">${d.toFixed(1)}km</text>`;
+    svg.appendChild(gEl);
+  }
   function renderChart(){
     const L=74,R=520,T=24,B=316, svg=$('trkChart'), RUN=picked();
     if(!RUN.length){ CH=null; svg.innerHTML=`<text x="300" y="190" text-anchor="middle">5K 기록이 들어오면 그래프가 나와요</text><g id="trkXhair"></g>`; $('trkLegend').innerHTML=''; drawXhair(); return; }
@@ -5396,9 +5410,10 @@ if('serviceWorker' in navigator){
       if(!g){ box.hidden=true; box.innerHTML=''; }
       else if(!g.ele){ box.hidden=false; box.innerHTML='<div class="t-sub">이 코스 파일에는 고도 정보가 없어서 고저차 그래프를 그릴 수 없어요.</div>'; }
       else{ if(!$('trkElevSvg')) box.innerHTML=elevBlockHtml_('trkElevSvg','trkScrub'); box.hidden=false;
-        renderElevSvg_($('trkElevSvg'), g, marks); renderElevStats_($('trkElevSvgStats'), g); } }
-    if(SCRUB_KEY!==RACE.id+'|'+selId){ if(SCRUB_KEY.split('|')[0]!==RACE.id) resetScrub_('trkScrub'); const sv=$('trkElevSvg'); if(sv) delete sv.dataset.scrub; SCRUB_KEY=RACE.id+'|'+selId; setupScrub_('trkScrub',{map:()=>MAP, course:()=>sc}); }
-    else SCRUB_.trkScrub = {map:()=>MAP, course:()=>sc};
+        renderElevSvg_($('trkElevSvg'), g, marks, {lf:74/600, rf:80/600, axisKm:COURSE}); renderElevStats_($('trkElevSvgStats'), g); } }
+    const scrubReg={map:()=>MAP, course:()=>sc, onMove:paceScrubLine, onEnd:()=>paceScrubLine(null)};
+    if(SCRUB_KEY!==RACE.id+'|'+selId){ if(SCRUB_KEY.split('|')[0]!==RACE.id) resetScrub_('trkScrub'); const sv=$('trkElevSvg'); if(sv) delete sv.dataset.scrub; SCRUB_KEY=RACE.id+'|'+selId; setupScrub_('trkScrub',scrubReg); }
+    else SCRUB_.trkScrub = scrubReg;
     $('trkMapNote').textContent = !sc ? `${tabName(COURSE)} 코스 파일이 없어서 위치를 표시하지 못해요. 관리자가 대회 상세에서 이 종목 코스를 올리면 나와요.`
       : shown ? '구간 기록과 페이스로 추정한 위치예요. 코스 파일 거리와 실제 거리가 다르면 비율로 맞춰 표시해요.' : '';
   }
